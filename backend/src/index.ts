@@ -29,8 +29,21 @@ app.use(helmet({
 app.use(cors())
 app.use(express.json())
 
+// デバッグ用のリクエストロガー（ルート設定より前に配置）
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`)
+  console.log('Headers:', JSON.stringify(req.headers, null, 2))
+  console.log('Body:', req.body)
+  next()
+})
+
 // 静的ファイル配信（アップロードされた動画）
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
+
+// ヘルスチェック
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() })
+})
 
 // ルート (末尾スラッシュの両方に対応)
 app.use('/api/auth', authRoutes)
@@ -45,19 +58,6 @@ app.use('/api/users', userRoutes)
 app.use('/api/users/', userRoutes)
 app.use('/api/groups', groupRoutes)
 app.use('/api/groups/', groupRoutes)
-
-// ヘルスチェック
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() })
-})
-
-// 本番環境用のリクエストロガー
-if (process.env.NODE_ENV === 'production') {
-  app.use('*', (req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`)
-    next()
-  })
-}
 
 // 404ハンドラー
 app.use((req, res) => {
