@@ -1,55 +1,353 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import AdminPageWrapper from '@/components/AdminPageWrapper'
+import { userAPI, UserData, groupAPI, Group } from '@/lib/api'
+import { isAdmin } from '@/lib/auth'
 
 export default function NotificationsPage() {
+  console.log('🔔 NotificationsPage component is loading!')
+  
   const router = useRouter()
-  const [currentPath, setCurrentPath] = useState('Loading...')
-  
-  console.log('🔥🔥🔥 SIMPLE NOTIFICATIONS PAGE LOADING 🔥🔥🔥')
-  
-  // SSRではwindowアクセスを避ける
-  if (typeof window !== 'undefined') {
-    console.log('🔥 Current window.location:', window.location)
-    console.log('🔥 Current window.location.href:', window.location.href)
-    console.log('🔥 Current window.location.pathname:', window.location.pathname)
-  } else {
-    console.log('🔥 Running on server side - window not available')
-  }
-  
+  const [activeTab, setActiveTab] = useState<'first-login' | 'inactive-users'>('first-login')
+  const [firstLoginPendingUsers, setFirstLoginPendingUsers] = useState<UserData[]>([])
+  const [inactiveUsers, setInactiveUsers] = useState<UserData[]>([])
+  const [groups, setGroups] = useState<Group[]>([])
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
+  const [daysSinceLogin, setDaysSinceLogin] = useState<number>(7)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
   useEffect(() => {
-    console.log('🔥 useEffect - Component mounted')
-    console.log('🔥 useEffect - window.location.href:', window.location.href)
-    console.log('🔥 useEffect - window.location.pathname:', window.location.pathname)
-    
-    // 状態を更新してハイドレーションエラーを防ぐ
-    setCurrentPath(window.location.pathname)
-    
-    // 1秒後にもう一度確認
-    setTimeout(() => {
-      console.log('🔥 After 1 second - window.location.href:', window.location.href)
-      console.log('🔥 After 1 second - window.location.pathname:', window.location.pathname)
-      setCurrentPath(window.location.pathname)
-    }, 1000)
-  }, [])
-  
+    console.log('🔔 NotificationsPage useEffect triggered')
+    fetchData()
+  }, [activeTab, daysSinceLogin])
+
+  const fetchData = async () => {
+    console.log('🔔 Fetching data...')
+    setLoading(true)
+    try {
+      // 基本的なデータセット（モック）を使用
+      setGroups([
+        { id: 1, name: 'グループA', code: 'GA001', description: 'サンプルグループA' },
+        { id: 2, name: 'グループB', code: 'GB001', description: 'サンプルグループB' }
+      ])
+      
+      setFirstLoginPendingUsers([
+        { 
+          id: 1, 
+          name: '田中太郎', 
+          email: 'tanaka@example.com', 
+          role: 'USER', 
+          isFirstLogin: true,
+          createdAt: '2024-07-15T10:00:00Z',
+          groupId: 1
+        },
+        { 
+          id: 2, 
+          name: '佐藤花子', 
+          email: 'sato@example.com', 
+          role: 'USER', 
+          isFirstLogin: true,
+          createdAt: '2024-07-10T10:00:00Z',
+          groupId: 2
+        }
+      ])
+      
+      setInactiveUsers([
+        { 
+          id: 3, 
+          name: '山田次郎', 
+          email: 'yamada@example.com', 
+          role: 'USER', 
+          isFirstLogin: false,
+          createdAt: '2024-07-01T10:00:00Z',
+          lastLoginAt: '2024-07-05T10:00:00Z',
+          groupId: 1
+        }
+      ])
+      
+      setError('')
+      console.log('🔔 Data fetched successfully')
+    } catch (error: any) {
+      console.error('🔔 Fetch data error:', error)
+      setError('データの取得に失敗しました')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ja-JP')
+  }
+
+  const getDaysSinceCreation = (createdAt: string) => {
+    const created = new Date(createdAt)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - created.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+  }
+
+  const getUrgencyLevel = (daysSince: number) => {
+    if (daysSince >= 7) return { level: 'high', color: 'bg-red-100 text-red-800', label: '緊急' }
+    if (daysSince >= 3) return { level: 'medium', color: 'bg-yellow-100 text-yellow-800', label: '注意' }
+    return { level: 'low', color: 'bg-green-100 text-green-800', label: '通常' }
+  }
+
+  const sendReminderEmail = async (userId: number) => {
+    alert(`ユーザーID ${userId} にリマインダーメールを送信しました（実装予定）`)
+  }
+
+  const getFilteredUsers = (users: UserData[]) => {
+    if (selectedGroupId === null) {
+      return users
+    }
+    return users.filter(user => user.groupId === selectedGroupId)
+  }
+
+  console.log('🔔 About to render NotificationsPage')
+
   return (
-    <div style={{ 
-      padding: '40px', 
-      backgroundColor: 'red', 
-      color: 'white', 
-      fontSize: '24px',
-      textAlign: 'center',
-      border: '10px solid yellow'
-    }}>
-      <h1>🔥 通知・アラートページ 🔥</h1>
-      <p>これが表示されればNext.jsルーティングは動作しています</p>
-      <p>現在のパス: {currentPath}</p>
-      <div style={{ marginTop: '20px', fontSize: '16px' }}>
-        <p>✅ NotificationsPage コンポーネントが読み込まれました</p>
-        <p>✅ /admin/notifications ルートが正常に動作しています</p>
+    <AdminPageWrapper title="通知・アラート" description="ユーザーのログイン状況とアラート管理">
+      {/* 成功確認デバッグ情報 */}
+      <div className="bg-green-50 border border-green-200 p-4 rounded mb-6">
+        <h2 className="text-lg font-semibold text-green-800 mb-2">✅ 通知・アラートページが正常に表示されました</h2>
+        <div className="text-sm text-green-700 space-y-1">
+          <p>• コンポーネント: NotificationsPage</p>
+          <p>• 初回ログイン未完了ユーザー: {firstLoginPendingUsers.length}名</p>
+          <p>• 非アクティブユーザー: {inactiveUsers.length}名</p>
+          <p>• 登録グループ数: {groups.length}個</p>
+        </div>
       </div>
-    </div>
+
+      {/* タブ切り替え */}
+      <div className="mb-8">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('first-login')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'first-login'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              🔐 初回ログイン未完了
+            </button>
+            <button
+              onClick={() => setActiveTab('inactive-users')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'inactive-users'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              ⏰ 長期間未ログイン
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {/* フィルター */}
+      <div className="mb-6 bg-white rounded-lg shadow p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="form-label">グループフィルター</label>
+            <select
+              value={selectedGroupId || ''}
+              onChange={(e) => setSelectedGroupId(e.target.value ? parseInt(e.target.value) : null)}
+              className="form-input"
+            >
+              <option value="">すべてのグループ</option>
+              {groups.map(group => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {activeTab === 'inactive-users' && (
+            <div>
+              <label className="form-label">未ログイン日数</label>
+              <select
+                value={daysSinceLogin}
+                onChange={(e) => setDaysSinceLogin(parseInt(e.target.value))}
+                className="form-input"
+              >
+                <option value={3}>3日以上</option>
+                <option value={7}>7日以上</option>
+                <option value={14}>14日以上</option>
+                <option value={30}>30日以上</option>
+                <option value={60}>60日以上</option>
+              </select>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-6 rounded-md bg-red-50 p-4">
+          <p className="text-sm text-red-800">{error}</p>
+        </div>
+      )}
+
+      {/* 概要統計 */}
+      {activeTab === 'first-login' && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-sm font-medium text-gray-500">初回ログイン未完了</h3>
+            <p className="text-3xl font-bold text-red-600">{getFilteredUsers(firstLoginPendingUsers).length}</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-sm font-medium text-gray-500">7日以上経過</h3>
+            <p className="text-3xl font-bold text-red-600">
+              {getFilteredUsers(firstLoginPendingUsers).filter(user => getDaysSinceCreation(user.createdAt) >= 7).length}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-sm font-medium text-gray-500">3-6日経過</h3>
+            <p className="text-3xl font-bold text-yellow-600">
+              {getFilteredUsers(firstLoginPendingUsers).filter(user => {
+                const days = getDaysSinceCreation(user.createdAt)
+                return days >= 3 && days < 7
+              }).length}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-sm font-medium text-gray-500">2日以内</h3>
+            <p className="text-3xl font-bold text-green-600">
+              {getFilteredUsers(firstLoginPendingUsers).filter(user => getDaysSinceCreation(user.createdAt) < 3).length}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'inactive-users' && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-sm font-medium text-gray-500">長期間未ログイン</h3>
+            <p className="text-3xl font-bold text-red-600">{getFilteredUsers(inactiveUsers).length}</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-sm font-medium text-gray-500">30日以上</h3>
+            <p className="text-3xl font-bold text-red-600">0</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-sm font-medium text-gray-500">7-29日</h3>
+            <p className="text-3xl font-bold text-yellow-600">1</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-sm font-medium text-gray-500">一度も未ログイン</h3>
+            <p className="text-3xl font-bold text-gray-600">0</p>
+          </div>
+        </div>
+      )}
+
+      {/* ユーザー一覧 */}
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-medium text-gray-900">
+            {activeTab === 'first-login' ? '初回ログイン未完了ユーザー一覧' : '長期間未ログインユーザー一覧'}
+            {selectedGroupId && (
+              <span className="ml-2 text-sm text-gray-600">
+                ({groups.find(g => g.id === selectedGroupId)?.name})
+              </span>
+            )}
+          </h2>
+        </div>
+
+        <div className="p-6">
+          {activeTab === 'first-login' ? (
+            getFilteredUsers(firstLoginPendingUsers).length === 0 ? (
+              <div className="text-center py-8">
+                <div className="flex flex-col items-center">
+                  <svg className="w-12 h-12 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    すべてのユーザーがログイン済みです
+                  </h3>
+                  <p className="text-gray-500">
+                    初回ログインが完了していないユーザーはいません。
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {getFilteredUsers(firstLoginPendingUsers).map((user) => {
+                  const daysSince = getDaysSinceCreation(user.createdAt)
+                  const urgency = getUrgencyLevel(daysSince)
+                  
+                  return (
+                    <div key={user.id} className="flex justify-between items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm text-gray-500">{user.email}</div>
+                        <div className="text-xs text-gray-400">作成から{daysSince}日経過</div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${urgency.color}`}>
+                          {urgency.label}
+                        </span>
+                        <button
+                          onClick={() => sendReminderEmail(user.id)}
+                          className="text-blue-600 hover:text-blue-900 text-sm"
+                        >
+                          リマインダー送信
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          ) : (
+            getFilteredUsers(inactiveUsers).length === 0 ? (
+              <div className="text-center py-8">
+                <div className="flex flex-col items-center">
+                  <svg className="w-12 h-12 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    該当するユーザーはいません
+                  </h3>
+                  <p className="text-gray-500">
+                    設定した期間内に未ログインのユーザーはいません。
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {getFilteredUsers(inactiveUsers).map((user) => (
+                  <div key={user.id} className="flex justify-between items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{user.name}</div>
+                      <div className="text-sm text-gray-500">{user.email}</div>
+                      <div className="text-xs text-gray-400">
+                        最終ログイン: {user.lastLoginAt ? formatDate(user.lastLoginAt) : '未ログイン'}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        注意
+                      </span>
+                      <button
+                        onClick={() => sendReminderEmail(user.id)}
+                        className="text-blue-600 hover:text-blue-900 text-sm"
+                      >
+                        リマインダー送信
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+        </div>
+      </div>
+    </AdminPageWrapper>
   )
 }
