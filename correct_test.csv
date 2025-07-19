@@ -1,0 +1,4 @@
+email,name,password,role,groupName
+gg@gmail.com,テストユーザー1,password123,USER,営業部
+ff@gmail.com,テストユーザー2,password456,USER,技術部
+rr@gmail.com,テストユーザー3,password789,USER,営業部
