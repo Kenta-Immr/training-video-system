@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
+// 動的ページとして設定
+export const dynamic = 'force-dynamic'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
@@ -34,11 +37,12 @@ export default function BulkCreateUsersPage() {
   const [csvData, setCsvData] = useState('')
   const [csvFile, setCsvFile] = useState<File | null>(null)
 
-  // 管理者チェック
-  if (!isAdmin()) {
-    router.push('/')
-    return null
-  }
+  // 管理者チェック（クライアントサイドのみ）
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isAdmin()) {
+      router.push('/')
+    }
+  }, [router])
 
   // グループ一覧を取得
   useEffect(() => {
