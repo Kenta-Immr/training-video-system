@@ -97,9 +97,9 @@ export interface ViewingLogRequest {
 
 export const authAPI = {
   login: (data: LoginRequest) => 
-    api.post<LoginResponse>('/api/auth/login', data),
+    api.post<LoginResponse>('/api/auth', data),
   register: (data: RegisterRequest) =>
-    api.post<LoginResponse>('/api/auth/register', data),
+    api.post<LoginResponse>('/api/auth', data),
 }
 
 // デモコースデータ（本番用フォールバック）
