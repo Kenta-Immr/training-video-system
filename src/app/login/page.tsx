@@ -33,7 +33,13 @@ export default function LoginPage() {
       window.location.href = '/'
     } catch (error: any) {
       console.error('Login error:', error)
-      setError(error.response?.data?.error || 'ログインに失敗しました')
+      if (error.response?.status === 401) {
+        setError(error.response?.data?.message || 'メールアドレスまたはパスワードが間違っています')
+      } else if (error.code === 'ERR_NETWORK') {
+        setError('ネットワークエラーが発生しました。しばらく待ってから再試行してください。')
+      } else {
+        setError('ログインに失敗しました。しばらく待ってから再試行してください。')
+      }
     } finally {
       setLoading(false)
     }
@@ -52,21 +58,21 @@ export default function LoginPage() {
           
           {/* サンプルアカウント情報 */}
           <div className="mt-4 p-4 bg-blue-50 rounded-md">
-            <h3 className="text-sm font-medium text-blue-800">サンプルアカウント</h3>
+            <h3 className="text-sm font-medium text-blue-800">テストアカウント</h3>
             <div className="mt-2 text-xs text-blue-700 space-y-1">
               <div>
-                <strong>管理者:</strong> admin@example.com / admin123
+                <strong>管理者:</strong> admin@test.com / password
               </div>
               <div>
-                <strong>一般ユーザー:</strong> user@example.com / user123
+                <strong>一般ユーザー:</strong> test@test.com / test
               </div>
             </div>
             <div className="mt-2 flex space-x-2">
               <button
                 type="button"
                 onClick={() => {
-                  setValue('email', 'admin@example.com')
-                  setValue('password', 'admin123')
+                  setValue('email', 'admin@test.com')
+                  setValue('password', 'password')
                 }}
                 className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
               >
@@ -75,8 +81,8 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setValue('email', 'user@example.com')
-                  setValue('password', 'user123')
+                  setValue('email', 'test@test.com')
+                  setValue('password', 'test')
                 }}
                 className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
               >
