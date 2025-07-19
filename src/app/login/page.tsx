@@ -20,6 +20,15 @@ export default function LoginPage() {
   } = useForm<LoginRequest>()
 
   const onSubmit = async (data: LoginRequest) => {
+    console.log('=== SUBMIT HANDLER CALLED ===')
+    console.log('Received data:', data)
+    
+    if (!data || !data.email || !data.password) {
+      console.error('Form validation failed - missing data')
+      setError('メールアドレスとパスワードを入力してください')
+      return
+    }
+    
     setLoading(true)
     setError('')
 
@@ -35,6 +44,7 @@ export default function LoginPage() {
       setToken(response.data.token)
       
       // ログイン成功後のリダイレクト
+      console.log('Redirecting to home...')
       window.location.href = '/'
     } catch (error: any) {
       console.error('=== LOGIN ERROR ===')
@@ -115,8 +125,9 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setValue('email', 'admin@test.com')
-                  setValue('password', 'password')
+                  setValue('email', 'admin@test.com', { shouldValidate: true, shouldDirty: true })
+                  setValue('password', 'password', { shouldValidate: true, shouldDirty: true })
+                  console.log('管理者情報を設定しました')
                 }}
                 className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
               >
@@ -125,8 +136,9 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setValue('email', 'test@test.com')
-                  setValue('password', 'test')
+                  setValue('email', 'test@test.com', { shouldValidate: true, shouldDirty: true })
+                  setValue('password', 'test', { shouldValidate: true, shouldDirty: true })
+                  console.log('ユーザー情報を設定しました')
                 }}
                 className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
               >
