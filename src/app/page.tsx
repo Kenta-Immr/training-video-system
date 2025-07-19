@@ -19,9 +19,14 @@ export default function HomePage() {
         console.log('Courses API response:', response.data)
         // API response format: {success: true, data: [...]}
         const coursesData = response.data?.data || response.data
+        console.log('Courses data type:', typeof coursesData, 'Is array:', Array.isArray(coursesData))
         if (Array.isArray(coursesData)) {
           setCourses(coursesData)
+        } else if (coursesData && typeof coursesData === 'object' && coursesData.data) {
+          // ネストされたdata構造の場合
+          setCourses(Array.isArray(coursesData.data) ? coursesData.data : [])
         } else {
+          console.warn('Unexpected courses data format:', coursesData)
           throw new Error('Invalid courses data format')
         }
       } catch (error: any) {
