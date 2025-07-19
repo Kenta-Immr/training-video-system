@@ -4,7 +4,7 @@ const nextConfig = {
     domains: ['example.com', 'images.unsplash.com', 'localhost'],
     unoptimized: true
   },
-  trailingSlash: true,
+  trailingSlash: false,
   eslint: {
     ignoreDuringBuilds: true,
   },
