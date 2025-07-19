@@ -9,7 +9,19 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    setUser(getCurrentUser())
+    const currentUser = getCurrentUser()
+    console.log('Header - currentUser:', currentUser)
+    setUser(currentUser)
+    
+    // ユーザー情報の変更を監視
+    const handleStorageChange = () => {
+      const updatedUser = getCurrentUser()
+      console.log('Header - storage changed, updatedUser:', updatedUser)
+      setUser(updatedUser)
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   const handleLogout = () => {

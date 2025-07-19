@@ -24,10 +24,15 @@ export default function LoginPage() {
     setError('')
 
     try {
+      console.log('Login attempt:', data.email)
       const response = await authAPI.login(data)
+      console.log('Login successful:', response.data)
       setToken(response.data.token)
-      router.push('/')
+      
+      // ログイン成功後のリダイレクト
+      window.location.href = '/'
     } catch (error: any) {
+      console.error('Login error:', error)
       setError(error.response?.data?.error || 'ログインに失敗しました')
     } finally {
       setLoading(false)

@@ -24,6 +24,7 @@ export default function AuthGuard({ children, requireAdmin = false }: AuthGuardP
     }
 
     if (requireAdmin && currentUser.role !== 'ADMIN') {
+      console.log('AuthGuard - Admin required but user role is:', currentUser.role)
       router.push('/')
       return
     }
