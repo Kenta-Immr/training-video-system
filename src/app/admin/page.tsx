@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AuthGuard from '@/components/AuthGuard'
 import Header from '@/components/Header'
+import AdminNavButton from '@/components/AdminNavButton'
 import { logAPI } from '@/lib/api'
 
 interface UserStat {
@@ -149,70 +150,62 @@ export default function AdminDashboard() {
             <div className="card mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">管理メニュー</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Link
+                <AdminNavButton
                   href="/admin/courses"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <div className="text-blue-600 text-2xl mb-2">📚</div>
-                  <div className="font-medium">コース管理</div>
-                  <div className="text-sm text-gray-600">コース・カリキュラム・動画・ファイルアップロード</div>
-                </Link>
-                <Link
+                  icon="📚"
+                  title="コース管理"
+                  description="コース・カリキュラム・動画・ファイルアップロード"
+                  className="text-blue-600"
+                />
+                <AdminNavButton
                   href="/admin/progress"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <div className="text-green-600 text-2xl mb-2">📊</div>
-                  <div className="font-medium">進捗管理</div>
-                  <div className="text-sm text-gray-600">個人・グループ別進捗確認</div>
-                </Link>
-                <Link
+                  icon="📊"
+                  title="進捗管理"
+                  description="個人・グループ別進捗確認"
+                  className="text-green-600"
+                />
+                <AdminNavButton
                   href="/admin/users/manage"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <div className="text-blue-600 text-2xl mb-2">👥</div>
-                  <div className="font-medium">ユーザー管理</div>
-                  <div className="text-sm text-gray-600">ユーザー追加・編集・削除</div>
-                </Link>
-                <Link
+                  icon="👥"
+                  title="ユーザー管理"
+                  description="ユーザー追加・編集・削除"
+                  className="text-blue-600"
+                />
+                <AdminNavButton
                   href="/admin/users/bulk-create"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <div className="text-cyan-600 text-2xl mb-2">📝</div>
-                  <div className="font-medium">一括ユーザー作成</div>
-                  <div className="text-sm text-gray-600">CSV・手動入力でユーザー一括追加</div>
-                </Link>
-                <Link
+                  icon="📝"
+                  title="一括ユーザー作成"
+                  description="CSV・手動入力でユーザー一括追加"
+                  className="text-cyan-600"
+                />
+                <AdminNavButton
                   href="/admin/videos"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <div className="text-purple-600 text-2xl mb-2">🎥</div>
-                  <div className="font-medium">動画ログ</div>
-                  <div className="text-sm text-gray-600">動画別視聴状況</div>
-                </Link>
-                <Link
+                  icon="🎥"
+                  title="動画ログ"
+                  description="動画別視聴状況"
+                  className="text-purple-600"
+                />
+                <AdminNavButton
                   href="/admin/reports"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <div className="text-orange-600 text-2xl mb-2">📈</div>
-                  <div className="font-medium">レポート</div>
-                  <div className="text-sm text-gray-600">詳細分析・エクスポート</div>
-                </Link>
-                <Link
+                  icon="📈"
+                  title="レポート"
+                  description="詳細分析・エクスポート"
+                  className="text-orange-600"
+                />
+                <AdminNavButton
                   href="/admin/groups"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <div className="text-indigo-600 text-2xl mb-2">👥</div>
-                  <div className="font-medium">グループ管理</div>
-                  <div className="text-sm text-gray-600">受講者のグループ分け</div>
-                </Link>
-                <Link
+                  icon="👥"
+                  title="グループ管理"
+                  description="受講者のグループ分け"
+                  className="text-indigo-600"
+                />
+                <AdminNavButton
                   href="/admin/notifications"
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center"
-                >
-                  <div className="text-red-600 text-2xl mb-2">🔔</div>
-                  <div className="font-medium">通知・アラート</div>
-                  <div className="text-sm text-gray-600">初回ログイン未完了ユーザー管理</div>
-                </Link>
+                  icon="🔔"
+                  title="通知・アラート"
+                  description="初回ログイン未完了ユーザー管理"
+                  className="text-red-600"
+                />
               </div>
             </div>
 
