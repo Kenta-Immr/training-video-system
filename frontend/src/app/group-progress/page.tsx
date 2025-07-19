@@ -22,7 +22,11 @@ export default function GroupProgressPage() {
       try {
         // 現在のユーザー情報を取得してグループIDを確認
         console.log('Fetching user info...')
-        const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/users/me`, {
+        const apiBaseUrl = process.env.NODE_ENV === 'production' 
+          ? window.location.origin 
+          : 'http://localhost:3001'
+        console.log('API Base URL:', apiBaseUrl)
+        const userResponse = await fetch(`${apiBaseUrl}/api/users/me`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
           }
@@ -56,7 +60,7 @@ export default function GroupProgressPage() {
         console.log('groupAPI.getProgress:', typeof groupAPI.getProgress)
         
         // 直接fetchを使用してテスト
-        const progressResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/groups/${userData.groupId}/progress`, {
+        const progressResponse = await fetch(`${apiBaseUrl}/api/groups/${userData.groupId}/progress`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
             'Content-Type': 'application/json'
