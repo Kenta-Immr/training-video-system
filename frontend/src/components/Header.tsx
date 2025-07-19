@@ -9,19 +9,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    const currentUser = getCurrentUser()
-    console.log('Header - currentUser:', currentUser)
-    setUser(currentUser)
-    
-    // ユーザー情報の変更を監視
-    const handleStorageChange = () => {
-      const updatedUser = getCurrentUser()
-      console.log('Header - storage changed, updatedUser:', updatedUser)
-      setUser(updatedUser)
-    }
-    
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+    setUser(getCurrentUser())
   }, [])
 
   const handleLogout = () => {
@@ -31,29 +19,7 @@ export default function Header() {
     }
   }
 
-  if (!user) {
-    return (
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link href="/login" className="text-lg sm:text-xl font-bold text-gray-900">
-                研修動画システム
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/login"
-                className="text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                ログイン
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-    )
-  }
+  if (!user) return null
 
   return (
     <header className="bg-white shadow-sm border-b relative">
