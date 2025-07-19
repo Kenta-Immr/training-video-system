@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
-import AuthGuard from '@/components/AuthGuard'
-import Header from '@/components/Header'
+import AdminPageWrapper from '@/components/AdminPageWrapper'
 import { courseAPI, Course } from '@/lib/api'
 
 interface CourseForm {
@@ -37,13 +36,25 @@ export default function AdminCoursesPage() {
   const fetchCourses = async () => {
     try {
       setLoading(true)
+      setError('')
       console.log('Fetching courses...')
       const response = await courseAPI.getAll()
-      console.log('Courses fetched:', response.data)
-      setCourses(response.data)
+      console.log('Courses API response:', response.data)
+      
+      // APIレスポンス構造を処理
+      const coursesData = response.data?.data || response.data
+      console.log('Processed courses data:', coursesData)
+      
+      if (Array.isArray(coursesData)) {
+        setCourses(coursesData)
+      } else {
+        console.warn('Invalid courses data format:', coursesData)
+        setCourses([])
+      }
     } catch (error: any) {
       console.error('Fetch courses error:', error)
-      setError(error.response?.data?.error || 'コースの取得に失敗しました')
+      setError(error.response?.data?.error || error.message || 'コースの取得に失敗しました')
+      setCourses([])
     } finally {
       setLoading(false)
     }
@@ -171,14 +182,10 @@ export default function AdminCoursesPage() {
   }
 
   return (
-    <AuthGuard requireAdmin>
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <Link href="/admin" className="text-blue-600 hover:text-blue-800 text-sm">
-            ← 管理者ダッシュボードに戻る
-          </Link>
-        </div>
+    <AdminPageWrapper 
+      title="コース管理" 
+      description="研修コースの作成、編集、削除を行います"
+    >
 
         <div className="mb-8">
           <div className="flex justify-between items-center">
@@ -386,7 +393,6 @@ export default function AdminCoursesPage() {
             <p className="text-gray-500">コースがまだ作成されていません</p>
           </div>
         )}
-      </main>
-    </AuthGuard>
+    </AdminPageWrapper>
   )
 }
