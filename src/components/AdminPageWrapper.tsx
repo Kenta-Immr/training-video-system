@@ -73,6 +73,10 @@ interface AdminPageWrapperProps {
 }
 
 export default function AdminPageWrapper({ children, title, description }: AdminPageWrapperProps) {
+  console.log('📦📦📦 AdminPageWrapper rendering with title:', title)
+  console.log('📦 Description:', description)
+  console.log('📦 Current path:', typeof window !== 'undefined' ? window.location.pathname : 'SSR')
+  
   const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
 

@@ -8,6 +8,11 @@ import { courseAPI, Course } from '@/lib/api'
 import { getCurrentUser } from '@/lib/auth'
 
 export default function HomePage() {
+  console.log('🏠🏠🏠 HomePage - THIS IS THE MAIN HOMEPAGE 🏠🏠🏠')
+  console.log('🏠 Component: HomePage')
+  console.log('🏠 File: /page.tsx (ROOT PAGE)')
+  console.log('🏠 This should show COURSES, not notifications!')
+  
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -101,6 +106,12 @@ export default function HomePage() {
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div className="mb-6 sm:mb-8">
+          {/* 最重要デバッグ情報 - このページがルートページであることを明確に */}
+          <div className="bg-blue-50 border border-blue-500 p-4 rounded mb-4">
+            <h1 className="text-xl font-bold text-blue-800">🏠 これはメインのコース一覧ページです (HomePage) 🏠</h1>
+            <p className="text-blue-600">もしあなたが通知アラートページにアクセスしたのにこれが表示されているなら、ルーティングエラーです</p>
+            <p className="text-sm text-blue-600">現在のパス: {typeof window !== 'undefined' ? window.location.pathname : 'SSR'}</p>
+          </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">コース一覧</h1>
           <p className="mt-2 text-sm sm:text-base text-gray-600">利用可能な研修コースから選択してください</p>
         </div>

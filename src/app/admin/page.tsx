@@ -24,6 +24,11 @@ interface StatsData {
 }
 
 export default function AdminDashboard() {
+  console.log('👨‍💼👨‍💼👨‍💼 AdminDashboard - THIS IS ADMIN DASHBOARD 👨‍💼👨‍💼👨‍💼')
+  console.log('👨‍💼 Component: AdminDashboard')
+  console.log('👨‍💼 File: /admin/page.tsx')
+  console.log('👨‍💼 This should show ADMIN DASHBOARD, not notifications!')
+  
   const [stats, setStats] = useState<StatsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
