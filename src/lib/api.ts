@@ -13,6 +13,13 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
+  console.log('API Request:', {
+    url: config.url,
+    method: config.method,
+    baseURL: config.baseURL,
+    data: config.data
+  })
+  
   const token = getToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -21,8 +28,22 @@ api.interceptors.request.use((config) => {
 })
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response Success:', {
+      status: response.status,
+      data: response.data,
+      url: response.config.url
+    })
+    return response
+  },
   (error) => {
+    console.error('API Response Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+      message: error.message
+    })
+    
     if (error.response?.status === 401) {
       removeToken()
       if (typeof window !== 'undefined') {
@@ -96,10 +117,16 @@ export interface ViewingLogRequest {
 }
 
 export const authAPI = {
-  login: (data: LoginRequest) => 
-    api.post<LoginResponse>('/api/auth', data),
+  login: (data: LoginRequest) => {
+    console.log('AuthAPI Login called with:', data)
+    return api.post<LoginResponse>('/api/auth', data)
+  },
   register: (data: RegisterRequest) =>
     api.post<LoginResponse>('/api/auth', data),
+  debugLogin: (data: LoginRequest) => {
+    console.log('Debug AuthAPI Login called with:', data)
+    return api.post<LoginResponse>('/api/debug-auth', data)
+  }
 }
 
 // デモコースデータ（本番用フォールバック）

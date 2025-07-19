@@ -24,22 +24,56 @@ export default function LoginPage() {
     setError('')
 
     try {
-      console.log('Login attempt:', data.email)
+      console.log('=== LOGIN ATTEMPT START ===')
+      console.log('Form data:', data)
+      console.log('API Base URL:', process.env.NODE_ENV === 'production' ? window.location.origin : 'http://localhost:3001')
+      
       const response = await authAPI.login(data)
-      console.log('Login successful:', response.data)
+      console.log('=== LOGIN SUCCESS ===')
+      console.log('Response:', response.data)
+      
       setToken(response.data.token)
       
       // ログイン成功後のリダイレクト
       window.location.href = '/'
     } catch (error: any) {
-      console.error('Login error:', error)
+      console.error('=== LOGIN ERROR ===')
+      console.error('Full error:', error)
+      console.error('Error response:', error.response)
+      console.error('Error data:', error.response?.data)
+      
       if (error.response?.status === 401) {
         setError(error.response?.data?.message || 'メールアドレスまたはパスワードが間違っています')
+      } else if (error.response?.status === 404) {
+        setError('APIエンドポイントが見つかりません')
+      } else if (error.response?.status === 405) {
+        setError('APIメソッドエラーです')
       } else if (error.code === 'ERR_NETWORK') {
         setError('ネットワークエラーが発生しました。しばらく待ってから再試行してください。')
       } else {
-        setError('ログインに失敗しました。しばらく待ってから再試行してください。')
+        setError(`ログインに失敗しました: ${error.response?.status || error.message}`)
       }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const onDebugSubmit = async (data: LoginRequest) => {
+    setLoading(true)
+    setError('')
+
+    try {
+      console.log('=== DEBUG LOGIN ATTEMPT ===')
+      const response = await authAPI.debugLogin(data)
+      console.log('=== DEBUG LOGIN SUCCESS ===')
+      console.log('Response:', response.data)
+      
+      setToken(response.data.token)
+      window.location.href = '/'
+    } catch (error: any) {
+      console.error('=== DEBUG LOGIN ERROR ===')
+      console.error('Error:', error)
+      setError(`デバッグログインエラー: ${error.response?.status || error.message}`)
     } finally {
       setLoading(false)
     }
