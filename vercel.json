@@ -1,8 +1,8 @@
 {
   "framework": "nextjs",
-  "buildCommand": "cd frontend && npm install && npm run build",
+  "buildCommand": "npm run build:frontend",
   "outputDirectory": "frontend/.next",
-  "installCommand": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ..",
+  "installCommand": "npm install",
   "functions": {
     "backend/src/index.ts": {
       "runtime": "@vercel/node"
