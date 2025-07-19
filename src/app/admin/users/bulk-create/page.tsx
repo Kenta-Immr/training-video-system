@@ -1,15 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import AdminPageWrapper from '@/components/AdminPageWrapper'
+import { userAPI, groupAPI } from '@/lib/api'
 
 // 動的ページとして設定
 export const dynamic = 'force-dynamic'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Header from '@/components/Header'
-import AuthGuard from '@/components/AuthGuard'
-import { userAPI, groupAPI } from '@/lib/api'
-import { isAdmin } from '@/lib/auth'
 
 interface BulkUser {
   email: string
@@ -37,27 +35,32 @@ export default function BulkCreateUsersPage() {
   const [csvData, setCsvData] = useState('')
   const [csvFile, setCsvFile] = useState<File | null>(null)
 
-  // 管理者チェック（クライアントサイドのみ）
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isAdmin()) {
-      router.push('/')
-    }
-  }, [router])
-
   // グループ一覧を取得
   useEffect(() => {
-    const fetchGroups = async () => {
-      try {
-        const response = await groupAPI.getAll()
-        setGroups(response.data)
-      } catch (error) {
-        console.error('Error fetching groups:', error)
-        setGroups([])
-      }
-    }
-    
     fetchGroups()
   }, [])
+
+  const fetchGroups = async () => {
+    try {
+      console.log('Fetching groups...')
+      const response = await groupAPI.getAll()
+      console.log('Groups API response:', response.data)
+      
+      // APIレスポンス構造を処理
+      const groupsData = response.data?.data || response.data
+      console.log('Processed groups data:', groupsData)
+      
+      if (Array.isArray(groupsData)) {
+        setGroups(groupsData)
+      } else {
+        console.warn('Invalid groups data format:', groupsData)
+        setGroups([])
+      }
+    } catch (error: any) {
+      console.error('Error fetching groups:', error)
+      setGroups([])
+    }
+  }
 
   const addUser = () => {
     setUsers([...users, { email: '', name: '', password: '', role: 'USER' }])
@@ -217,20 +220,10 @@ export default function BulkCreateUsersPage() {
   }
 
   return (
-    <AuthGuard requireAdmin>
-      <Header />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">一括ユーザー作成</h1>
-            <Link
-              href="/admin/users"
-              className="btn-secondary"
-            >
-              ユーザー管理に戻る
-            </Link>
-          </div>
-        </div>
+    <AdminPageWrapper 
+      title="一括ユーザー作成" 
+      description="CSV・手動入力でユーザーを一括作成します"
+    >
 
         {result ? (
           <div className="bg-white shadow rounded-lg p-6">
@@ -481,7 +474,6 @@ export default function BulkCreateUsersPage() {
             </form>
           </div>
         )}
-      </main>
-    </AuthGuard>
+    </AdminPageWrapper>
   )
 }
