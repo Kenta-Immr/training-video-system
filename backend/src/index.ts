@@ -43,6 +43,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() })
 })
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`)
-})
+// Vercel Functions用のexport
+export default app
+
+// ローカル開発用
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`)
+  })
+}
