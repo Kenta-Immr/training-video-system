@@ -41,14 +41,27 @@ export default function NotificationsPage() {
         userAPI.getFirstLoginPending()
       ])
       
-      setGroups(groupsResponse.data)
-      setFirstLoginPendingUsers(firstLoginResponse.data)
+      console.log('Groups API response:', groupsResponse.data)
+      console.log('Users API response:', usersResponse.data)
+      console.log('First login response:', firstLoginResponse.data)
+      
+      // APIレスポンス構造を処理
+      const groupsData = groupsResponse.data?.data || groupsResponse.data
+      const usersData = usersResponse.data?.data || usersResponse.data
+      const firstLoginData = firstLoginResponse.data?.data || firstLoginResponse.data
+      
+      console.log('Processed groups data:', groupsData)
+      console.log('Processed users data:', usersData)
+      console.log('Processed first login data:', firstLoginData)
+      
+      setGroups(Array.isArray(groupsData) ? groupsData : [])
+      setFirstLoginPendingUsers(Array.isArray(firstLoginData) ? firstLoginData : [])
       
       // 非アクティブユーザーを計算
       const now = new Date()
       const cutoffDate = new Date(now.getTime() - daysSinceLogin * 24 * 60 * 60 * 1000)
       
-      const inactive = usersResponse.data.filter(user => {
+      const inactive = (Array.isArray(usersData) ? usersData : []).filter(user => {
         if (!user.lastLoginAt) return true // 一度もログインしていない
         const lastLogin = new Date(user.lastLoginAt)
         return lastLogin < cutoffDate
@@ -57,6 +70,7 @@ export default function NotificationsPage() {
       setInactiveUsers(inactive)
       setError('')
     } catch (error: any) {
+      console.error('Fetch data error:', error)
       setError(error.response?.data?.error || 'データの取得に失敗しました')
       // エラー時も空データでフォールバック
       setGroups([])

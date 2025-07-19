@@ -30,12 +30,18 @@ export default function AdminVideosPage() {
         courseAPI.getAll()
       ])
       
-      setCourses(coursesResponse.data)
+      console.log('Courses API response:', coursesResponse.data)
+      
+      // APIレスポンス構造を処理
+      const coursesData = coursesResponse.data?.data || coursesResponse.data
+      console.log('Processed courses data:', coursesData)
+      
+      setCourses(Array.isArray(coursesData) ? coursesData : [])
       
       // 全動画の統計を計算
       const allVideos: VideoWithStats[] = []
       
-      for (const course of coursesResponse.data) {
+      for (const course of (Array.isArray(coursesData) ? coursesData : [])) {
         for (const curriculum of course.curriculums || []) {
           for (const video of curriculum.videos || []) {
             try {
@@ -79,7 +85,9 @@ export default function AdminVideosPage() {
       
       setVideoStats(allVideos)
     } catch (error: any) {
+      console.error('Fetch data error:', error)
       setError(error.response?.data?.error || 'データの取得に失敗しました')
+      setCourses([])
     } finally {
       setLoading(false)
     }

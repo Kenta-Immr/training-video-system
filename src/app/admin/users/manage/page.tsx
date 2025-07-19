@@ -40,10 +40,24 @@ export default function UserManagePage() {
         userAPI.getAll(),
         groupAPI.getAll()
       ])
-      setUsers(usersResponse.data)
-      setGroups(groupsResponse.data)
+      
+      console.log('Users API response:', usersResponse.data)
+      console.log('Groups API response:', groupsResponse.data)
+      
+      // APIレスポンス構造を処理
+      const usersData = usersResponse.data?.data || usersResponse.data
+      const groupsData = groupsResponse.data?.data || groupsResponse.data
+      
+      console.log('Processed users data:', usersData)
+      console.log('Processed groups data:', groupsData)
+      
+      setUsers(Array.isArray(usersData) ? usersData : [])
+      setGroups(Array.isArray(groupsData) ? groupsData : [])
     } catch (error: any) {
+      console.error('Fetch data error:', error)
       setError(error.response?.data?.error || 'データの取得に失敗しました')
+      setUsers([])
+      setGroups([])
     } finally {
       setLoading(false)
     }

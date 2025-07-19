@@ -41,9 +41,15 @@ export default function AdminReportsPage() {
   const fetchGroups = async () => {
     try {
       const response = await groupAPI.getAll()
-      setGroups(response.data)
+      console.log('Groups API response:', response.data)
+      
+      const groupsData = response.data?.data || response.data
+      console.log('Processed groups data:', groupsData)
+      
+      setGroups(Array.isArray(groupsData) ? groupsData : [])
     } catch (error: any) {
       console.error('Error fetching groups:', error)
+      setGroups([])
     }
   }
 
@@ -54,8 +60,16 @@ export default function AdminReportsPage() {
         courseAPI.getAll()
       ])
 
-      const stats = statsResponse.data
-      setCourses(coursesResponse.data)
+      console.log('Stats API response:', statsResponse.data)
+      console.log('Courses API response:', coursesResponse.data)
+      
+      const stats = statsResponse.data?.data || statsResponse.data
+      const coursesData = coursesResponse.data?.data || coursesResponse.data
+      
+      console.log('Processed stats data:', stats)
+      console.log('Processed courses data:', coursesData)
+      
+      setCourses(Array.isArray(coursesData) ? coursesData : [])
 
       // グループフィルターを適用
       let filteredUserStats = stats.userStats
@@ -77,7 +91,7 @@ export default function AdminReportsPage() {
       }
 
       // コース別統計
-      const courseStats = coursesResponse.data.map(course => {
+      const courseStats = (Array.isArray(coursesData) ? coursesData : []).map(course => {
         const totalVideos = course.curriculums?.reduce((sum, curr) => 
           sum + (curr.videos?.length || 0), 0) || 0
         const enrolledUsers = filteredUserStats.length
@@ -97,7 +111,7 @@ export default function AdminReportsPage() {
       const reportData: ReportData = {
         totalUsers: filteredUserStats.length,
         totalVideos: stats.totalVideos,
-        totalCourses: coursesResponse.data.length,
+        totalCourses: Array.isArray(coursesData) ? coursesData.length : 0,
         totalWatchTime: filteredUserStats.reduce((sum, user) => 
           sum + user.totalWatchedSeconds, 0),
         averageCompletion: Math.round(filteredUserStats.reduce((sum, user) => 
@@ -109,7 +123,9 @@ export default function AdminReportsPage() {
 
       setReportData(reportData)
     } catch (error: any) {
+      console.error('Fetch report data error:', error)
       setError(error.response?.data?.error || 'レポートデータの取得に失敗しました')
+      setCourses([])
     } finally {
       setLoading(false)
     }

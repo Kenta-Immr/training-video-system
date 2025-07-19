@@ -45,11 +45,30 @@ export default function AdminGroupsPage() {
         userAPI.getAll(),
         courseAPI.getAll()
       ])
-      setGroups(groupsResponse.data)
-      setUsers(usersResponse.data)
-      setCourses(coursesResponse.data)
+      
+      console.log('Groups API response:', groupsResponse.data)
+      console.log('Users API response:', usersResponse.data)
+      console.log('Courses API response:', coursesResponse.data)
+      
+      // APIレスポンス構造を処理
+      const groupsData = groupsResponse.data?.data || groupsResponse.data
+      const usersData = usersResponse.data?.data || usersResponse.data
+      const coursesData = coursesResponse.data?.data || coursesResponse.data
+      
+      console.log('Processed groups data:', groupsData)
+      console.log('Processed users data:', usersData)
+      console.log('Processed courses data:', coursesData)
+      
+      setGroups(Array.isArray(groupsData) ? groupsData : [])
+      setUsers(Array.isArray(usersData) ? usersData : [])
+      setCourses(Array.isArray(coursesData) ? coursesData : [])
     } catch (error: any) {
+      console.error('Fetch data error:', error)
       setError(error.response?.data?.error || 'データの取得に失敗しました')
+      // エラー時は空配列でフォールバック
+      setGroups([])
+      setUsers([])
+      setCourses([])
     } finally {
       setLoading(false)
     }

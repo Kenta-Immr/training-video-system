@@ -27,10 +27,24 @@ export default function ProgressManagementPage() {
         groupAPI.getAll(),
         userAPI.getAll()
       ])
-      setGroups(groupsResponse.data)
-      setUsers(usersResponse.data)
+      
+      console.log('Groups API response:', groupsResponse.data)
+      console.log('Users API response:', usersResponse.data)
+      
+      // APIレスポンス構造を処理
+      const groupsData = groupsResponse.data?.data || groupsResponse.data
+      const usersData = usersResponse.data?.data || usersResponse.data
+      
+      console.log('Processed groups data:', groupsData)
+      console.log('Processed users data:', usersData)
+      
+      setGroups(Array.isArray(groupsData) ? groupsData : [])
+      setUsers(Array.isArray(usersData) ? usersData : [])
     } catch (error: any) {
+      console.error('Fetch initial data error:', error)
       setError(error.response?.data?.error || 'データの取得に失敗しました')
+      setGroups([])
+      setUsers([])
     }
   }
 
