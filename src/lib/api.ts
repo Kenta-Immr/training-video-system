@@ -3,7 +3,7 @@ import { getToken, removeToken } from './auth'
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
   ? (typeof window !== 'undefined' ? window.location.origin : '') // 本番環境では同一ドメインのVercel Functions
-  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001')
+  : (process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'))
 
 const api = axios.create({
   baseURL: API_BASE_URL,

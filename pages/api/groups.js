@@ -1,4 +1,78 @@
 // Groups management endpoint
+
+// デモグループデータ
+let groupsData = [
+  {
+    id: 1,
+    name: '管理グループ',
+    code: 'ADMIN001',
+    description: '管理者グループ',
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: new Date().toISOString(),
+    users: [
+      {
+        id: 1,
+        name: '管理者ユーザー',
+        email: 'admin@test.com',
+        role: 'ADMIN'
+      }
+    ]
+  },
+  {
+    id: 2,
+    name: '開発チーム',
+    code: 'DEV001',
+    description: '開発チームグループ',
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: new Date().toISOString(),
+    users: [
+      {
+        id: 2,
+        name: '開発者A',
+        email: 'dev1@test.com',
+        role: 'USER'
+      },
+      {
+        id: 3,
+        name: '開発者B',
+        email: 'dev2@test.com',
+        role: 'USER'
+      }
+    ]
+  },
+  {
+    id: 3,
+    name: '営業チーム',
+    code: 'SALES001',
+    description: '営業チームグループ',
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: new Date().toISOString(),
+    users: [
+      {
+        id: 4,
+        name: '営業担当A',
+        email: 'sales1@test.com',
+        role: 'USER'
+      },
+      {
+        id: 5,
+        name: '営業担当B',
+        email: 'sales2@test.com',
+        role: 'USER'
+      }
+    ]
+  }
+]
+
+// 共有データストア関数
+function getGroupsDataFromSharedStore() {
+  if (global.groupsData) {
+    return global.groupsData
+  }
+  global.groupsData = groupsData
+  return global.groupsData
+}
+
 export default function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)

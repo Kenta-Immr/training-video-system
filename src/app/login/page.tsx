@@ -2,10 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { useForm } from 'react-hook-form'
-import { authAPI, LoginRequest } from '@/lib/api'
-import { setToken } from '@/lib/auth'
+import { setCurrentUser } from '@/lib/auth'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
