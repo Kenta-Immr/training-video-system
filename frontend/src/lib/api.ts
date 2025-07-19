@@ -222,8 +222,19 @@ export const courseAPI = {
       return { data: DEMO_COURSES };
     }
   },
-  getById: (id: number) => 
-    api.get<Course>(`/api/courses/${id}`),
+  getById: async (id: number) => {
+    try {
+      return await api.get<Course>(`/api/courses/${id}`)
+    } catch (error) {
+      // 本番環境でAPIが利用できない場合はデモデータから検索
+      console.log('API not available, using demo data for course:', id);
+      const course = DEMO_COURSES.find(c => c.id === id);
+      if (course) {
+        return { data: course };
+      }
+      throw new Error('コースが見つかりません');
+    }
+  },
   create: (data: { title: string; description?: string; thumbnailUrl?: string }) =>
     api.post<Course>('/api/courses', data),
   update: (id: number, data: { title: string; description?: string; thumbnailUrl?: string }) =>
@@ -245,8 +256,23 @@ export const courseAPI = {
 }
 
 export const videoAPI = {
-  getById: (id: number) =>
-    api.get<Video>(`/api/videos/${id}`),
+  getById: async (id: number) => {
+    try {
+      return await api.get<Video>(`/api/videos/${id}`)
+    } catch (error) {
+      // 本番環境でAPIが利用できない場合はデモデータから検索
+      console.log('API not available, using demo data for video:', id);
+      for (const course of DEMO_COURSES) {
+        for (const curriculum of course.curriculums) {
+          const video = curriculum.videos.find(v => v.id === id);
+          if (video) {
+            return { data: video };
+          }
+        }
+      }
+      throw new Error('動画が見つかりません');
+    }
+  },
   create: (data: { title: string; description?: string; videoUrl: string; curriculumId: number }) =>
     api.post<Video>('/api/videos', data),
   upload: (formData: FormData) =>
