@@ -1,6 +1,12 @@
 {
+<<<<<<< HEAD
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/.next",
+=======
+  "framework": "nextjs",
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/.next", 
+>>>>>>> 2d5b86236e0e52b1862b915402273736aa523912
   "installCommand": "npm install && cd backend && npm install && npx prisma generate && cd ..",
   "functions": {
     "backend/src/index.ts": {
