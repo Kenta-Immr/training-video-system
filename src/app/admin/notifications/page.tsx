@@ -11,6 +11,11 @@ import { isAdmin } from '@/lib/auth'
 export const dynamic = 'force-dynamic'
 
 export default function NotificationsPage() {
+  console.log('🔴🔴🔴 NotificationsPage - DEFINITELY LOADING NOTIFICATIONS PAGE 🔴🔴🔴')
+  console.log('🔔 Component: NotificationsPage')
+  console.log('🔔 File: /admin/notifications/page.tsx')
+  console.log('🔔 This should show NOTIFICATIONS, not COURSES!')
+  
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'first-login' | 'inactive-users'>('first-login')
   const [firstLoginPendingUsers, setFirstLoginPendingUsers] = useState<UserData[]>([])
@@ -138,9 +143,10 @@ export default function NotificationsPage() {
 
   return (
     <AdminPageWrapper title="通知・アラート" description="ユーザーのログイン状況とアラート管理">
-      {/* デバッグ情報 - このページが確実に通知アラートページであることを確認 */}
-      <div className="bg-green-50 border border-green-200 p-4 rounded mb-6">
-        <h2 className="text-lg font-semibold text-green-800 mb-2">✅ 通知・アラートページが正常に読み込まれました</h2>
+      {/* 最重要デバッグ情報 - このページが確実に通知アラートページであることを確認 */}
+      <div className="bg-red-50 border border-red-500 p-6 rounded mb-6">
+        <h1 className="text-2xl font-bold text-red-800 mb-3">🔴 これは通知・アラートページです 🔴</h1>
+        <h2 className="text-lg font-semibold text-red-700 mb-2">NotificationsPage コンポーネントが読み込まれています</h2>
         <div className="text-sm text-green-700 space-y-1">
           <p>• コンポーネント名: NotificationsPage</p>
           <p>• 現在のパス: {typeof window !== 'undefined' ? window.location.pathname : 'SSR'}</p>
