@@ -31,7 +31,22 @@ export default function AdminDashboard() {
     const fetchStats = async () => {
       try {
         const response = await logAPI.getStats()
-        setStats(response.data)
+        console.log('Stats API response:', response.data)
+        
+        // APIレスポンスの構造を確認
+        const statsData = response.data?.data || response.data
+        console.log('Stats data:', statsData)
+        
+        // データ構造を正規化
+        if (statsData && typeof statsData === 'object') {
+          setStats({
+            userStats: Array.isArray(statsData.userStats) ? statsData.userStats : [],
+            totalUsers: statsData.totalUsers || 0,
+            totalVideos: statsData.totalVideos || 0
+          })
+        } else {
+          throw new Error('Invalid stats data format')
+        }
       } catch (error: any) {
         console.warn('API統計データが取得できないため、デモデータを表示します:', error)
         // デモデータを設定
@@ -80,6 +95,13 @@ export default function AdminDashboard() {
     return 'text-red-600 bg-red-100'
   }
 
+  // セーフティネット：statsが null の場合のデフォルト値
+  const safeStats = stats || {
+    userStats: [],
+    totalUsers: 0,
+    totalVideos: 0
+  }
+
   return (
     <AuthGuard requireAdmin>
       <Header />
@@ -101,22 +123,22 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {stats && (
+        {safeStats && (
           <>
             {/* 概要統計 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="card text-center">
-                <div className="text-3xl font-bold text-blue-600">{stats.totalUsers}</div>
+                <div className="text-3xl font-bold text-blue-600">{safeStats.totalUsers}</div>
                 <div className="text-gray-600">受講者数</div>
               </div>
               <div className="card text-center">
-                <div className="text-3xl font-bold text-green-600">{stats.totalVideos}</div>
+                <div className="text-3xl font-bold text-green-600">{safeStats.totalVideos}</div>
                 <div className="text-gray-600">総動画数</div>
               </div>
               <div className="card text-center">
                 <div className="text-3xl font-bold text-purple-600">
-                  {stats.userStats.length > 0 
-                    ? Math.round(stats.userStats.reduce((sum, user) => sum + user.progressRate, 0) / stats.userStats.length)
+                  {safeStats.userStats && safeStats.userStats.length > 0 
+                    ? Math.round(safeStats.userStats.reduce((sum, user) => sum + user.progressRate, 0) / safeStats.userStats.length)
                     : 0}%
                 </div>
                 <div className="text-gray-600">平均進捗率</div>
@@ -206,7 +228,7 @@ export default function AdminDashboard() {
                 </Link>
               </div>
 
-              {stats.userStats.length > 0 ? (
+              {safeStats.userStats && safeStats.userStats.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -229,7 +251,7 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {stats.userStats.slice(0, 10).map((user) => (
+                      {(safeStats.userStats || []).slice(0, 10).map((user) => (
                         <tr key={user.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
