@@ -1,6 +1,6 @@
-// Single course endpoint
+// Curriculum management endpoint for courses
 
-// 共有データストア（実際の実装では外部データベースを使用）
+// 共有データストア
 let courseData = {
   1: {
     id: 1,
@@ -68,10 +68,10 @@ let courseData = {
   }
 }
 
-// カリキュラム追加データを外部から取得する関数
+let nextCurriculumId = 3
+
+// データストア共有関数
 function getCourseDataFromSharedStore() {
-  // 実際の実装では、他のAPIエンドポイントと同じデータストアを参照
-  // ここでは簡易的に global オブジェクトを使用
   if (global.courseData) {
     return global.courseData
   }
@@ -79,60 +79,74 @@ function getCourseDataFromSharedStore() {
   return global.courseData
 }
 
+function getNextCurriculumId() {
+  if (!global.nextCurriculumId) {
+    global.nextCurriculumId = nextCurriculumId
+  }
+  return ++global.nextCurriculumId
+}
+
 export default function handler(req, res) {
   const { id } = req.query
+  const courseId = parseInt(id)
   
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PUT,DELETE')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS,PUT,DELETE')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
   
-  if (req.method === 'GET') {
-    const courseId = parseInt(id)
+  // 共有データを取得
+  const courseDataStore = getCourseDataFromSharedStore()
+  
+  // コース存在確認
+  if (!courseDataStore[courseId]) {
+    return res.status(404).json({
+      success: false,
+      message: 'コースが見つかりません'
+    })
+  }
+  
+  if (req.method === 'POST') {
+    // カリキュラム新規作成
+    const { title, description } = req.body
     
-    // 最新のコースデータを取得
-    const courses = getCourseDataFromSharedStore()
-    const course = courses[courseId]
-    
-    if (!course) {
-      return res.status(404).json({
+    if (!title) {
+      return res.status(400).json({
         success: false,
-        message: 'コースが見つかりません'
+        message: 'カリキュラム名は必須です'
       })
     }
     
-    console.log(`コース取得: ${course.title} (カリキュラム数: ${course.curriculums.length})`)
+    const newCurriculum = {
+      id: getNextCurriculumId(),
+      title,
+      description: description || '',
+      courseId,
+      videos: []
+    }
+    
+    // コースにカリキュラムを追加
+    courseDataStore[courseId].curriculums.push(newCurriculum)
+    
+    console.log(`新しいカリキュラム追加: ${title} (ID: ${newCurriculum.id})`)
     
     return res.json({
       success: true,
-      data: course
+      data: newCurriculum,
+      message: 'カリキュラムを作成しました'
     })
   }
   
-  if (req.method === 'PUT') {
-    const { title, description, thumbnailUrl } = req.body
-    
+  if (req.method === 'GET') {
+    // コースのカリキュラム一覧を取得
     return res.json({
       success: true,
-      data: {
-        id: parseInt(id),
-        title,
-        description,
-        thumbnailUrl,
-        updatedAt: new Date().toISOString()
-      }
-    })
-  }
-  
-  if (req.method === 'DELETE') {
-    return res.json({
-      success: true,
-      message: 'コースを削除しました'
+      data: courseDataStore[courseId].curriculums
     })
   }
   

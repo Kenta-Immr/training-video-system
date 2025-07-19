@@ -1,6 +1,6 @@
-// Single course endpoint
+// Individual curriculum management endpoint
 
-// 共有データストア（実際の実装では外部データベースを使用）
+// 共有データストア
 let courseData = {
   1: {
     id: 1,
@@ -68,10 +68,8 @@ let courseData = {
   }
 }
 
-// カリキュラム追加データを外部から取得する関数
+// データストア共有関数
 function getCourseDataFromSharedStore() {
-  // 実際の実装では、他のAPIエンドポイントと同じデータストアを参照
-  // ここでは簡易的に global オブジェクトを使用
   if (global.courseData) {
     return global.courseData
   }
@@ -79,60 +77,86 @@ function getCourseDataFromSharedStore() {
   return global.courseData
 }
 
+function findCurriculumAndCourse(curriculumId) {
+  const courseDataStore = getCourseDataFromSharedStore()
+  for (const courseId in courseDataStore) {
+    const course = courseDataStore[courseId]
+    const curriculumIndex = course.curriculums.findIndex(c => c.id === curriculumId)
+    if (curriculumIndex !== -1) {
+      return {
+        course,
+        curriculum: course.curriculums[curriculumIndex],
+        curriculumIndex
+      }
+    }
+  }
+  return null
+}
+
 export default function handler(req, res) {
   const { id } = req.query
+  const curriculumId = parseInt(id)
   
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PUT,DELETE')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,DELETE,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
   
+  const result = findCurriculumAndCourse(curriculumId)
+  
+  if (!result) {
+    return res.status(404).json({
+      success: false,
+      message: 'カリキュラムが見つかりません'
+    })
+  }
+  
   if (req.method === 'GET') {
-    const courseId = parseInt(id)
-    
-    // 最新のコースデータを取得
-    const courses = getCourseDataFromSharedStore()
-    const course = courses[courseId]
-    
-    if (!course) {
-      return res.status(404).json({
-        success: false,
-        message: 'コースが見つかりません'
-      })
-    }
-    
-    console.log(`コース取得: ${course.title} (カリキュラム数: ${course.curriculums.length})`)
-    
+    // カリキュラム詳細取得
     return res.json({
       success: true,
-      data: course
+      data: result.curriculum
     })
   }
   
   if (req.method === 'PUT') {
-    const { title, description, thumbnailUrl } = req.body
+    // カリキュラム更新
+    const { title, description } = req.body
+    
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: 'カリキュラム名は必須です'
+      })
+    }
+    
+    // カリキュラム情報を更新
+    result.curriculum.title = title
+    result.curriculum.description = description || ''
+    
+    console.log(`カリキュラム更新: ${title} (ID: ${curriculumId})`)
     
     return res.json({
       success: true,
-      data: {
-        id: parseInt(id),
-        title,
-        description,
-        thumbnailUrl,
-        updatedAt: new Date().toISOString()
-      }
+      data: result.curriculum,
+      message: 'カリキュラムを更新しました'
     })
   }
   
   if (req.method === 'DELETE') {
+    // カリキュラム削除
+    result.course.curriculums.splice(result.curriculumIndex, 1)
+    
+    console.log(`カリキュラム削除: ID ${curriculumId}`)
+    
     return res.json({
       success: true,
-      message: 'コースを削除しました'
+      message: 'カリキュラムを削除しました'
     })
   }
   

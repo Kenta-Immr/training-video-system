@@ -43,7 +43,9 @@ export default function CourseDetailPage() {
   const fetchCourse = async () => {
     try {
       const response = await courseAPI.getById(courseId)
-      setCourse(response.data)
+      // APIレスポンス構造をチェック
+      const courseData = response.data.data || response.data
+      setCourse(courseData)
     } catch (error: any) {
       setError(error.response?.data?.error || 'コースの取得に失敗しました')
     } finally {
