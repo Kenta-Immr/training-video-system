@@ -8,8 +8,6 @@ import { userAPI, UserData, groupAPI, Group } from '@/lib/api'
 import { isAdmin } from '@/lib/auth'
 
 export default function NotificationsPage() {
-  console.log('🔔 NotificationsPage component is loading!')
-  
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'first-login' | 'inactive-users'>('first-login')
   const [firstLoginPendingUsers, setFirstLoginPendingUsers] = useState<UserData[]>([])
@@ -21,12 +19,10 @@ export default function NotificationsPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    console.log('🔔 NotificationsPage useEffect triggered')
     fetchData()
   }, [activeTab, daysSinceLogin])
 
   const fetchData = async () => {
-    console.log('🔔 Fetching data...')
     setLoading(true)
     try {
       // 基本的なデータセット（モック）を使用
@@ -70,9 +66,7 @@ export default function NotificationsPage() {
       ])
       
       setError('')
-      console.log('🔔 Data fetched successfully')
     } catch (error: any) {
-      console.error('🔔 Fetch data error:', error)
       setError('データの取得に失敗しました')
     } finally {
       setLoading(false)
@@ -108,20 +102,8 @@ export default function NotificationsPage() {
     return users.filter(user => user.groupId === selectedGroupId)
   }
 
-  console.log('🔔 About to render NotificationsPage')
-
   return (
     <AdminPageWrapper title="通知・アラート" description="ユーザーのログイン状況とアラート管理">
-      {/* 成功確認デバッグ情報 */}
-      <div className="bg-green-50 border border-green-200 p-4 rounded mb-6">
-        <h2 className="text-lg font-semibold text-green-800 mb-2">✅ 通知・アラートページが正常に表示されました</h2>
-        <div className="text-sm text-green-700 space-y-1">
-          <p>• コンポーネント: NotificationsPage</p>
-          <p>• 初回ログイン未完了ユーザー: {firstLoginPendingUsers.length}名</p>
-          <p>• 非アクティブユーザー: {inactiveUsers.length}名</p>
-          <p>• 登録グループ数: {groups.length}個</p>
-        </div>
-      </div>
 
       {/* タブ切り替え */}
       <div className="mb-8">
