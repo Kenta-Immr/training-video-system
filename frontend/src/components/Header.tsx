@@ -19,7 +19,27 @@ export default function Header() {
     }
   }
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Link href="/login" className="text-lg sm:text-xl font-bold text-gray-900">
+                研修動画システム
+              </Link>
+            </div>
+            <Link
+              href="/login"
+              className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              ログイン
+            </Link>
+          </div>
+        </div>
+      </header>
+    )
+  }
 
   return (
     <header className="bg-white shadow-sm border-b relative">

@@ -41,22 +41,17 @@ export const removeToken = (): void => {
 
 export const getCurrentUser = (): User | null => {
   const token = getToken()
-  console.log('getCurrentUser - token:', token ? `${token.substring(0, 20)}...` : 'null')
   
   if (!token) {
-    console.log('getCurrentUser - no token found')
     return null
   }
 
   try {
     const decoded = jwtDecode<DecodedToken>(token)
-    console.log('getCurrentUser - decoded token:', decoded)
     
     const isExpired = decoded.exp * 1000 < Date.now()
-    console.log('getCurrentUser - is expired:', isExpired, 'exp:', new Date(decoded.exp * 1000))
     
     if (isExpired) {
-      console.log('getCurrentUser - token expired, removing')
       removeToken()
       return null
     }
@@ -67,10 +62,11 @@ export const getCurrentUser = (): User | null => {
       name: '',
       role: decoded.role
     }
-    console.log('getCurrentUser - returning user:', user)
     return user
   } catch (error) {
-    console.error('getCurrentUser - error decoding token:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('getCurrentUser - error decoding token:', error)
+    }
     removeToken()
     return null
   }

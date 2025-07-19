@@ -49,6 +49,41 @@ export default function LoginPage() {
           <p className="mt-2 text-center text-sm text-gray-600">
             アカウントにログインしてください
           </p>
+          
+          {/* サンプルアカウント情報 */}
+          <div className="mt-4 p-4 bg-blue-50 rounded-md">
+            <h3 className="text-sm font-medium text-blue-800">サンプルアカウント</h3>
+            <div className="mt-2 text-xs text-blue-700 space-y-1">
+              <div>
+                <strong>管理者:</strong> admin@example.com / admin123
+              </div>
+              <div>
+                <strong>一般ユーザー:</strong> user@example.com / user123
+              </div>
+            </div>
+            <div className="mt-2 flex space-x-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setValue('email', 'admin@example.com')
+                  setValue('password', 'admin123')
+                }}
+                className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                管理者でログイン
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setValue('email', 'user@example.com')
+                  setValue('password', 'user123')
+                }}
+                className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+              >
+                ユーザーでログイン
+              </button>
+            </div>
+          </div>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>

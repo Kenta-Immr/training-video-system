@@ -15,18 +15,14 @@ export default function AuthGuard({ children, requireAdmin = false }: AuthGuardP
   const router = useRouter()
 
   useEffect(() => {
-    // 本番環境での認証チェック
     const currentUser = getCurrentUser()
     
     if (!currentUser) {
-      console.log('AuthGuard - No user found, redirecting to login')
       router.push('/login')
       return
     }
 
     if (requireAdmin && currentUser.role !== 'ADMIN') {
-      console.log('AuthGuard - Admin required but user role is:', currentUser.role)
-      console.log('AuthGuard - Redirecting to home')
       router.push('/')
       return
     }

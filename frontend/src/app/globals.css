@@ -93,6 +93,37 @@ textarea.form-input {
   @apply text-gray-900 bg-white;
 }
 
+/* 動画プレーヤー用のレスポンシブスタイル */
+.video-player-container {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-player-container > div {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* モバイル向け動画プレーヤーの改善 */
+@media (max-width: 768px) {
+  .video-player-container {
+    border-radius: 4px;
+  }
+  
+  /* フルスクリーンボタンをより大きく */
+  .react-player video {
+    object-fit: contain;
+  }
+}
+
 /* 印刷用スタイル */
 @media print {
   /* ヘッダーやナビゲーションを非表示 */
