@@ -34,7 +34,9 @@ export default function GroupProgressPage() {
           if (userResponse.status === 401 || userResponse.status === 403) {
             // トークンが無効な場合、ログアウトしてログインページにリダイレクト
             localStorage.removeItem('token')
-            window.location.href = '/login'
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login'
+            }
             return
           }
           throw new Error(`ユーザー情報の取得に失敗しました (Status: ${userResponse.status})`)
@@ -137,7 +139,9 @@ export default function GroupProgressPage() {
                     <button
                       onClick={() => {
                         localStorage.removeItem('token')
-                        window.location.href = '/login'
+                        if (typeof window !== 'undefined') {
+              window.location.href = '/login'
+            }
                       }}
                       className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700"
                     >

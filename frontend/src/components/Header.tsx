@@ -13,7 +13,9 @@ export default function Header() {
 
   const handleLogout = () => {
     removeToken()
-    window.location.href = '/login'
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login'
+    }
   }
 
   if (!user) return null
