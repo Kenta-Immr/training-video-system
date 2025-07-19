@@ -1,5 +1,5 @@
 import Cookies from 'js-cookie'
-import { jwtDecode } from 'jwt-decode'
+import jwt_decode from 'jwt-decode'
 
 export interface User {
   id: number
@@ -47,7 +47,7 @@ export const getCurrentUser = (): User | null => {
   }
 
   try {
-    const decoded = jwtDecode<DecodedToken>(token)
+    const decoded = jwt_decode<DecodedToken>(token)
     
     const isExpired = decoded.exp * 1000 < Date.now()
     
