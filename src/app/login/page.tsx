@@ -59,6 +59,16 @@ export default function LoginPage() {
   }
 
   const onDebugSubmit = async (data: LoginRequest) => {
+    console.log('=== DEBUG SUBMIT DATA ===')
+    console.log('Form data received:', data)
+    console.log('Email:', data?.email)
+    console.log('Password:', data?.password)
+    
+    if (!data?.email || !data?.password) {
+      setError('デバッグ: フォームデータが正しく取得できませんでした')
+      return
+    }
+    
     setLoading(true)
     setError('')
 
