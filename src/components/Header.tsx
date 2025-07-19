@@ -5,20 +5,12 @@ import Link from 'next/link'
 import { getCurrentUser, removeToken, User } from '@/lib/auth'
 
 export default function Header() {
-  // AuthGuardと同様に一時的に管理者ユーザーを設定
-  const [user, setUser] = useState<User | null>({
-    id: 1,
-    email: 'admin@test.com',
-    name: 'Admin User',
-    role: 'ADMIN'
-  })
+  const [user, setUser] = useState<User | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  /* 一時的に無効化
   useEffect(() => {
     setUser(getCurrentUser())
   }, [])
-  */
 
   const handleLogout = () => {
     removeToken()

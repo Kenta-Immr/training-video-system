@@ -47,6 +47,25 @@ export const getCurrentUser = (): User | null => {
   }
 
   try {
+    // 開発環境用のデモトークンをチェック
+    if (token.startsWith('demo-')) {
+      const demoUsers: { [key: string]: User } = {
+        'demo-admin': {
+          id: 1,
+          email: 'admin@test.com',
+          name: '管理者ユーザー',
+          role: 'ADMIN'
+        },
+        'demo-user': {
+          id: 2,
+          email: 'test@test.com', 
+          name: '一般ユーザー',
+          role: 'USER'
+        }
+      }
+      return demoUsers[token] || null
+    }
+
     const decoded = jwt_decode<DecodedToken>(token)
     
     const isExpired = decoded.exp * 1000 < Date.now()

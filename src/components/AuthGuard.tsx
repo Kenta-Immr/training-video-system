@@ -10,27 +10,22 @@ interface AuthGuardProps {
 }
 
 export default function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
-  // 一時的に認証をスキップしてシステムを使用可能にする
-  const [user, setUser] = useState<User | null>({
-    id: 1,
-    email: 'admin@test.com',
-    name: 'Admin User',
-    role: 'ADMIN'
-  })
-  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
 
-  // 認証チェックを無効化
-  /*
   useEffect(() => {
     const currentUser = getCurrentUser()
     
+    // ユーザーがログインしていない場合
     if (!currentUser) {
       router.push('/login')
       return
     }
 
+    // 管理者権限が必要なページで、ユーザーが管理者でない場合
     if (requireAdmin && currentUser.role !== 'ADMIN') {
+      // 管理者でない場合は、アクセス拒否画面を表示せずにメインページへリダイレクト
       router.push('/')
       return
     }
@@ -38,7 +33,6 @@ export default function AuthGuard({ children, requireAdmin = false }: AuthGuardP
     setUser(currentUser)
     setLoading(false)
   }, [router, requireAdmin])
-  */
 
   if (loading) {
     return (
