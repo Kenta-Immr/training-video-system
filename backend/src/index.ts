@@ -43,6 +43,32 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() })
 })
 
+// デバッグ用のリクエストロガー
+app.use('*', (req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`)
+  console.log('BaseURL:', req.baseUrl)
+  console.log('Path:', req.path)
+  console.log('Headers:', JSON.stringify(req.headers, null, 2))
+  next()
+})
+
+// 404ハンドラー
+app.use((req, res) => {
+  console.log(`404 - Route not found: ${req.method} ${req.originalUrl}`)
+  console.log('Available routes:')
+  console.log('- /api/auth/*')
+  console.log('- /api/users/*') 
+  console.log('- /api/logs/*')
+  console.log('- /api/courses/*')
+  console.log('- /api/videos/*')
+  console.log('- /api/groups/*')
+  console.log('- /health')
+  res.status(404).json({ 
+    error: `Route not found: ${req.method} ${req.originalUrl}`,
+    availableRoutes: ['/api/auth', '/api/users', '/api/logs', '/api/courses', '/api/videos', '/api/groups', '/health']
+  })
+})
+
 // Vercel Functions用のexport
 export default app
 
