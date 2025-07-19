@@ -1,5 +1,5 @@
 // Health check endpoint
-module.exports = function handler(req, res) {
+export default function handler(req, res) {
   res.json({ 
     status: 'OK', 
     message: 'API is running on Vercel',

@@ -1,5 +1,5 @@
 // Authentication endpoint
-module.exports = function handler(req, res) {
+export default function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
