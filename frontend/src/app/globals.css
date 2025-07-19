@@ -77,7 +77,6 @@ select.form-input {
     @apply bg-gray-50;
   }
 }
-}
 
 /* textarea要素のスタイルも明示的に設定 */
 textarea.form-input {
