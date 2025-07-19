@@ -1,15 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import AdminPageWrapper from '@/components/AdminPageWrapper'
+import { userAPI, UserData, groupAPI, Group } from '@/lib/api'
+import { isAdmin } from '@/lib/auth'
 
 // 動的ページとして設定
 export const dynamic = 'force-dynamic'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Header from '@/components/Header'
-import AuthGuard from '@/components/AuthGuard'
-import { userAPI, UserData, groupAPI, Group } from '@/lib/api'
-import { isAdmin } from '@/lib/auth'
 
 export default function NotificationsPage() {
   const router = useRouter()
@@ -109,37 +108,16 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <AuthGuard requireAdmin>
-        <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        </main>
-      </AuthGuard>
+      <AdminPageWrapper title="通知・アラート" description="ユーザーのログイン状況とアラート管理">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </AdminPageWrapper>
     )
   }
 
   return (
-    <AuthGuard requireAdmin>
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">通知・アラート</h1>
-              <p className="mt-2 text-gray-600">
-                ユーザーのログイン状況とアラート管理
-              </p>
-            </div>
-            <Link
-              href="/admin"
-              className="btn-secondary"
-            >
-              管理画面に戻る
-            </Link>
-          </div>
-        </div>
+    <AdminPageWrapper title="通知・アラート" description="ユーザーのログイン状況とアラート管理">
 
         {/* タブ切り替え */}
         <div className="mb-8">
@@ -581,7 +559,6 @@ export default function NotificationsPage() {
             </div>
           </div>
         )}
-      </main>
-    </AuthGuard>
+    </AdminPageWrapper>
   )
 }

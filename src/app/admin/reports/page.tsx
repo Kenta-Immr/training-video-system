@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import AuthGuard from '@/components/AuthGuard'
-import Header from '@/components/Header'
+import AdminPageWrapper from '@/components/AdminPageWrapper'
 import { logAPI, courseAPI, Course, groupAPI, Group } from '@/lib/api'
 
 interface ReportData {
@@ -309,19 +308,7 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <AuthGuard requireAdmin>
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <Link href="/admin" className="text-blue-600 hover:text-blue-800 text-sm">
-            ← 管理者ダッシュボードに戻る
-          </Link>
-        </div>
-
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">詳細分析・レポート</h1>
-          <p className="mt-2 text-gray-600">研修の詳細分析データとエクスポート機能</p>
-        </div>
+    <AdminPageWrapper title="詳細分析・レポート" description="研修の詳細分析データとエクスポート機能">
 
         {error && (
           <div className="rounded-md bg-red-50 p-4 mb-6">
@@ -562,7 +549,6 @@ export default function AdminReportsPage() {
             </div>
           </>
         )}
-      </main>
-    </AuthGuard>
+    </AdminPageWrapper>
   )
 }

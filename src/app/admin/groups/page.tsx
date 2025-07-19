@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
-import AuthGuard from '@/components/AuthGuard'
-import Header from '@/components/Header'
+import AdminPageWrapper from '@/components/AdminPageWrapper'
 import { groupAPI, userAPI, courseAPI, Group, UserData, Course } from '@/lib/api'
 
 interface GroupForm {
@@ -168,15 +167,7 @@ export default function AdminGroupsPage() {
   }
 
   return (
-    <AuthGuard requireAdmin>
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <Link href="/admin" className="text-blue-600 hover:text-blue-800 text-sm">
-            ← 管理者ダッシュボードに戻る
-          </Link>
-        </div>
-
+    <AdminPageWrapper title="グループ管理" description="受講者をグループ分けして管理できます">
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
@@ -569,7 +560,6 @@ export default function AdminGroupsPage() {
           </div>
         )}
 
-      </main>
-    </AuthGuard>
+    </AdminPageWrapper>
   )
 }

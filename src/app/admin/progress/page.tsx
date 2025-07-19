@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Header from '@/components/Header'
-import AuthGuard from '@/components/AuthGuard'
+import AdminPageWrapper from '@/components/AdminPageWrapper'
 import { groupAPI, userAPI, Group, UserData, GroupProgress } from '@/lib/api'
 
 export default function ProgressManagementPage() {
@@ -103,23 +102,7 @@ export default function ProgressManagementPage() {
   }
 
   return (
-    <AuthGuard requireAdmin>
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">進捗管理</h1>
-              <p className="mt-2 text-gray-600">個人とグループの学習進捗を確認できます</p>
-            </div>
-            <Link
-              href="/admin"
-              className="btn-secondary"
-            >
-              管理者ダッシュボードに戻る
-            </Link>
-          </div>
-        </div>
+    <AdminPageWrapper title="進捗管理" description="個人とグループの学習進捗を確認できます">
 
         {/* 表示モード切り替え */}
         <div className="mb-8">
@@ -583,7 +566,6 @@ export default function ProgressManagementPage() {
           </div>
         )}
 
-      </main>
-    </AuthGuard>
+    </AdminPageWrapper>
   )
 }

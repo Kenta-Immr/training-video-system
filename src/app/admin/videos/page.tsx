@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import AuthGuard from '@/components/AuthGuard'
-import Header from '@/components/Header'
+import AdminPageWrapper from '@/components/AdminPageWrapper'
 import { courseAPI, logAPI, Course, Video } from '@/lib/api'
 
 interface VideoWithStats extends Video {
@@ -125,19 +124,7 @@ export default function AdminVideosPage() {
     })
 
   return (
-    <AuthGuard requireAdmin>
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <Link href="/admin" className="text-blue-600 hover:text-blue-800 text-sm">
-            ← 管理者ダッシュボードに戻る
-          </Link>
-        </div>
-
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">動画視聴状況</h1>
-          <p className="mt-2 text-gray-600">各動画の視聴統計と分析データを確認できます</p>
-        </div>
+    <AdminPageWrapper title="動画視聴状況" description="各動画の視聴統計と分析データを確認できます">
 
         {error && (
           <div className="rounded-md bg-red-50 p-4 mb-6">
@@ -318,7 +305,6 @@ export default function AdminVideosPage() {
             )}
           </div>
         )}
-      </main>
-    </AuthGuard>
+    </AdminPageWrapper>
   )
 }
