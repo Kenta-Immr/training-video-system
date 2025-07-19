@@ -1,7 +1,9 @@
 import axios from 'axios'
 import { getToken, removeToken } from './auth'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? '' // 本番環境では同一ドメインのVercel Functions
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001')
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -94,44 +96,8 @@ export interface ViewingLogRequest {
 }
 
 export const authAPI = {
-  login: async (data: LoginRequest) => {
-    try {
-      return await api.post<LoginResponse>('/api/auth/login', data)
-    } catch (error) {
-      // 本番環境でAPIが利用できない場合のフォールバック
-      if (process.env.NODE_ENV === 'production') {
-        // 管理者ログイン
-        if (data.email === 'admin@example.com' && data.password === 'admin123') {
-          return {
-            data: {
-              token: 'demo-admin-token',
-              user: {
-                id: 1,
-                email: 'admin@example.com',
-                name: '管理者',
-                role: 'ADMIN'
-              }
-            }
-          }
-        }
-        // 一般ユーザーログイン（任意のメール/パスワードで許可）
-        if (data.email && data.password) {
-          return {
-            data: {
-              token: 'demo-user-token',
-              user: {
-                id: 2,
-                email: data.email,
-                name: 'ユーザー',
-                role: 'USER'
-              }
-            }
-          }
-        }
-      }
-      throw error
-    }
-  },
+  login: (data: LoginRequest) => 
+    api.post<LoginResponse>('/api/auth/login', data),
   register: (data: RegisterRequest) =>
     api.post<LoginResponse>('/api/auth/register', data),
 }
@@ -211,30 +177,8 @@ const DEMO_COURSES: Course[] = [
 ];
 
 export const courseAPI = {
-  getAll: async () => {
-    try {
-      // 本番環境ではバックエンドAPIを試行
-      const response = await api.get<Course[]>('/api/courses');
-      return response;
-    } catch (error) {
-      // APIが利用できない場合はデモデータを返す
-      console.log('API not available, using demo data');
-      return { data: DEMO_COURSES };
-    }
-  },
-  getById: async (id: number) => {
-    try {
-      return await api.get<Course>(`/api/courses/${id}`)
-    } catch (error) {
-      // 本番環境でAPIが利用できない場合はデモデータから検索
-      console.log('API not available, using demo data for course:', id);
-      const course = DEMO_COURSES.find(c => c.id === id);
-      if (course) {
-        return { data: course };
-      }
-      throw new Error('コースが見つかりません');
-    }
-  },
+  getAll: () => api.get<Course[]>('/api/courses'),
+  getById: (id: number) => api.get<Course>(`/api/courses/${id}`),
   create: (data: { title: string; description?: string; thumbnailUrl?: string }) =>
     api.post<Course>('/api/courses', data),
   update: (id: number, data: { title: string; description?: string; thumbnailUrl?: string }) =>
@@ -256,23 +200,7 @@ export const courseAPI = {
 }
 
 export const videoAPI = {
-  getById: async (id: number) => {
-    try {
-      return await api.get<Video>(`/api/videos/${id}`)
-    } catch (error) {
-      // 本番環境でAPIが利用できない場合はデモデータから検索
-      console.log('API not available, using demo data for video:', id);
-      for (const course of DEMO_COURSES) {
-        for (const curriculum of course.curriculums) {
-          const video = curriculum.videos.find(v => v.id === id);
-          if (video) {
-            return { data: video };
-          }
-        }
-      }
-      throw new Error('動画が見つかりません');
-    }
-  },
+  getById: (id: number) => api.get<Video>(`/api/videos/${id}`),
   create: (data: { title: string; description?: string; videoUrl: string; curriculumId: number }) =>
     api.post<Video>('/api/videos', data),
   upload: (formData: FormData) =>

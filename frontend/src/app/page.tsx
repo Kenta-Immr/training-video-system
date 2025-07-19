@@ -42,10 +42,10 @@ export default function HomePage() {
   return (
     <AuthGuard>
       <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">コース一覧</h1>
-          <p className="mt-2 text-gray-600">利用可能な研修コースから選択してください</p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">コース一覧</h1>
+          <p className="mt-2 text-sm sm:text-base text-gray-600">利用可能な研修コースから選択してください</p>
         </div>
 
         {loading && (
@@ -61,7 +61,7 @@ export default function HomePage() {
         )}
 
         {!loading && !error && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {courses.map((course) => {
               const progress = calculateProgress(course)
               const totalVideos = course.curriculums.reduce(
@@ -81,31 +81,31 @@ export default function HomePage() {
                         <img
                           src={course.thumbnailUrl}
                           alt={course.title}
-                          className="w-full h-40 object-cover rounded"
+                          className="w-full h-32 sm:h-40 object-cover rounded"
                         />
                       </div>
                     )}
                     
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                       {course.title}
                     </h3>
                     
                     {course.description && (
-                      <p className="text-gray-600 mb-4 flex-grow">
+                      <p className="text-sm sm:text-base text-gray-600 mb-4 flex-grow line-clamp-3">
                         {course.description}
                       </p>
                     )}
 
                     <div className="space-y-3">
-                      <div className="flex justify-between text-sm text-gray-500">
-                        <span>{course.curriculums.length} カリキュラム</span>
-                        <span>{totalVideos} 動画</span>
+                      <div className="flex justify-between text-xs sm:text-sm text-gray-500">
+                        <span>📚 {course.curriculums.length} カリキュラム</span>
+                        <span>🎥 {totalVideos} 動画</span>
                       </div>
 
                       <div>
-                        <div className="flex justify-between text-sm text-gray-600 mb-1">
+                        <div className="flex justify-between text-xs sm:text-sm text-gray-600 mb-1">
                           <span>進捗</span>
-                          <span>{progress}%</span>
+                          <span className="font-medium">{progress}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
