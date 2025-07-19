@@ -18,24 +18,9 @@ export default function AuthGuard({ children, requireAdmin = false }: AuthGuardP
     // 本番環境での認証チェック
     const currentUser = getCurrentUser()
     
-    // デモモードまたは認証がない場合のフォールバック
     if (!currentUser) {
-      // 本番環境では実際の認証が必要な場合のみログインページにリダイレクト
-      if (process.env.NODE_ENV === 'production') {
-        // デモユーザーとして継続
-        const demoUser: User = {
-          id: 1,
-          email: 'demo@example.com',
-          name: 'デモユーザー',
-          role: 'USER'
-        }
-        setUser(demoUser)
-        setLoading(false)
-        return
-      } else {
-        router.push('/login')
-        return
-      }
+      router.push('/login')
+      return
     }
 
     if (requireAdmin && currentUser.role !== 'ADMIN') {
