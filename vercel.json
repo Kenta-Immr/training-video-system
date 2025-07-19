@@ -1,4 +1,15 @@
 {
+  "functions": {
+    "backend/src/index.ts": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/backend/src/index.ts"
+    }
+  ],
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
