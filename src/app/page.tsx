@@ -16,7 +16,14 @@ export default function HomePage() {
     const fetchCourses = async () => {
       try {
         const response = await courseAPI.getAll()
-        setCourses(response.data)
+        console.log('Courses API response:', response.data)
+        // API response format: {success: true, data: [...]}
+        const coursesData = response.data?.data || response.data
+        if (Array.isArray(coursesData)) {
+          setCourses(coursesData)
+        } else {
+          throw new Error('Invalid courses data format')
+        }
       } catch (error: any) {
         console.warn('API からのコース取得に失敗したため、デモデータを使用します:', error)
         // APIが利用できない場合はデモコースを表示
