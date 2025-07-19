@@ -1,6 +1,0 @@
-email,name,password,role,groupName
-test1@example.com,テストユーザー1,password123,USER,自動作成グループ1
-test2@example.com,テストユーザー2,password456,USER,自動作成グループ2
-test3@example.com,テストユーザー3,password789,USER,自動作成グループ1
-admin@example.com,管理者テスト,admin123,ADMIN,管理グループ
-user@example.com,一般ユーザー,user123,USER,営業部
