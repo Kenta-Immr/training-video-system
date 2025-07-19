@@ -32,13 +32,19 @@ app.use(express.json())
 // 静的ファイル配信（アップロードされた動画）
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
-// ルート
+// ルート (末尾スラッシュの両方に対応)
 app.use('/api/auth', authRoutes)
+app.use('/api/auth/', authRoutes)
 app.use('/api/courses', courseRoutes)
+app.use('/api/courses/', courseRoutes)
 app.use('/api/videos', videoRoutes)
+app.use('/api/videos/', videoRoutes)
 app.use('/api/logs', logRoutes)
+app.use('/api/logs/', logRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/users/', userRoutes)
 app.use('/api/groups', groupRoutes)
+app.use('/api/groups/', groupRoutes)
 
 // ヘルスチェック
 app.get('/health', (req, res) => {
