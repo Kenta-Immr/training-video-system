@@ -187,6 +187,17 @@ export default function LoginPage() {
             </button>
           </div>
 
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleSubmit(onDebugSubmit)}
+              disabled={loading}
+              className="w-full btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'デバッグログイン中...' : 'デバッグログイン (開発用)'}
+            </button>
+          </div>
+
         </form>
       </div>
     </div>
