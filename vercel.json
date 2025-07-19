@@ -1,7 +1,8 @@
 {
-  "buildCommand": "cd frontend && npm run build",
+  "version": 2,
+  "buildCommand": "cd frontend && npm ci && npm run build",
   "outputDirectory": "frontend/.next",
-  "installCommand": "cd frontend && npm install", 
+  "installCommand": "cd frontend && npm ci", 
   "framework": "nextjs",
   "functions": {
     "backend/src/index.ts": {
@@ -13,5 +14,8 @@
       "source": "/api/(.*)",
       "destination": "/backend/src/index.ts"
     }
-  ]
+  ],
+  "env": {
+    "NODE_VERSION": "18.17.0"
+  }
 }
