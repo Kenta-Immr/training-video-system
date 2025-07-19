@@ -22,15 +22,15 @@ body {
 }
 
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors;
+  @apply bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-3 px-6 rounded transition-colors min-h-[44px] touch-manipulation;
 }
 
 .btn-secondary {
-  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition-colors;
+  @apply bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-800 font-medium py-3 px-6 rounded transition-colors min-h-[44px] touch-manipulation;
 }
 
 .btn-danger {
-  @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded transition-colors;
+  @apply bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-medium py-3 px-6 rounded transition-colors min-h-[44px] touch-manipulation;
 }
 
 .card {
@@ -38,7 +38,7 @@ body {
 }
 
 .form-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white;
+  @apply w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white min-h-[44px] touch-manipulation text-base;
 }
 
 .form-label {
@@ -48,6 +48,35 @@ body {
 /* select要素のスタイルも明示的に設定 */
 select.form-input {
   @apply text-gray-900 bg-white;
+}
+
+/* スマホ対応の改善 */
+@media (max-width: 768px) {
+  .card {
+    @apply p-4;
+  }
+  
+  /* タップ可能な要素の最小サイズ確保 */
+  button, .btn-primary, .btn-secondary, .btn-danger, a[role="button"] {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* フォームの改善 */
+  input, select, textarea {
+    @apply text-base; /* ズーム防止 */
+  }
+}
+
+/* タッチデバイス用の改善 */
+@media (hover: none) {
+  .hover\:shadow-lg:hover {
+    @apply shadow-lg;
+  }
+  
+  .hover\:bg-gray-50:hover {
+    @apply bg-gray-50;
+  }
+}
 }
 
 /* textarea要素のスタイルも明示的に設定 */

@@ -52,15 +52,8 @@ export default function BulkCreateUsersPage() {
         setGroups(response.data)
       } catch (error) {
         console.error('Error fetching groups:', error)
-        // 本番環境では空配列でフォールバック
         setGroups([])
       }
-    }
-    
-    // 本番環境でAPIが利用できない場合のフォールバック
-    if (process.env.NODE_ENV === 'production') {
-      setGroups([])
-      return
     }
     
     fetchGroups()

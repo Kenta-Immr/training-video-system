@@ -303,7 +303,7 @@ export const userAPI = {
   bulkCreate: (data: BulkCreateUserRequest) =>
     api.post<BulkCreateUserResponse>('/api/users/bulk-create', data),
   getFirstLoginPending: () =>
-    api.get<UserData[]>('/api/users/reports/first-login-pending'),
+    api.get<UserData[]>('/api/users/first-login-pending'),
 }
 
 export interface GroupProgress {

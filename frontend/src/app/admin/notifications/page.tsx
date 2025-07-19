@@ -36,16 +36,6 @@ export default function NotificationsPage() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      // 本番環境ではデモデータを使用
-      if (process.env.NODE_ENV === 'production') {
-        setGroups([])
-        setFirstLoginPendingUsers([])
-        setInactiveUsers([])
-        setError('')
-        setLoading(false)
-        return
-      }
-      
       const [groupsResponse, usersResponse, firstLoginResponse] = await Promise.all([
         groupAPI.getAll(),
         userAPI.getAll(),
