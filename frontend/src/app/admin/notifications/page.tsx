@@ -32,6 +32,16 @@ export default function NotificationsPage() {
   const fetchData = async () => {
     setLoading(true)
     try {
+      // 本番環境ではデモデータを使用
+      if (process.env.NODE_ENV === 'production') {
+        setGroups([])
+        setFirstLoginPendingUsers([])
+        setInactiveUsers([])
+        setError('')
+        setLoading(false)
+        return
+      }
+      
       const [groupsResponse, usersResponse, firstLoginResponse] = await Promise.all([
         groupAPI.getAll(),
         userAPI.getAll(),
@@ -55,6 +65,10 @@ export default function NotificationsPage() {
       setError('')
     } catch (error: any) {
       setError(error.response?.data?.error || 'データの取得に失敗しました')
+      // エラー時も空データでフォールバック
+      setGroups([])
+      setFirstLoginPendingUsers([])
+      setInactiveUsers([])
     } finally {
       setLoading(false)
     }

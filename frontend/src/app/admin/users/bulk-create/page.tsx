@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
@@ -41,17 +41,26 @@ export default function BulkCreateUsersPage() {
   }
 
   // グループ一覧を取得
-  useState(() => {
+  useEffect(() => {
     const fetchGroups = async () => {
       try {
         const response = await groupAPI.getAll()
         setGroups(response.data)
       } catch (error) {
         console.error('Error fetching groups:', error)
+        // 本番環境では空配列でフォールバック
+        setGroups([])
       }
     }
+    
+    // 本番環境でAPIが利用できない場合のフォールバック
+    if (process.env.NODE_ENV === 'production') {
+      setGroups([])
+      return
+    }
+    
     fetchGroups()
-  })
+  }, [])
 
   const addUser = () => {
     setUsers([...users, { email: '', name: '', password: '', role: 'USER' }])
