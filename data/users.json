@@ -120,7 +120,18 @@
       "lastLoginAt": null,
       "createdAt": "2025-07-21T05:49:00.088Z",
       "updatedAt": "2025-07-21T05:49:00.088Z"
+    },
+    "12": {
+      "id": 12,
+      "email": "stability-test@example.com",
+      "name": "安定性テストユーザー",
+      "role": "USER",
+      "groupId": null,
+      "isFirstLogin": true,
+      "lastLoginAt": null,
+      "createdAt": "2025-07-21T07:13:16.444Z",
+      "updatedAt": "2025-07-21T07:13:16.444Z"
     }
   },
-  "nextUserId": 12
+  "nextUserId": 13
 }
