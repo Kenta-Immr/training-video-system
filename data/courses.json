@@ -91,9 +91,18 @@
       "curriculums": [],
       "createdAt": "2025-07-21T05:40:03.793Z",
       "updatedAt": "2025-07-21T05:40:03.793Z"
+    },
+    "8": {
+      "id": 8,
+      "title": "再起動後テストコース",
+      "description": "サーバー再起動後の永続化テスト",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300",
+      "curriculums": [],
+      "createdAt": "2025-07-21T05:53:40.077Z",
+      "updatedAt": "2025-07-21T05:53:40.077Z"
     }
   },
-  "nextCourseId": 8,
+  "nextCourseId": 9,
   "nextCurriculumId": 2,
   "nextVideoId": 3
 }

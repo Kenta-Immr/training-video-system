@@ -115,13 +115,15 @@ export default function handler(req, res) {
       }
     }
     
+    const tempPassword = password || generateTempPassword()
+    
     const newUser = dataStore.createUser({
       email,
       name,
-      password: password || generateTempPassword(),
+      password: tempPassword,
       role: role.toUpperCase(),
       groupId: groupId || null,
-      isFirstLoginPending: true
+      isFirstLogin: true
     })
     
     console.log(`新規ユーザー作成: ${name} (${email}) - ID: ${newUser.id}`)
@@ -130,7 +132,7 @@ export default function handler(req, res) {
     const responseUser = {
       ...newUser,
       group,
-      tempPassword: password || generateTempPassword() // デモ用
+      tempPassword // デモ用
     }
     
     return res.json({

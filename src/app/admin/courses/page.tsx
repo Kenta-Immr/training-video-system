@@ -73,6 +73,19 @@ export default function AdminCoursesPage() {
     }
   }
 
+  // ページが表示される度にデータを再取得（ブラウザバック対応）
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('ページが表示されました - データを再取得')
+        fetchCourses(true)
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+
   const onSubmit = async (data: CourseForm) => {
     try {
       setError('') // エラーをクリア

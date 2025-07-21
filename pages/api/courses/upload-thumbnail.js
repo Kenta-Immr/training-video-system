@@ -55,17 +55,15 @@ export default async function handler(req, res) {
     const buffer = Buffer.concat(chunks)
     console.log('受信データサイズ:', buffer.length, 'バイト')
     
-    // デモ版では固定のサムネイルURLを返すが、ファイル名に基づいて一意にする
+    // デモ版では固定のサムネイルURLを返すが、ファイル内容に基づいて一意性を保つ
     const mockThumbnailUrls = [
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop", 
       "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop",
       "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=300&fit=crop",
       "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=400&h=300&fit=crop"
     ]
     
-    // ファイル名とタイムスタンプでハッシュ化して一意性を保つ
-    const timestamp = Date.now()
     let filename = 'thumbnail'
     
     try {
@@ -80,9 +78,14 @@ export default async function handler(req, res) {
       // デフォルトのファイル名を使用
     }
     
-    const hashInput = filename + timestamp
+    // ファイル内容とファイル名の組み合わせで一意のハッシュを生成
+    const fileHash = buffer.toString('base64').substring(0, 20)
+    const hashInput = filename + fileHash + buffer.length
     const hashIndex = hashInput.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % mockThumbnailUrls.length
-    const thumbnailUrl = mockThumbnailUrls[hashIndex] + '&t=' + timestamp
+    
+    // 一意性を保つためハッシュ値をパラメータに追加
+    const uniqueId = Buffer.from(hashInput).toString('base64').substring(0, 8)
+    const thumbnailUrl = mockThumbnailUrls[hashIndex] + '&demo_id=' + uniqueId
     
     console.log(`デモサムネイル生成: ${thumbnailUrl}`)
     

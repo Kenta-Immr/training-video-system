@@ -28,6 +28,19 @@ export default function UsersPage() {
     fetchUsers()
   }, [])
 
+  // ページが表示される度にデータを再取得（ブラウザバック対応）
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('ページが表示されました - ユーザーデータを再取得')
+        fetchUsers(true)
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+
   const fetchUsers = async (forceRefresh = false) => {
     try {
       setLoading(true)

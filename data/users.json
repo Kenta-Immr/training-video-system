@@ -109,7 +109,18 @@
       "lastLoginAt": null,
       "createdAt": "2025-07-21T05:39:34.491Z",
       "updatedAt": "2025-07-21T05:39:34.491Z"
+    },
+    "11": {
+      "id": 11,
+      "email": "new-test@example.com",
+      "name": "新規テストユーザー",
+      "role": "USER",
+      "groupId": null,
+      "isFirstLogin": true,
+      "lastLoginAt": null,
+      "createdAt": "2025-07-21T05:49:00.088Z",
+      "updatedAt": "2025-07-21T05:49:00.088Z"
     }
   },
-  "nextUserId": 11
+  "nextUserId": 12
 }
