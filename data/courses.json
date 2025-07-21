@@ -55,9 +55,36 @@
       "curriculums": [],
       "createdAt": "2025-07-21T05:01:30.349Z",
       "updatedAt": "2025-07-21T05:01:30.349Z"
+    },
+    "4": {
+      "id": 4,
+      "title": "テスト新規コース",
+      "description": "新規作成テスト",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop",
+      "curriculums": [],
+      "createdAt": "2025-07-21T05:06:24.720Z",
+      "updatedAt": "2025-07-21T05:06:24.720Z"
+    },
+    "5": {
+      "id": 5,
+      "title": "フロントエンドテスト",
+      "description": "フロントエンド経由でのテスト",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
+      "curriculums": [],
+      "createdAt": "2025-07-21T05:07:17.734Z",
+      "updatedAt": "2025-07-21T05:07:17.734Z"
+    },
+    "6": {
+      "id": 6,
+      "title": "エラーテスト2",
+      "description": "再起動後のテスト",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
+      "curriculums": [],
+      "createdAt": "2025-07-21T05:10:41.155Z",
+      "updatedAt": "2025-07-21T05:10:41.155Z"
     }
   },
-  "nextCourseId": 4,
+  "nextCourseId": 7,
   "nextCurriculumId": 2,
   "nextVideoId": 3
 }

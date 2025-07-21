@@ -28,17 +28,40 @@ export default function UsersPage() {
     fetchUsers()
   }, [])
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (forceRefresh = false) => {
     try {
-      console.log('ユーザー一覧取得開始')
-      const response = await userAPI.getAll()
-      console.log('ユーザー一覧API応答:', response.data)
+      setLoading(true)
+      setError('')
+      console.log('ユーザー一覧取得開始', forceRefresh ? '(強制更新)' : '')
       
-      const usersData = response.data.data || response.data
-      setUsers(Array.isArray(usersData) ? usersData : [])
+      const response = await userAPI.getAll()
+      console.log('ユーザー一覧API応答:', response)
+      console.log('レスポンス構造:', {
+        status: response.status,
+        dataType: typeof response.data,
+        hasData: !!response.data?.data,
+        directData: Array.isArray(response.data)
+      })
+      
+      const usersData = response.data?.data || response.data
+      console.log('処理後のユーザーデータ:', {
+        type: typeof usersData,
+        isArray: Array.isArray(usersData),
+        length: Array.isArray(usersData) ? usersData.length : 'not array',
+        sample: Array.isArray(usersData) ? usersData.slice(0, 2) : usersData
+      })
+      
+      if (Array.isArray(usersData)) {
+        setUsers(usersData)
+        console.log(`ユーザー設定完了: ${usersData.length}件`)
+      } else {
+        console.warn('ユーザーデータが配列ではありません:', usersData)
+        setUsers([])
+      }
     } catch (error: any) {
       console.error('ユーザー取得エラー:', error)
-      setError('ユーザーの取得に失敗しました')
+      setError(error.response?.data?.message || error.message || 'ユーザーの取得に失敗しました')
+      setUsers([])
     } finally {
       setLoading(false)
     }
@@ -60,7 +83,11 @@ export default function UsersPage() {
       userForm.reset()
       setShowForm(false)
       setEditingUser(null)
-      fetchUsers()
+      
+      // データ保存後の強制リフレッシュ（遅延付き）
+      setTimeout(() => {
+        fetchUsers(true)
+      }, 500)
     } catch (error: any) {
       console.error('ユーザー保存エラー:', error)
       setError(error.response?.data?.message || 'ユーザーの保存に失敗しました')

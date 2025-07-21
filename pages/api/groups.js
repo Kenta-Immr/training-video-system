@@ -30,6 +30,13 @@ export default function handler(req, res) {
   }
   
   if (req.method === 'GET') {
+    // キャッシュ制御ヘッダーを追加
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
+    res.setHeader('Last-Modified', new Date().toUTCString())
+    res.setHeader('ETag', `"${Date.now()}"`)
+    
     const groups = dataStore.getGroups()
     
     // 各グループにメンバー数を追加
@@ -40,15 +47,19 @@ export default function handler(req, res) {
       return {
         ...group,
         memberCount: members.length,
-        members: members
+        members: members,
+        users: members // 互換性のため
       }
     })
     
     console.log(`グループ一覧取得: ${groups.length}件`)
+    console.log('取得したグループ:', groupsWithMembers.map(g => ({ id: g.id, name: g.name, code: g.code, memberCount: g.memberCount })))
     
     return res.json({
       success: true,
-      data: groupsWithMembers
+      data: groupsWithMembers,
+      timestamp: new Date().toISOString(),
+      count: groupsWithMembers.length
     })
   }
   

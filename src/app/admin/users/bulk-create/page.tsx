@@ -53,7 +53,7 @@ export default function BulkCreateUsersPage() {
 
     try {
       const token = localStorage.getItem('authToken')
-      const response = await fetch('/api/users/bulk-create', {
+      const response = await fetch('/api/users/bulk-create/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

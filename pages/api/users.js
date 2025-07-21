@@ -35,6 +35,13 @@ export default function handler(req, res) {
   }
   
   if (req.method === 'GET') {
+    // キャッシュ制御ヘッダーを追加
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
+    res.setHeader('Last-Modified', new Date().toUTCString())
+    res.setHeader('ETag', `"${Date.now()}"`)
+    
     const users = dataStore.getUsers()
     
     // グループ情報を付与
@@ -50,10 +57,13 @@ export default function handler(req, res) {
     })
     
     console.log(`ユーザー一覧取得: ${users.length}件`)
+    console.log('取得したユーザー:', usersWithGroups.map(u => ({ id: u.id, name: u.name, email: u.email })))
     
     return res.json({
       success: true,
-      data: usersWithGroups
+      data: usersWithGroups,
+      timestamp: new Date().toISOString(),
+      count: usersWithGroups.length
     })
   }
   

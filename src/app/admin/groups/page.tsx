@@ -38,33 +38,40 @@ export default function AdminGroupsPage() {
     fetchData()
   }, [])
 
-  const fetchData = async () => {
+  const fetchData = async (forceRefresh = false) => {
     try {
+      setLoading(true)
+      setError('')
+      console.log('グループデータ取得開始', forceRefresh ? '(強制更新)' : '')
+      
       const [groupsResponse, usersResponse, coursesResponse] = await Promise.all([
         groupAPI.getAll(),
         userAPI.getAll(),
         courseAPI.getAll()
       ])
       
-      console.log('Groups API response:', groupsResponse.data)
-      console.log('Users API response:', usersResponse.data)
-      console.log('Courses API response:', coursesResponse.data)
+      console.log('Groups API response:', groupsResponse)
+      console.log('Users API response:', usersResponse)
+      console.log('Courses API response:', coursesResponse)
       
       // APIレスポンス構造を処理
       const groupsData = groupsResponse.data?.data || groupsResponse.data
       const usersData = usersResponse.data?.data || usersResponse.data
       const coursesData = coursesResponse.data?.data || coursesResponse.data
       
-      console.log('Processed groups data:', groupsData)
-      console.log('Processed users data:', usersData)
-      console.log('Processed courses data:', coursesData)
+      console.log('Processed groups data:', {
+        type: typeof groupsData,
+        isArray: Array.isArray(groupsData),
+        length: Array.isArray(groupsData) ? groupsData.length : 'not array',
+        data: groupsData
+      })
       
       setGroups(Array.isArray(groupsData) ? groupsData : [])
       setUsers(Array.isArray(usersData) ? usersData : [])
       setCourses(Array.isArray(coursesData) ? coursesData : [])
     } catch (error: any) {
       console.error('Fetch data error:', error)
-      setError(error.response?.data?.error || 'データの取得に失敗しました')
+      setError(error.response?.data?.error || error.message || 'データの取得に失敗しました')
       // エラー時は空配列でフォールバック
       setGroups([])
       setUsers([])
@@ -85,7 +92,11 @@ export default function AdminGroupsPage() {
       reset()
       setShowForm(false)
       setEditingGroup(null)
-      fetchData()
+      
+      // データ保存後の強制リフレッシュ（遅延付き）
+      setTimeout(() => {
+        fetchData(true)
+      }, 500)
     } catch (error: any) {
       setError(error.response?.data?.error || 'グループの保存に失敗しました')
     }

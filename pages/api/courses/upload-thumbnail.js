@@ -1,7 +1,4 @@
 // Course thumbnail upload endpoint
-// import formidable from 'formidable'
-// import fs from 'fs'
-// import path from 'path'
 
 // Next.jsの自動bodyパースを無効化（ファイルアップロード用）
 export const config = {
@@ -12,12 +9,12 @@ export const config = {
   maxDuration: 30,
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Filename')
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
@@ -33,6 +30,11 @@ export default function handler(req, res) {
   // アップロード処理（デモ版では模擬的に処理）
   try {
     console.log('サムネイル画像のアップロード処理を開始')
+    console.log('リクエストヘッダー:', {
+      'content-type': req.headers['content-type'],
+      'content-length': req.headers['content-length'],
+      'x-filename': req.headers['x-filename']
+    })
     
     // リクエストサイズをチェック（5MB制限）
     const contentLength = req.headers['content-length']
@@ -43,24 +45,15 @@ export default function handler(req, res) {
       })
     }
     
-    // 実際の本番環境では、ここでformidableを使ってファイルを処理
-    // const form = formidable({
-    //   uploadDir: './public/uploads',
-    //   keepExtensions: true,
-    //   maxFileSize: 10 * 1024 * 1024, // 10MB
-    // })
+    // リクエストボディを消費
+    const chunks = []
     
-    // form.parse(req, (err, fields, files) => {
-    //   if (err) {
-    //     return res.status(400).json({
-    //       success: false,
-    //       message: 'ファイルのアップロードに失敗しました'
-    //     })
-    //   }
-    //   
-    //   const file = files.thumbnail
-    //   // ファイル処理とURL生成
-    // })
+    for await (const chunk of req) {
+      chunks.push(chunk)
+    }
+    
+    const buffer = Buffer.concat(chunks)
+    console.log('受信データサイズ:', buffer.length, 'バイト')
     
     // デモ版では固定のサムネイルURLを返すが、ファイル名に基づいて一意にする
     const mockThumbnailUrls = [
@@ -79,7 +72,8 @@ export default function handler(req, res) {
       // Base64エンコードされたファイル名をデコード
       const encodedFilename = req.headers['x-filename']
       if (encodedFilename) {
-        filename = decodeURIComponent(atob(encodedFilename))
+        filename = decodeURIComponent(Buffer.from(encodedFilename, 'base64').toString())
+        console.log('デコードされたファイル名:', filename)
       }
     } catch (error) {
       console.warn('ファイル名のデコードに失敗:', error.message)
@@ -92,8 +86,7 @@ export default function handler(req, res) {
     
     console.log(`デモサムネイル生成: ${thumbnailUrl}`)
     
-    // 即座にレスポンスを返す（遅延は不要）
-    return res.json({
+    return res.status(200).json({
       success: true,
       data: {
         thumbnailUrl: thumbnailUrl
@@ -102,11 +95,24 @@ export default function handler(req, res) {
     })
     
   } catch (error) {
-    console.error('サムネイルアップロードエラー:', error)
-    res.status(500).json({
+    console.error('サムネイルアップロードエラー詳細:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    })
+    
+    return res.status(500).json({
       success: false,
-      message: 'サーバー内部エラーが発生しました',
-      error: error.message
+      message: `サムネイルアップロードエラー: ${error.message}`,
+      error: {
+        message: error.message,
+        name: error.name,
+        code: error.code
+      },
+      debug: {
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      }
     })
   }
 }

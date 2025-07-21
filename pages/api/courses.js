@@ -109,11 +109,23 @@ export default function handler(req, res) {
         message: 'コースを作成しました'
       })
     } catch (error) {
-      console.error('コース作成エラー:', error)
+      console.error('コース作成エラー詳細:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code
+      })
       return res.status(500).json({
         success: false,
-        message: 'サーバー内部エラーが発生しました',
-        error: error.message
+        message: `サーバー内部エラー: ${error.message}`,
+        error: {
+          message: error.message,
+          name: error.name,
+          code: error.code
+        },
+        debug: {
+          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }
       })
     }
   }

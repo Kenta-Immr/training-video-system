@@ -221,7 +221,7 @@ export const courseAPI = {
     // ファイル名をBase64エンコードしてHTTPヘッダーで安全に送信
     const encodedFilename = btoa(encodeURIComponent(filename))
     
-    return api.post<{ thumbnailUrl: string }>('/api/courses/upload-thumbnail', formData, {
+    return api.post<{ thumbnailUrl: string }>('/api/courses/upload-thumbnail/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'X-Filename': encodedFilename,
@@ -330,7 +330,7 @@ export const userAPI = {
   getMe: () =>
     api.get<UserData>('/api/users/me'),
   getAll: () =>
-    api.get<UserData[]>('/api/users'),
+    api.get<UserData[]>(`/api/users/?t=${Date.now()}`),
   getById: (id: number) =>
     api.get<UserData>(`/api/users/${id}`),
   create: (data: CreateUserRequest) =>
@@ -342,7 +342,7 @@ export const userAPI = {
   resetPassword: (id: number, newPassword: string) =>
     api.post(`/api/users/${id}/reset-password`, { newPassword }),
   bulkCreate: (data: BulkCreateUserRequest) =>
-    api.post<BulkCreateUserResponse>('/api/users/bulk-create', data),
+    api.post<BulkCreateUserResponse>('/api/users/bulk-create/', data),
   getFirstLoginPending: () =>
     api.get<UserData[]>('/api/users/first-login-pending'),
 }
@@ -377,7 +377,7 @@ export interface GroupProgress {
 
 export const groupAPI = {
   getAll: () =>
-    api.get<Group[]>('/api/groups'),
+    api.get<Group[]>(`/api/groups/?t=${Date.now()}`),
   getById: (id: number) =>
     api.get<Group>(`/api/groups/${id}`),
   create: (data: { name: string; code: string; description?: string }) =>

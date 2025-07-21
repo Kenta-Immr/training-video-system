@@ -10,7 +10,25 @@
       ],
       "createdAt": "2024-01-01T00:00:00.000Z",
       "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "2": {
+      "id": 2,
+      "name": "テストグループ",
+      "code": "TEST001",
+      "description": "テスト用のグループです",
+      "courseIds": [],
+      "createdAt": "2025-07-21T05:13:57.029Z",
+      "updatedAt": "2025-07-21T05:13:57.029Z"
+    },
+    "3": {
+      "id": 3,
+      "name": "新しいグループ",
+      "code": "NEW001",
+      "description": "新規作成テストグループ",
+      "courseIds": [],
+      "createdAt": "2025-07-21T05:17:05.558Z",
+      "updatedAt": "2025-07-21T05:17:05.559Z"
     }
   },
-  "nextGroupId": 2
+  "nextGroupId": 4
 }
