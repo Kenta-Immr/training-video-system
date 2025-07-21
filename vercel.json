@@ -1,4 +1,7 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
   "functions": {
     "pages/api/videos/upload.js": {
       "maxDuration": 30
@@ -10,6 +13,11 @@
   "api": {
     "bodyParser": {
       "sizeLimit": "50mb"
+    }
+  },
+  "build": {
+    "env": {
+      "SKIP_ENV_VALIDATION": "1"
     }
   }
 }

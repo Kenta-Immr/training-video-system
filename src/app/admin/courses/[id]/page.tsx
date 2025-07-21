@@ -23,7 +23,7 @@ interface VideoForm {
 export default function CourseDetailPage() {
   const params = useParams()
   const courseId = parseInt(params.id as string)
-  const isMountedRef = useRef(true)
+  const isMountedRef = useRef<boolean>(true)
   
   const [course, setCourse] = useState<Course | null>(null)
   const [loading, setLoading] = useState(true)
