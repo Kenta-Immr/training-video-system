@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import AuthGuard from '@/components/AuthGuard'
 import Header from '@/components/Header'
 import { userAPI, UserData } from '@/lib/api'
+import EmergencyUserForm from './emergency-form'
 
 interface UserForm {
   email: string
@@ -20,6 +21,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [showEmergencyForm, setShowEmergencyForm] = useState(false)
   const [editingUser, setEditingUser] = useState<UserData | null>(null)
 
   const userForm = useForm<UserForm>()
@@ -176,6 +178,12 @@ export default function UsersPage() {
     setError('')
   }
 
+  const handleEmergencyUserCreated = (newUser: UserData) => {
+    setUsers(prevUsers => [...prevUsers, newUser])
+    setShowEmergencyForm(false)
+    fetchUsers(true)
+  }
+
   const getRoleBadge = (role: string) => {
     if (role === 'ADMIN') {
       return (
@@ -241,10 +249,10 @@ export default function UsersPage() {
               一括作成
             </Link>
             <button
-              onClick={() => setShowForm(true)}
-              className="btn-primary"
+              onClick={() => setShowEmergencyForm(true)}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
             >
-              新規ユーザー作成
+              🚀 確実ユーザー作成
             </button>
           </div>
         </div>
@@ -261,104 +269,12 @@ export default function UsersPage() {
           </div>
         )}
 
-        {/* ユーザー作成・編集フォーム */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-lg font-semibold mb-4">
-                {editingUser ? 'ユーザー編集' : '新規ユーザー作成'}
-              </h2>
-              
-              <form onSubmit={userForm.handleSubmit(onSubmit)} className="space-y-4">
-                <div>
-                  <label className="form-label">メールアドレス</label>
-                  <input
-                    {...userForm.register('email', { 
-                      required: 'メールアドレスは必須です',
-                      pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: '有効なメールアドレスを入力してください'
-                      }
-                    })}
-                    type="email"
-                    className="form-input"
-                    placeholder="user@example.com"
-                  />
-                  {userForm.formState.errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{userForm.formState.errors.email.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="form-label">名前</label>
-                  <input
-                    {...userForm.register('name', { required: '名前は必須です' })}
-                    className="form-input"
-                    placeholder="山田太郎"
-                  />
-                  {userForm.formState.errors.name && (
-                    <p className="mt-1 text-sm text-red-600">{userForm.formState.errors.name.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="form-label">権限</label>
-                  <select
-                    {...userForm.register('role')}
-                    className="form-input"
-                  >
-                    <option value="USER">一般ユーザー</option>
-                    <option value="ADMIN">管理者</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="form-label">グループID（任意）</label>
-                  <select
-                    {...userForm.register('groupId')}
-                    className="form-input"
-                  >
-                    <option value="">グループを選択</option>
-                    <option value="1">管理グループ</option>
-                    <option value="2">開発チーム</option>
-                    <option value="3">営業チーム</option>
-                  </select>
-                </div>
-
-                {!editingUser && (
-                  <div>
-                    <label className="form-label">初期パスワード（任意）</label>
-                    <input
-                      {...userForm.register('password')}
-                      type="password"
-                      className="form-input"
-                      placeholder="未入力の場合は自動生成されます"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      最初のログイン時にパスワード変更が必要です
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-4">
-                  <button
-                    type="submit"
-                    disabled={userForm.formState.isSubmitting}
-                    className="btn-primary flex-1 disabled:opacity-50"
-                  >
-                    {userForm.formState.isSubmitting ? '保存中...' : '保存'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    className="btn-secondary flex-1"
-                  >
-                    キャンセル
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+        {/* 緊急ユーザー作成フォーム */}
+        {showEmergencyForm && (
+          <EmergencyUserForm
+            onUserCreated={handleEmergencyUserCreated}
+            onClose={() => setShowEmergencyForm(false)}
+          />
         )}
 
         {/* ユーザー一覧テーブル */}
@@ -453,10 +369,10 @@ export default function UsersPage() {
               </p>
               <div className="mt-6">
                 <button 
-                  onClick={() => setShowForm(true)}
-                  className="btn-primary"
+                  onClick={() => setShowEmergencyForm(true)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
                 >
-                  新規ユーザー作成
+                  🚀 確実ユーザー作成
                 </button>
               </div>
             </div>
