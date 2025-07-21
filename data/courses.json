@@ -1,0 +1,54 @@
+{
+  "courses": {
+    "1": {
+      "id": 1,
+      "title": "ウェブ開発入門",
+      "description": "HTML、CSS、JavaScriptの基礎から学ぶウェブ開発コース",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop",
+      "curriculums": [
+        {
+          "id": 1,
+          "title": "HTML基礎",
+          "description": "HTMLの基本構文と要素",
+          "courseId": 1,
+          "videos": [
+            {
+              "id": 1,
+              "title": "HTML入門",
+              "description": "HTMLとは何か",
+              "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+              "curriculumId": 1,
+              "duration": 596,
+              "createdAt": "2024-01-01T00:00:00.000Z",
+              "updatedAt": "2024-01-01T00:00:00.000Z"
+            },
+            {
+              "id": 2,
+              "title": "基本タグ",
+              "description": "よく使うHTMLタグ",
+              "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+              "curriculumId": 1,
+              "duration": 653,
+              "createdAt": "2024-01-01T00:00:00.000Z",
+              "updatedAt": "2024-01-01T00:00:00.000Z"
+            }
+          ]
+        }
+      ],
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "2": {
+      "id": 2,
+      "title": "テストコース",
+      "description": "テスト用のコースです",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
+      "curriculums": [],
+      "createdAt": "2025-07-21T03:45:09.670Z",
+      "updatedAt": "2025-07-21T03:45:09.670Z"
+    }
+  },
+  "nextCourseId": 3,
+  "nextCurriculumId": 2,
+  "nextVideoId": 3
+}

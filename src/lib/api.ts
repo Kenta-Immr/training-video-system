@@ -205,14 +205,14 @@ const DEMO_COURSES: Course[] = [
 ];
 
 export const courseAPI = {
-  getAll: () => api.get<Course[]>('/api/courses'),
-  getById: (id: number) => api.get<Course>(`/api/courses/${id}`),
+  getAll: () => api.get<Course[]>('/api/courses/'),
+  getById: (id: number) => api.get<Course>(`/api/courses/${id}/`),
   create: (data: { title: string; description?: string; thumbnailUrl?: string }) =>
-    api.post<Course>('/api/courses', data),
+    api.post<Course>('/api/courses/', data),
   update: (id: number, data: { title: string; description?: string; thumbnailUrl?: string }) =>
-    api.put<Course>(`/api/courses/${id}`, data),
+    api.put<Course>(`/api/courses/${id}/`, data),
   delete: (id: number) =>
-    api.delete(`/api/courses/${id}`),
+    api.delete(`/api/courses/${id}/`),
   uploadThumbnail: (formData: FormData) => {
     // ファイル名をヘッダーに追加してデモ用の一意性を確保
     const file = formData.get('thumbnail') as File
