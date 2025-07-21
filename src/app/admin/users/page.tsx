@@ -89,10 +89,10 @@ export default function UsersPage() {
         await userAPI.update(editingUser.id, data)
         console.log('ユーザー更新完了')
       } else {
-        // 直接fetch呼び出しでユーザー作成（キャッシュ対策）
-        console.log('ユーザー作成開始 - 直接API呼び出し:', data)
+        // 緊急対応：新しいユーザー作成エンドポイント使用
+        console.log('緊急ユーザー作成開始:', data)
         const token = localStorage.getItem('token')
-        const response = await fetch('/api/users', {
+        const response = await fetch('/api/create-user', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
