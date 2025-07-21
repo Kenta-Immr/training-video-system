@@ -1,0 +1,16 @@
+{
+  "groups": {
+    "1": {
+      "id": 1,
+      "name": "開発チーム",
+      "code": "DEV001",
+      "description": "開発部門のメンバー",
+      "courseIds": [
+        1
+      ],
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  },
+  "nextGroupId": 2
+}

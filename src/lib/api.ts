@@ -391,11 +391,11 @@ export const groupAPI = {
   removeUsers: (id: number, userIds: number[]) =>
     api.delete(`/api/groups/${id}/users`, { data: { userIds } }),
   getCourses: (id: number) =>
-    api.get<Course[]>(`/api/groups/${id}/courses`),
+    api.get<Course[]>(`/api/groups/${id}/courses/`),
   addCourses: (id: number, courseIds: number[]) =>
-    api.post(`/api/groups/${id}/courses`, { courseIds }),
+    api.post(`/api/groups/${id}/courses/`, { courseIds }),
   removeCourses: (id: number, courseIds: number[]) =>
-    api.delete(`/api/groups/${id}/courses`, { data: { courseIds } }),
+    api.delete(`/api/groups/${id}/courses/`, { data: { courseIds } }),
   getProgress: (id: number) =>
     api.get<GroupProgress>(`/api/groups/${id}/progress`),
   getUserProgress: (id: number, userId: number) =>
