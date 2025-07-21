@@ -94,9 +94,10 @@ export default function handler(req, res) {
     const newUser = dataStore.createUser({
       email,
       name,
+      password: password || generateTempPassword(),
       role: role.toUpperCase(),
       groupId: groupId || null,
-      isFirstLogin: true
+      isFirstLoginPending: true
     })
     
     console.log(`新規ユーザー作成: ${name} (${email}) - ID: ${newUser.id}`)

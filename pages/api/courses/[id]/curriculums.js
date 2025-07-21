@@ -24,9 +24,30 @@ export default function handler(req, res) {
     })
   }
   
+  // 認証チェック（POST、PUT、DELETEの場合は管理者のみ）
+  if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
+    const authHeader = req.headers.authorization
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        message: '認証が必要です'
+      })
+    }
+    
+    const token = authHeader.substring(7)
+    if (!token.startsWith('demo-admin')) {
+      return res.status(403).json({
+        success: false,
+        message: '管理者権限が必要です'
+      })
+    }
+  }
+
   if (req.method === 'POST') {
     // カリキュラム新規作成
     const { title, description } = req.body
+    
+    console.log('カリキュラム作成リクエスト:', { courseId, title, description })
     
     if (!title) {
       return res.status(400).json({
