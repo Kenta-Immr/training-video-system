@@ -90,22 +90,48 @@ export default async function handler(req, res) {
     
     const tempPassword = password || generateTempPassword()
     
-    const newUser = await dataStore.createUserAsync({
+    // KVに直接保存（より確実）
+    const { kv } = require('@vercel/kv')
+    
+    // 現在のユーザーデータを取得
+    let usersData = await kv.get('users')
+    if (!usersData) {
+      usersData = {
+        users: {},
+        nextUserId: 1,
+        lastUpdated: new Date().toISOString()
+      }
+    }
+    
+    const newUserId = usersData.nextUserId
+    const newUser = {
+      id: newUserId,
       email,
       name,
       password: tempPassword,
       role: role.toUpperCase(),
       groupId: groupId || null,
-      isFirstLogin: true
-    })
+      isFirstLogin: true,
+      lastLoginAt: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    // ユーザーデータに追加
+    usersData.users[newUserId.toString()] = newUser
+    usersData.nextUserId = newUserId + 1
+    usersData.lastUpdated = new Date().toISOString()
+    
+    // KVに保存
+    await kv.set('users', usersData)
     
     console.log(`緊急ユーザー作成成功: ${name} (${email}) - ID: ${newUser.id}`)
     
     // 保存確認
-    const savedUsers = await dataStore.getUsersAsync()
-    const foundUser = savedUsers.find(u => u.id === newUser.id)
+    const verifyData = await kv.get('users')
+    const foundUser = verifyData?.users?.[newUserId.toString()]
     if (foundUser) {
-      console.log('✓ 緊急ユーザーデータ保存確認済み:', foundUser.name)
+      console.log('✓ KVに直接保存確認済み:', foundUser.name)
     }
     
     // レスポンス用にグループ情報を付与

@@ -58,8 +58,17 @@ export default async function handler(req, res) {
     
     console.log('ユーザー取得処理開始...')
     
-    // ユーザー一覧を取得（非同期対応）
-    const users = await dataStore.getUsersAsync()
+    // KVから直接取得（より確実）
+    const { kv } = require('@vercel/kv')
+    const usersData = await kv.get('users')
+    
+    let users = []
+    if (usersData && usersData.users) {
+      users = Object.values(usersData.users)
+      console.log(`KVから直接取得: ${users.length}件`)
+    } else {
+      console.warn('KVにユーザーデータが存在しません')
+    }
     
     console.log(`ユーザー取得成功: ${users.length}件`)
     console.log('取得ユーザーID一覧:', users.map(u => ({ id: u.id, name: u.name, email: u.email })))
