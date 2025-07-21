@@ -68,16 +68,14 @@ export default function handler(req, res) {
     
     console.log(`デモサムネイル生成: ${thumbnailUrl}`)
     
-    // 少し遅延を加えてアップロード感を演出
-    setTimeout(() => {
-      res.json({
-        success: true,
-        data: {
-          thumbnailUrl: thumbnailUrl
-        },
-        message: 'サムネイル画像のアップロードが完了しました'
-      })
-    }, 1000) // 1秒の遅延
+    // 即座にレスポンスを返す（遅延は不要）
+    return res.json({
+      success: true,
+      data: {
+        thumbnailUrl: thumbnailUrl
+      },
+      message: 'サムネイル画像のアップロードが完了しました'
+    })
     
   } catch (error) {
     console.error('サムネイルアップロードエラー:', error)

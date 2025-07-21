@@ -178,14 +178,12 @@ export default function handler(req, res) {
     console.log(`動画ファイルアップロード完了: ${newVideo.title} (ID: ${newVideo.id})`)
     console.log(`アップロード先URL: ${videoUrl}`)
     
-    // アップロード感を演出するため少し遅延
-    setTimeout(() => {
-      res.json({
-        success: true,
-        data: newVideo,
-        message: '動画ファイルのアップロードが完了しました'
-      })
-    }, 2000) // 2秒の遅延
+    // 即座にレスポンスを返す（遅延は不要）
+    return res.json({
+      success: true,
+      data: newVideo,
+      message: '動画ファイルのアップロードが完了しました'
+    })
     
   } catch (error) {
     console.error('動画アップロードエラー:', error)

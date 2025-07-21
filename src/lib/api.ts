@@ -10,6 +10,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30秒のタイムアウト
 })
 
 api.interceptors.request.use((config) => {
@@ -217,6 +218,7 @@ export const courseAPI = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 60000, // サムネイルアップロードは60秒タイムアウト
     }),
   createCurriculum: (courseId: number, data: { title: string; description?: string }) =>
     api.post<Curriculum>(`/api/courses/${courseId}/curriculums`, data),
@@ -235,6 +237,7 @@ export const videoAPI = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 120000, // 動画アップロードは120秒タイムアウト
     }),
   update: (id: number, data: { title: string; description?: string; videoUrl: string }) =>
     api.put<Video>(`/api/videos/${id}`, data),
