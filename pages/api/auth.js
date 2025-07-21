@@ -33,18 +33,27 @@ export default function handler(req, res) {
   const user = testUsers.find(u => u.email === email && u.password === password)
   
   if (user) {
+    // トークン生成（デモ用）
+    const token = user.role === 'admin' ? 'demo-admin' : 'demo-user'
+    
+    console.log('認証成功:', { email, role: user.role, token })
+    
     res.json({
-      token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.mock-jwt-token',
+      success: true,
+      token: token,
       user: {
         id: 1,
         email: user.email,
         name: user.name,
-        role: user.role
-      }
+        role: user.role.toUpperCase()
+      },
+      message: 'ログインに成功しました'
     })
   } else {
+    console.log('認証失敗:', { email, password })
     res.status(401).json({
-      message: 'Invalid email or password'
+      success: false,
+      message: 'メールアドレスまたはパスワードが間違っています'
     })
   }
 }
