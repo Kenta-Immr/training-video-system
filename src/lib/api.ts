@@ -129,13 +129,13 @@ export interface ViewingLogRequest {
 export const authAPI = {
   login: (data: LoginRequest) => {
     console.log('AuthAPI Login called with:', data)
-    return api.post<LoginResponse>('/api/auth/', data)
+    return api.post<LoginResponse>('/api/auth', data)
   },
   register: (data: RegisterRequest) =>
-    api.post<LoginResponse>('/api/auth/', data),
+    api.post<LoginResponse>('/api/auth', data),
   debugLogin: (data: LoginRequest) => {
     console.log('Debug AuthAPI Login called with:', data)
-    return api.post<LoginResponse>('/api/debug-auth/', data)
+    return api.post<LoginResponse>('/api/debug-auth', data)
   }
 }
 
@@ -214,14 +214,14 @@ const DEMO_COURSES: Course[] = [
 ];
 
 export const courseAPI = {
-  getAll: () => api.get<Course[]>(`/api/courses/?t=${Date.now()}`),
-  getById: (id: number) => api.get<Course>(`/api/courses/${id}/?t=${Date.now()}`),
+  getAll: () => api.get<Course[]>(`/api/courses?t=${Date.now()}`),
+  getById: (id: number) => api.get<Course>(`/api/courses/${id}?t=${Date.now()}`),
   create: (data: { title: string; description?: string; thumbnailUrl?: string }) =>
-    api.post<Course>('/api/courses/', data),
+    api.post<Course>('/api/courses', data),
   update: (id: number, data: { title: string; description?: string; thumbnailUrl?: string }) =>
-    api.put<Course>(`/api/courses/${id}/`, data),
+    api.put<Course>(`/api/courses/${id}`, data),
   delete: (id: number) =>
-    api.delete(`/api/courses/${id}/`),
+    api.delete(`/api/courses/${id}`),
   uploadThumbnail: (formData: FormData) => {
     // ファイル名をヘッダーに追加してデモ用の一意性を確保
     const file = formData.get('thumbnail') as File
@@ -230,7 +230,7 @@ export const courseAPI = {
     // ファイル名をBase64エンコードしてHTTPヘッダーで安全に送信
     const encodedFilename = btoa(encodeURIComponent(filename))
     
-    return api.post<{ thumbnailUrl: string }>('/api/courses/upload-thumbnail/', formData, {
+    return api.post<{ thumbnailUrl: string }>('/api/courses/upload-thumbnail', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'X-Filename': encodedFilename,
@@ -239,7 +239,7 @@ export const courseAPI = {
     })
   },
   createCurriculum: (courseId: number, data: { title: string; description?: string }) =>
-    api.post<Curriculum>(`/api/courses/${courseId}/curriculums/`, data),
+    api.post<Curriculum>(`/api/courses/${courseId}/curriculums`, data),
   updateCurriculum: (id: number, data: { title: string; description?: string }) =>
     api.put<Curriculum>(`/api/courses/curriculums/${id}`, data),
   deleteCurriculum: (id: number) =>
@@ -249,9 +249,9 @@ export const courseAPI = {
 export const videoAPI = {
   getById: (id: number) => api.get<Video>(`/api/videos/${id}`),
   create: (data: { title: string; description?: string; videoUrl: string; curriculumId: number }) =>
-    api.post<Video>('/api/videos/', data),
+    api.post<Video>('/api/videos', data),
   upload: (formData: FormData) =>
-    api.post<Video>('/api/videos/upload/', formData, {
+    api.post<Video>('/api/videos/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -265,7 +265,7 @@ export const videoAPI = {
 
 export const logAPI = {
   saveLog: (data: ViewingLogRequest) =>
-    api.post<ViewingLog>('/api/logs/', data),
+    api.post<ViewingLog>('/api/logs', data),
   getMyLogs: () =>
     api.get<ViewingLog[]>('/api/logs/my-logs'),
   getUserLogs: (userId: number) =>
@@ -340,19 +340,19 @@ export const userAPI = {
   getMe: () =>
     api.get<UserData>('/api/users/me'),
   getAll: () =>
-    api.get<UserData[]>(`/api/users/?t=${Date.now()}`),
+    api.get<UserData[]>(`/api/users?t=${Date.now()}`),
   getById: (id: number) =>
     api.get<UserData>(`/api/users/${id}`),
   create: (data: CreateUserRequest) =>
-    api.post<UserData>('/api/users/', data),
+    api.post<UserData>('/api/users', data),
   update: (id: number, data: UpdateUserRequest) =>
     api.put<UserData>(`/api/users/${id}`, data),
   delete: (id: number) =>
     api.delete(`/api/users/${id}`),
   resetPassword: (id: number, newPassword: string) =>
-    api.post(`/api/users/${id}/reset-password/`, { newPassword }),
+    api.post(`/api/users/${id}/reset-password`, { newPassword }),
   bulkCreate: (data: BulkCreateUserRequest) =>
-    api.post<BulkCreateUserResponse>('/api/users/bulk-create/', data),
+    api.post<BulkCreateUserResponse>('/api/users/bulk-create', data),
   getFirstLoginPending: () =>
     api.get<UserData[]>('/api/users/first-login-pending'),
 }
@@ -387,25 +387,25 @@ export interface GroupProgress {
 
 export const groupAPI = {
   getAll: () =>
-    api.get<Group[]>(`/api/groups/?t=${Date.now()}`),
+    api.get<Group[]>(`/api/groups?t=${Date.now()}`),
   getById: (id: number) =>
     api.get<Group>(`/api/groups/${id}`),
   create: (data: { name: string; code: string; description?: string }) =>
-    api.post<Group>('/api/groups/', data),
+    api.post<Group>('/api/groups', data),
   update: (id: number, data: { name: string; code: string; description?: string }) =>
     api.put<Group>(`/api/groups/${id}`, data),
   delete: (id: number) =>
     api.delete(`/api/groups/${id}`),
   addUsers: (id: number, userIds: number[]) =>
-    api.post(`/api/groups/${id}/users/`, { userIds }),
+    api.post(`/api/groups/${id}/users`, { userIds }),
   removeUsers: (id: number, userIds: number[]) =>
     api.delete(`/api/groups/${id}/users`, { data: { userIds } }),
   getCourses: (id: number) =>
-    api.get<Course[]>(`/api/groups/${id}/courses/`),
+    api.get<Course[]>(`/api/groups/${id}/courses`),
   addCourses: (id: number, courseIds: number[]) =>
-    api.post(`/api/groups/${id}/courses/`, { courseIds }),
+    api.post(`/api/groups/${id}/courses`, { courseIds }),
   removeCourses: (id: number, courseIds: number[]) =>
-    api.delete(`/api/groups/${id}/courses/`, { data: { courseIds } }),
+    api.delete(`/api/groups/${id}/courses`, { data: { courseIds } }),
   getProgress: (id: number) =>
     api.get<GroupProgress>(`/api/groups/${id}/progress`),
   getUserProgress: (id: number, userId: number) =>
