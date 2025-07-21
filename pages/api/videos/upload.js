@@ -78,6 +78,15 @@ export default function handler(req, res) {
   try {
     console.log('動画ファイルアップロード処理を開始')
     
+    // リクエストサイズをチェック
+    const contentLength = req.headers['content-length']
+    if (contentLength && parseInt(contentLength) > 50 * 1024 * 1024) { // 50MB制限
+      return res.status(413).json({
+        success: false,
+        message: 'ファイルサイズが大きすぎます（50MB以下にしてください）'
+      })
+    }
+    
     // 実際の本番環境では、ここでformidableを使ってファイルを処理
     // const form = formidable({
     //   uploadDir: './public/uploads/videos',

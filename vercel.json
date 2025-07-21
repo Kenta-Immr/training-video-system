@@ -1,0 +1,15 @@
+{
+  "functions": {
+    "pages/api/videos/upload.js": {
+      "maxDuration": 30
+    },
+    "pages/api/courses/upload-thumbnail.js": {
+      "maxDuration": 30
+    }
+  },
+  "api": {
+    "bodyParser": {
+      "sizeLimit": "50mb"
+    }
+  }
+}

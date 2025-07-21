@@ -115,17 +115,34 @@ export default function handler(req, res) {
   }
   
   if (req.method === 'PUT') {
+    const courseId = parseInt(id)
     const { title, description, thumbnailUrl } = req.body
+    
+    console.log('コース更新リクエスト:', { courseId, title, description, thumbnailUrl })
+    
+    // 共有データから現在のコースを取得
+    const courses = getCourseDataFromSharedStore()
+    const course = courses[courseId]
+    
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'コースが見つかりません'
+      })
+    }
+    
+    // コースデータを更新
+    course.title = title || course.title
+    course.description = description || course.description
+    course.thumbnailUrl = thumbnailUrl || course.thumbnailUrl
+    course.updatedAt = new Date().toISOString()
+    
+    console.log('コース更新完了:', course)
     
     return res.json({
       success: true,
-      data: {
-        id: parseInt(id),
-        title,
-        description,
-        thumbnailUrl,
-        updatedAt: new Date().toISOString()
-      }
+      data: course,
+      message: 'コースを更新しました'
     })
   }
   

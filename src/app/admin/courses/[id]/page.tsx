@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -23,6 +23,7 @@ interface VideoForm {
 export default function CourseDetailPage() {
   const params = useParams()
   const courseId = parseInt(params.id as string)
+  const isMountedRef = useRef(true)
   
   const [course, setCourse] = useState<Course | null>(null)
   const [loading, setLoading] = useState(true)
@@ -38,6 +39,10 @@ export default function CourseDetailPage() {
 
   useEffect(() => {
     fetchCourse()
+    
+    return () => {
+      isMountedRef.current = false
+    }
   }, [courseId])
 
   const fetchCourse = async () => {
@@ -45,11 +50,18 @@ export default function CourseDetailPage() {
       const response = await courseAPI.getById(courseId)
       // APIレスポンス構造をチェック
       const courseData = response.data.data || response.data
-      setCourse(courseData)
+      
+      if (isMountedRef.current) {
+        setCourse(courseData)
+      }
     } catch (error: any) {
-      setError(error.response?.data?.error || 'コースの取得に失敗しました')
+      if (isMountedRef.current) {
+        setError(error.response?.data?.error || 'コースの取得に失敗しました')
+      }
     } finally {
-      setLoading(false)
+      if (isMountedRef.current) {
+        setLoading(false)
+      }
     }
   }
 
@@ -122,17 +134,23 @@ export default function CourseDetailPage() {
       }
       
       console.log('動画保存成功 - フォームをリセット中')
-      videoForm.reset()
-      setShowVideoForm(false)
-      setEditingVideo(null)
-      setSelectedCurriculumId(null)
-      console.log('コース情報を再取得中')
-      await fetchCourse()
-      console.log('=== 動画追加完了 ===')
+      
+      if (isMountedRef.current) {
+        videoForm.reset()
+        setShowVideoForm(false)
+        setEditingVideo(null)
+        setSelectedCurriculumId(null)
+        console.log('コース情報を再取得中')
+        await fetchCourse()
+        console.log('=== 動画追加完了 ===')
+      }
     } catch (error: any) {
       console.error('動画保存エラー:', error)
       console.error('エラーレスポンス:', error.response?.data)
-      setError(error.response?.data?.message || error.response?.data?.error || error.message || '動画の保存に失敗しました')
+      
+      if (isMountedRef.current) {
+        setError(error.response?.data?.message || error.response?.data?.error || error.message || '動画の保存に失敗しました')
+      }
     }
   }
 
