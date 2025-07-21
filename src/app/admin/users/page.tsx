@@ -47,16 +47,29 @@ export default function UsersPage() {
       setError('')
       console.log('ユーザー一覧取得開始', forceRefresh ? '(強制更新)' : '')
       
-      const response = await userAPI.getAll()
-      console.log('ユーザー一覧API応答:', response)
-      console.log('レスポンス構造:', {
-        status: response.status,
-        dataType: typeof response.data,
-        hasData: !!response.data?.data,
-        directData: Array.isArray(response.data)
+      // 緊急対応：専用ユーザー取得エンドポイントを使用
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/get-users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache'
+        }
       })
       
-      const usersData = response.data?.data || response.data
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      const result = await response.json()
+      console.log('ユーザー一覧API応答:', result)
+      console.log('レスポンス構造:', {
+        status: response.status,
+        dataType: typeof result.data,
+        hasData: !!result.data,
+        directData: Array.isArray(result.data)
+      })
+      
+      const usersData = result.data
       console.log('処理後のユーザーデータ:', {
         type: typeof usersData,
         isArray: Array.isArray(usersData),
