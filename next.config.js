@@ -15,9 +15,32 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
   },
-  // キャッシュバスティング
+  // 完全キャッシュバスティング - 毎回新しいビルドID
   generateBuildId: async () => {
-    return 'fix-api-' + Date.now()
+    return 'realtime-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)
+  },
+  // 静的ファイルのキャッシュも無効化
+  async headers() {
+    return [
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
+    ]
   }
 }
 

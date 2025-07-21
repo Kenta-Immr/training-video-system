@@ -47,12 +47,16 @@ export default function UsersPage() {
       setError('')
       console.log('ユーザー一覧取得開始', forceRefresh ? '(強制更新)' : '')
       
-      // 緊急対応：専用ユーザー取得エンドポイントを使用
+      // 完全キャッシュ回避のリアルタイム取得
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/get-users', {
+      const timestamp = Date.now()
+      const response = await fetch(`/api/get-users?_=${timestamp}`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Cache-Control': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       })
       
@@ -61,7 +65,7 @@ export default function UsersPage() {
       }
       
       const result = await response.json()
-      console.log('ユーザー一覧API応答:', result)
+      console.log('リアルタイムユーザー一覧取得:', result)
       console.log('レスポンス構造:', {
         status: response.status,
         dataType: typeof result.data,
@@ -121,37 +125,23 @@ export default function UsersPage() {
         
         const result = await response.json()
         console.log('ユーザー作成完了 - 直接API結果:', result)
+        
+        // 成功時は作成したユーザーを即座にリストに追加（リアルタイム更新）
+        if (result.success && result.data) {
+          const newUser = result.data
+          setUsers(prevUsers => [...prevUsers, newUser])
+          console.log('新しいユーザーを即座にリストに追加:', newUser.name)
+        }
       }
 
       userForm.reset()
       setShowForm(false)
       setEditingUser(null)
       
-      // データ保存後の段階的リフレッシュ（本番環境対応）
-      console.log('ユーザー作成完了、段階的リフレッシュを実行します...')
-      
-      // ステップ1: 即座にリフレッシュ
+      // リアルタイム更新：データ作成後即座に最新データを取得
+      console.log('リアルタイム更新実行...')
       await fetchUsers(true)
-      
-      // ステップ2: 500ms後に再度リフレッシュ（KV同期待ち）
-      setTimeout(async () => {
-        console.log('500ms後のリフレッシュ実行')
-        await fetchUsers(true)
-      }, 500)
-      
-      // ステップ3: 1500ms後に最終確認
-      setTimeout(async () => {
-        console.log('1500ms後の最終リフレッシュ実行')
-        await fetchUsers(true)
-        
-        // 本番環境では追加でページリロードも試行
-        if (process.env.NODE_ENV === 'production') {
-          setTimeout(() => {
-            console.log('本番環境: 3秒後にページリロードを実行')
-            window.location.reload()
-          }, 3000)
-        }
-      }, 1500)
+      console.log('リアルタイム更新完了')
     } catch (error: any) {
       console.error('ユーザー保存エラー:', error)
       setError(error.response?.data?.message || 'ユーザーの保存に失敗しました')
