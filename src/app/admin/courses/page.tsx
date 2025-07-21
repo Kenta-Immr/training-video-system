@@ -128,12 +128,12 @@ export default function AdminCoursesPage() {
       if (editingCourse) {
         console.log('Updating existing course ID:', editingCourse.id)
         const updateResponse = await courseAPI.update(editingCourse.id, courseData)
-        savedCourse = updateResponse.data
+        savedCourse = updateResponse.data.data || updateResponse.data
         console.log('Course update response:', updateResponse)
       } else {
         console.log('Creating new course')
         const createResponse = await courseAPI.create(courseData)
-        savedCourse = createResponse.data
+        savedCourse = createResponse.data.data || createResponse.data
         console.log('Course create response:', createResponse)
       }
       
@@ -156,7 +156,9 @@ export default function AdminCoursesPage() {
       
     } catch (error: any) {
       console.error('Course save error:', error)
-      setError(error.response?.data?.error || 'コースの保存に失敗しました')
+      console.error('Error response:', error.response?.data)
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'コースの保存に失敗しました'
+      setError(errorMessage)
     }
   }
 
