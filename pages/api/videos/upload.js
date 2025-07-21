@@ -128,7 +128,15 @@ export default function handler(req, res) {
     const mockFormData = {
       title: req.headers['x-video-title'] || "アップロードされた動画" + Date.now(),
       description: req.headers['x-video-description'] || "ファイルアップロードによる動画",
-      curriculumId: parseInt(req.headers['x-curriculum-id']) || 1
+      curriculumId: parseInt(req.headers['x-curriculum-id'])
+    }
+    
+    // カリキュラムIDの検証
+    if (!mockFormData.curriculumId || isNaN(mockFormData.curriculumId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'カリキュラムIDが必要です'
+      })
     }
     
     console.log('フォームデータ（ヘッダーから取得）:', mockFormData)

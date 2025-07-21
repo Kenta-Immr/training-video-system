@@ -62,7 +62,7 @@ export default function handler(req, res) {
     //   // ファイル処理とURL生成
     // })
     
-    // デモ版では固定のサムネイルURLを返す
+    // デモ版では固定のサムネイルURLを返すが、ファイル名に基づいて一意にする
     const mockThumbnailUrls = [
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
       "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop",
@@ -71,9 +71,12 @@ export default function handler(req, res) {
       "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=400&h=300&fit=crop"
     ]
     
-    // ランダムにサムネイルを選択
-    const randomIndex = Math.floor(Math.random() * mockThumbnailUrls.length)
-    const thumbnailUrl = mockThumbnailUrls[randomIndex]
+    // ファイル名とタイムスタンプでハッシュ化して一意性を保つ
+    const timestamp = Date.now()
+    const filename = req.headers['x-filename'] || 'thumbnail'
+    const hashInput = filename + timestamp
+    const hashIndex = hashInput.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % mockThumbnailUrls.length
+    const thumbnailUrl = mockThumbnailUrls[hashIndex] + '&t=' + timestamp
     
     console.log(`デモサムネイル生成: ${thumbnailUrl}`)
     

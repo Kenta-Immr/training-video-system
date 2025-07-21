@@ -213,13 +213,19 @@ export const courseAPI = {
     api.put<Course>(`/api/courses/${id}`, data),
   delete: (id: number) =>
     api.delete(`/api/courses/${id}`),
-  uploadThumbnail: (formData: FormData) =>
-    api.post<{ thumbnailUrl: string }>('/api/courses/upload-thumbnail', formData, {
+  uploadThumbnail: (formData: FormData) => {
+    // ファイル名をヘッダーに追加してデモ用の一意性を確保
+    const file = formData.get('thumbnail') as File
+    const filename = file ? file.name : 'thumbnail'
+    
+    return api.post<{ thumbnailUrl: string }>('/api/courses/upload-thumbnail', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+        'X-Filename': filename,
       },
       timeout: 60000, // サムネイルアップロードは60秒タイムアウト
-    }),
+    })
+  },
   createCurriculum: (courseId: number, data: { title: string; description?: string }) =>
     api.post<Curriculum>(`/api/courses/${courseId}/curriculums`, data),
   updateCurriculum: (id: number, data: { title: string; description?: string }) =>
