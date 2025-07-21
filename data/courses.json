@@ -82,9 +82,18 @@
       "curriculums": [],
       "createdAt": "2025-07-21T05:10:41.155Z",
       "updatedAt": "2025-07-21T05:10:41.155Z"
+    },
+    "7": {
+      "id": 7,
+      "title": "テストコース",
+      "description": "データ永続化テスト用のコース",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300",
+      "curriculums": [],
+      "createdAt": "2025-07-21T05:40:03.793Z",
+      "updatedAt": "2025-07-21T05:40:03.793Z"
     }
   },
-  "nextCourseId": 7,
+  "nextCourseId": 8,
   "nextCurriculumId": 2,
   "nextVideoId": 3
 }

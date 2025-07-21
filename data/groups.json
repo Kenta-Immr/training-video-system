@@ -28,7 +28,16 @@
       "courseIds": [],
       "createdAt": "2025-07-21T05:17:05.558Z",
       "updatedAt": "2025-07-21T05:17:05.559Z"
+    },
+    "4": {
+      "id": 4,
+      "name": "テストグループ",
+      "code": "TEST002",
+      "description": "テスト用のグループ",
+      "courseIds": [],
+      "createdAt": "2025-07-21T05:39:55.883Z",
+      "updatedAt": "2025-07-21T05:39:55.883Z"
     }
   },
-  "nextGroupId": 4
+  "nextGroupId": 5
 }

@@ -305,7 +305,7 @@ export interface UpdateUserRequest {
 }
 
 export interface BulkCreateUserRequest {
-  users: {
+  users?: {
     email: string
     name: string
     password: string
@@ -313,6 +313,7 @@ export interface BulkCreateUserRequest {
     groupId?: number
     groupName?: string
   }[]
+  csvText?: string
 }
 
 export interface BulkCreateUserResponse {

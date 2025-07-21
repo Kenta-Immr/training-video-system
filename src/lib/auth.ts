@@ -48,7 +48,7 @@ export const getCurrentUser = (): User | null => {
 
   try {
     // 開発環境用のデモトークンをチェック
-    if (token.startsWith('demo-')) {
+    if (token.startsWith('demo-') || token.startsWith('admin_') || token.startsWith('user_')) {
       const demoUsers: { [key: string]: User } = {
         'demo-admin': {
           id: 1,
@@ -63,6 +63,24 @@ export const getCurrentUser = (): User | null => {
           role: 'USER'
         }
       }
+      
+      // 新しいトークン形式にも対応
+      if (token.startsWith('admin_')) {
+        return {
+          id: 1,
+          email: 'admin@test.com',
+          name: '管理者ユーザー',
+          role: 'ADMIN'
+        }
+      } else if (token.startsWith('user_')) {
+        return {
+          id: 2,
+          email: 'test@test.com',
+          name: '一般ユーザー',
+          role: 'USER'
+        }
+      }
+      
       return demoUsers[token] || null
     }
 

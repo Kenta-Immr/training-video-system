@@ -57,34 +57,73 @@ export default function handler(req, res) {
   
   const token = authHeader.substring(7)
   
-  console.log('一括ユーザー作成API認証チェック:', { 
-    token: token.substring(0, 20) + '...',
-    env: process.env.NODE_ENV,
+  console.log('=== 一括ユーザー作成API: 認証チェック開始 ===')
+  console.log('リクエスト詳細:', {
+    method: req.method,
+    url: req.url,
     origin: req.headers.origin,
-    method: req.method
+    userAgent: req.headers['user-agent'],
+    contentType: req.headers['content-type']
+  })
+  console.log('認証ヘッダー:', {
+    authorization: req.headers.authorization ? 'あり' : 'なし',
+    authHeaderLength: req.headers.authorization?.length || 0,
+    authHeaderPrefix: req.headers.authorization?.substring(0, 20) || 'なし'
+  })
+  console.log('トークン詳細:', {
+    token: token.substring(0, 20) + '...',
+    tokenLength: token.length,
+    tokenFull: process.env.NODE_ENV === 'development' ? token : '***',
+    env: process.env.NODE_ENV,
+    isVercel: !!process.env.VERCEL
   })
   
   // 本番環境とローカル環境の両方で管理者権限をチェック
-  const isValidAdmin = token.startsWith('demo-admin') || 
-                      token.startsWith('admin') ||
-                      (process.env.NODE_ENV === 'production' && token && token.length > 10)
+  const startsWithDemoAdmin = token.startsWith('demo-admin')
+  const startsWithAdmin = token.startsWith('admin')
+  const isProdValidToken = process.env.NODE_ENV === 'production' && token && token.length > 10
+  
+  console.log('認証条件チェック:', {
+    startsWithDemoAdmin,
+    startsWithAdmin, 
+    isProdValidToken,
+    nodeEnv: process.env.NODE_ENV,
+    isVercelEnv: !!process.env.VERCEL
+  })
+  
+  const isValidAdmin = startsWithDemoAdmin || startsWithAdmin || isProdValidToken
+  
+  console.log('最終認証結果:', { isValidAdmin })
   
   if (!isValidAdmin) {
-    console.log('認証失敗: 無効な管理者トークン', { 
-      token: token.substring(0, 10),
-      tokenLength: token.length,
-      env: process.env.NODE_ENV
+    console.log('=== 認証失敗: 詳細ログ ===')
+    console.log('トークン:', {
+      prefix: token.substring(0, 15),
+      length: token.length,
+      full: process.env.NODE_ENV === 'development' ? token : 'hidden'
     })
+    console.log('環境情報:', {
+      NODE_ENV: process.env.NODE_ENV,
+      VERCEL: process.env.VERCEL,
+      expectedPrefixes: ['demo-admin', 'admin']
+    })
+    
     return res.status(403).json({
       success: false,
       message: '管理者権限が必要です',
       debug: process.env.NODE_ENV === 'development' ? { 
-        tokenPrefix: token.substring(0, 10),
+        tokenPrefix: token.substring(0, 15),
         tokenLength: token.length,
+        env: process.env.NODE_ENV,
+        expectedPrefixes: ['demo-admin', 'admin']
+      } : {
+        tokenPrefix: token.substring(0, 5),
         env: process.env.NODE_ENV
-      } : undefined
+      }
     })
   }
+  
+  console.log('=== 認証成功: 一括ユーザー作成処理開始 ===')
   
   try {
     const { users: usersArray, csvText } = req.body

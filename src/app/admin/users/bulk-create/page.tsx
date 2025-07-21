@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import AuthGuard from '@/components/AuthGuard'
 import Header from '@/components/Header'
+import { userAPI } from '@/lib/api'
 
 interface BulkCreateResult {
   success: number
@@ -52,26 +53,18 @@ export default function BulkCreateUsersPage() {
     setResult(null)
 
     try {
-      const token = localStorage.getItem('authToken')
-      const response = await fetch('/api/users/bulk-create/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          csvText: csvText
-        })
+      console.log('一括ユーザー作成開始: userAPI.bulkCreate使用')
+      console.log('CSVテキスト:', csvText.substring(0, 100) + '...')
+      
+      const response = await userAPI.bulkCreate({
+        csvText: csvText
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'サーバーエラーが発生しました')
-      }
-
-      setResult(data.data)
-      console.log('一括ユーザー作成完了:', data.data)
+      
+      console.log('一括ユーザー作成APIレスポンス:', response)
+      
+      const resultData = response.data?.data || response.data
+      setResult(resultData)
+      console.log('一括ユーザー作成完了:', resultData)
 
     } catch (error: any) {
       console.error('一括ユーザー作成エラー:', error)
