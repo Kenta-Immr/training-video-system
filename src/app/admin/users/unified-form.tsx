@@ -35,11 +35,14 @@ export default function UnifiedUserForm({ onUserCreated, onClose, standalone = f
           'Authorization': `Bearer ${token}`,
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
-          'X-Unique-Request': uniqueTimestamp.toString()
+          'X-Unique-Request': uniqueTimestamp.toString(),
+          'X-Unified-Form': 'true',
+          'X-Force-Create': 'true'
         },
         body: JSON.stringify({
           ...formData,
-          timestamp: uniqueTimestamp
+          timestamp: uniqueTimestamp,
+          source: standalone ? 'standalone' : 'modal'
         })
       })
 
@@ -63,17 +66,30 @@ ID: ${newUser.id}
           onUserCreated(newUser)
         }
         
-        // モーダルの場合は閉じる
+        // 成功音を鳴らす（ブラウザが対応している場合）
+        try {
+          const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IAAAAAABAAEASUD0//8EAP//ALahhAoCR/')
+          audio.play().catch(() => {}) // エラーは無視
+        } catch {}
+        
+        // モーダルの場合は少し待ってから閉じる
         if (onClose && !standalone) {
           setTimeout(() => {
             onClose()
+            // 親ページの更新もトリガー
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new Event('userCreated'))
+            }
           }, 1500)
         }
         
-        // スタンドアロンの場合はページリロード
+        // スタンドアロンの場合は強制リロード
         if (standalone) {
           setTimeout(() => {
-            window.location.reload()
+            if (typeof window !== 'undefined') {
+              // 強制的にキャッシュクリア
+              window.location.href = window.location.href + '?refresh=' + Date.now()
+            }
           }, 2000)
         }
         

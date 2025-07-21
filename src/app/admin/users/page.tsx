@@ -40,8 +40,18 @@ export default function UsersPage() {
       }
     }
     
+    const handleUserCreated = () => {
+      console.log('ユーザー作成イベントを受信 - データを再取得')
+      fetchUsers(true)
+    }
+    
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('userCreated', handleUserCreated)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('userCreated', handleUserCreated)
+    }
   }, [])
 
   const fetchUsers = async (forceRefresh = false) => {
@@ -109,8 +119,44 @@ export default function UsersPage() {
         await userAPI.update(editingUser.id, data)
         console.log('ユーザー更新完了')
       } else {
-        // モーダルフォームは無効化 - 専用ページを使用するようメッセージ表示
-        throw new Error('ユーザー作成は専用ページをご使用ください。「🚀 確実ユーザー作成」ボタンをクリックしてください。')
+        // 統合ユーザー作成エンドポイント使用
+        console.log('統合モーダルユーザー作成開始:', data)
+        const token = localStorage.getItem('token')
+        const uniqueTimestamp = Date.now()
+        
+        const response = await fetch(`/api/create-user?_=${uniqueTimestamp}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'X-Unique-Request': uniqueTimestamp.toString(),
+            'X-Modal-Create': 'true'
+          },
+          body: JSON.stringify({
+            ...data,
+            timestamp: uniqueTimestamp
+          })
+        })
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+        
+        const result = await response.json()
+        console.log('統合モーダルユーザー作成完了:', result)
+        
+        if (!result.success) {
+          throw new Error(result.message || 'ユーザー作成に失敗しました')
+        }
+        
+        // 成功時は作成したユーザーを即座にリストに追加
+        if (result.data) {
+          const newUser = result.data
+          setUsers(prevUsers => [...prevUsers, newUser])
+          console.log('新しいユーザーを即座にリストに追加:', newUser.name)
+        }
       }
 
       userForm.reset()
