@@ -44,6 +44,11 @@ export default function AdminGroupsPage() {
       setError('')
       console.log('グループデータ取得開始', forceRefresh ? '(強制更新)' : '')
       
+      // 強制更新時は追加のキャッシュバスティング
+      const timestamp = Date.now()
+      const cacheBuster = forceRefresh ? `&_cb=${timestamp}` : ''
+      console.log('キャッシュバスター:', cacheBuster)
+      
       const [groupsResponse, usersResponse, coursesResponse] = await Promise.all([
         groupAPI.getAll(),
         userAPI.getAll(),
@@ -93,17 +98,30 @@ export default function AdminGroupsPage() {
       setShowForm(false)
       setEditingGroup(null)
       
-      // データ保存後の強制リフレッシュ（遅延付き）
-      console.log('グループ作成完了、リフレッシュを実行します...')
-      setTimeout(() => {
+      // データ保存後の段階的リフレッシュ（本番環境対応）
+      console.log('グループ作成完了、段階的リフレッシュを実行します...')
+      
+      // ステップ1: 即座にリフレッシュ
+      await fetchData(true)
+      
+      // ステップ2: 500ms後に再度リフレッシュ（KV同期待ち）
+      setTimeout(async () => {
         console.log('500ms後のリフレッシュ実行')
-        fetchData(true)
+        await fetchData(true)
       }, 500)
       
-      // 即座にもう一度実行（二重チェック）
-      setTimeout(() => {
-        console.log('1500ms後の追加リフレッシュ実行')
-        fetchData(true)
+      // ステップ3: 1500ms後に最終確認
+      setTimeout(async () => {
+        console.log('1500ms後の最終リフレッシュ実行')
+        await fetchData(true)
+        
+        // 本番環境では追加でページリロードも試行
+        if (process.env.NODE_ENV === 'production') {
+          setTimeout(() => {
+            console.log('本番環境: 3秒後にページリロードを実行')
+            window.location.reload()
+          }, 3000)
+        }
       }, 1500)
     } catch (error: any) {
       setError(error.response?.data?.error || 'グループの保存に失敗しました')
