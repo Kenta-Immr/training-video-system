@@ -1,87 +1,134 @@
-// Single video endpoint
+// Individual video management endpoint
+
+// 共有データストア関数
+function getCourseDataFromSharedStore() {
+  if (global.courseData) {
+    return global.courseData
+  }
+  return {}
+}
+
 export default function handler(req, res) {
   const { id } = req.query
+  const videoId = parseInt(id)
   
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PUT,DELETE')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,DELETE,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
   
-  if (req.method === 'GET') {
-    const videoId = parseInt(id)
-    
-    // サンプル動画データ
-    const sampleVideos = {
-      1: {
-        id: 1,
-        title: 'HTML入門',
-        description: 'HTMLとは何かについて学びます',
-        videoUrl: '#',
-        curriculumId: 1,
-        duration: 600, // 10分
-        createdAt: '2023-10-01T10:00:00Z'
-      },
-      2: {
-        id: 2,
-        title: '基本タグ',
-        description: 'よく使うHTMLタグについて解説します',
-        videoUrl: '#',
-        curriculumId: 1,
-        duration: 480, // 8分
-        createdAt: '2023-10-01T10:30:00Z'
-      },
-      3: {
-        id: 3,
-        title: 'SELECT文',
-        description: 'SQLのSELECT文の使い方',
-        videoUrl: '#',
-        curriculumId: 2,
-        duration: 720, // 12分
-        createdAt: '2023-10-01T11:00:00Z'
+  // 認証チェック（管理者のみ）
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      message: '認証が必要です'
+    })
+  }
+  
+  const token = authHeader.substring(7)
+  if (!token.startsWith('demo-admin')) {
+    return res.status(403).json({
+      success: false,
+      message: '管理者権限が必要です'
+    })
+  }
+  
+  const courseDataStore = getCourseDataFromSharedStore()
+  
+  // 動画を検索
+  let targetVideo = null
+  let targetCurriculum = null
+  let targetCourse = null
+  
+  for (const courseId in courseDataStore) {
+    const courseData = courseDataStore[courseId]
+    if (courseData.curriculums) {
+      for (const curriculum of courseData.curriculums) {
+        if (curriculum.videos) {
+          const foundVideo = curriculum.videos.find(v => v.id === videoId)
+          if (foundVideo) {
+            targetVideo = foundVideo
+            targetCurriculum = curriculum
+            targetCourse = courseData
+            break
+          }
+        }
       }
+      if (targetVideo) break
     }
-    
-    const video = sampleVideos[videoId]
-    
-    if (!video) {
-      return res.status(404).json({
-        success: false,
-        message: '動画が見つかりません'
-      })
-    }
+  }
+  
+  if (!targetVideo) {
+    return res.status(404).json({
+      success: false,
+      message: '動画が見つかりません'
+    })
+  }
+  
+  if (req.method === 'GET') {
+    console.log(`動画取得: ${targetVideo.title} (ID: ${videoId})`)
     
     return res.json({
       success: true,
-      data: video
+      data: {
+        ...targetVideo,
+        courseName: targetCourse.title,
+        curriculumName: targetCurriculum.title
+      }
     })
   }
   
   if (req.method === 'PUT') {
     const { title, description, videoUrl } = req.body
     
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: 'タイトルは必須です'
+      })
+    }
+    
+    // 動画情報を更新
+    targetVideo.title = title
+    targetVideo.description = description || targetVideo.description
+    if (videoUrl) {
+      targetVideo.videoUrl = videoUrl
+    }
+    targetVideo.updatedAt = new Date().toISOString()
+    
+    console.log(`動画更新: ${title} (ID: ${videoId})`)
+    
     return res.json({
       success: true,
-      data: {
-        id: parseInt(id),
-        title,
-        description,
-        videoUrl,
-        updatedAt: new Date().toISOString()
-      }
+      data: targetVideo,
+      message: '動画情報を更新しました'
     })
   }
   
   if (req.method === 'DELETE') {
+    // 動画を削除
+    const videoIndex = targetCurriculum.videos.findIndex(v => v.id === videoId)
+    if (videoIndex > -1) {
+      targetCurriculum.videos.splice(videoIndex, 1)
+    }
+    
+    console.log(`動画削除: ${targetVideo.title} (ID: ${videoId})`)
+    
     return res.json({
       success: true,
+      data: targetVideo,
       message: '動画を削除しました'
     })
   }
   
-  return res.status(405).json({ message: 'Method not allowed' })
+  return res.status(405).json({
+    success: false,
+    message: 'Method not allowed'
+  })
 }

@@ -1,479 +1,326 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import Link from 'next/link'
-import AdminPageWrapper from '@/components/AdminPageWrapper'
-import { userAPI, groupAPI } from '@/lib/api'
+import { useRouter } from 'next/navigation'
+import AuthGuard from '@/components/AuthGuard'
+import Header from '@/components/Header'
 
-// 動的ページとして設定
-export const dynamic = 'force-dynamic'
-
-interface BulkUser {
-  email: string
-  name: string
-  password: string
-  role: 'USER' | 'ADMIN'
-  groupId?: number
-  groupName?: string
-}
-
-interface Group {
-  id: number
-  name: string
-  code: string
+interface BulkCreateResult {
+  success: number
+  errors: number
+  created: any[]
+  failed: any[]
 }
 
 export default function BulkCreateUsersPage() {
   const router = useRouter()
-  const [users, setUsers] = useState<BulkUser[]>([
-    { email: '', name: '', password: '', role: 'USER' }
-  ])
-  const [groups, setGroups] = useState<Group[]>([])
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
-  const [csvData, setCsvData] = useState('')
-  const [csvFile, setCsvFile] = useState<File | null>(null)
-
-  // グループ一覧を取得
-  useEffect(() => {
-    fetchGroups()
-  }, [])
-
-  const fetchGroups = async () => {
-    try {
-      console.log('Fetching groups...')
-      const response = await groupAPI.getAll()
-      console.log('Groups API response:', response.data)
-      
-      // APIレスポンス構造を処理
-      const groupsData = response.data?.data || response.data
-      console.log('Processed groups data:', groupsData)
-      
-      if (Array.isArray(groupsData)) {
-        setGroups(groupsData)
-      } else {
-        console.warn('Invalid groups data format:', groupsData)
-        setGroups([])
-      }
-    } catch (error: any) {
-      console.error('Error fetching groups:', error)
-      setGroups([])
-    }
-  }
-
-  const addUser = () => {
-    setUsers([...users, { email: '', name: '', password: '', role: 'USER' }])
-  }
-
-  const removeUser = (index: number) => {
-    if (users.length > 1) {
-      const newUsers = users.filter((_, i) => i !== index)
-      setUsers(newUsers)
-    }
-  }
-
-  const updateUser = (index: number, field: keyof BulkUser, value: string | number) => {
-    const newUsers = [...users]
-    newUsers[index] = { ...newUsers[index], [field]: value }
-    setUsers(newUsers)
-  }
-
-  const handleCsvImport = () => {
-    try {
-      const lines = csvData.trim().split('\n')
-      const csvUsers: BulkUser[] = []
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim()
-        if (!line) continue
-
-        const [email, name, password, role, groupValue] = line.split(',').map(s => s.trim())
-        
-        if (!email || !name || !password) {
-          alert(`行 ${i + 1}: メールアドレス、名前、パスワードは必須です`)
-          return
-        }
-
-        // グループ値が数値かどうかで判定（後方互換性）
-        const isNumericGroup = groupValue && !isNaN(parseInt(groupValue))
-        
-        csvUsers.push({
-          email,
-          name,
-          password,
-          role: (role === 'ADMIN' ? 'ADMIN' : 'USER') as 'USER' | 'ADMIN',
-          groupId: isNumericGroup ? parseInt(groupValue) : undefined,
-          groupName: !isNumericGroup && groupValue ? groupValue : undefined
-        })
-      }
-
-      setUsers(csvUsers)
-      setCsvData('')
-    } catch (error) {
-      alert('CSVデータの解析に失敗しました')
-    }
-  }
+  const [csvText, setCsvText] = useState('')
+  const [isUploading, setIsUploading] = useState(false)
+  const [result, setResult] = useState<BulkCreateResult | null>(null)
+  const [error, setError] = useState('')
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    setCsvFile(file)
+    if (!file.name.endsWith('.csv')) {
+      setError('CSVファイルを選択してください')
+      return
+    }
+
     const reader = new FileReader()
     reader.onload = (e) => {
       const text = e.target?.result as string
-      setCsvData(text)
+      setCsvText(text)
+      setError('')
     }
-    reader.readAsText(file)
+    reader.onerror = () => {
+      setError('ファイルの読み込みに失敗しました')
+    }
+    reader.readAsText(file, 'UTF-8')
   }
 
-  const downloadTemplate = () => {
-    const template = 'email,name,password,role,groupName\n' +
-                    'user1@example.com,山田太郎,password123,USER,営業部\n' +
-                    'user2@example.com,田中花子,password456,USER,技術部\n' +
-                    'user3@example.com,佐藤次郎,password789,USER,営業部\n' +
-                    'manager@example.com,管理者,admin123,ADMIN,管理部\n' +
-                    'intern@example.com,新人研修生,intern123,USER,新人研修'
-
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = 'user_template.csv'
-    link.click()
-  }
-
-  const createUsersFromCsv = async () => {
-    if (!csvData.trim()) {
-      alert('CSVデータがありません')
+  const handleSubmit = async () => {
+    if (!csvText.trim()) {
+      setError('CSVデータを入力または選択してください')
       return
     }
 
+    setIsUploading(true)
+    setError('')
+    setResult(null)
+
     try {
-      const lines = csvData.trim().split('\n')
-      const csvUsers: BulkUser[] = []
-
-      // ヘッダー行をスキップ
-      const startIndex = lines[0].toLowerCase().includes('email') ? 1 : 0
-
-      for (let i = startIndex; i < lines.length; i++) {
-        const line = lines[i].trim()
-        if (!line) continue
-
-        const [email, name, password, role, groupValue] = line.split(',').map(s => s.trim())
-        
-        if (!email || !name || !password) {
-          alert(`行 ${i + 1}: メールアドレス、名前、パスワードは必須です`)
-          return
-        }
-
-        // グループ値が数値かどうかで判定（後方互換性）
-        const isNumericGroup = groupValue && !isNaN(parseInt(groupValue))
-        
-        csvUsers.push({
-          email,
-          name,
-          password,
-          role: (role === 'ADMIN' ? 'ADMIN' : 'USER') as 'USER' | 'ADMIN',
-          groupId: isNumericGroup ? parseInt(groupValue) : undefined,
-          groupName: !isNumericGroup && groupValue ? groupValue : undefined
+      const token = localStorage.getItem('authToken')
+      const response = await fetch('/api/users/bulk-create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          csvText: csvText
         })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'サーバーエラーが発生しました')
       }
 
-      if (csvUsers.length === 0) {
-        alert('有効なユーザーデータがありません')
-        return
-      }
+      setResult(data.data)
+      console.log('一括ユーザー作成完了:', data.data)
 
-      setLoading(true)
-      console.log('送信するユーザーデータ:', csvUsers)
-      const response = await userAPI.bulkCreate({ users: csvUsers })
-      setResult(response.data)
-      setCsvData('')
-      setCsvFile(null)
     } catch (error: any) {
-      alert(error.response?.data?.error || 'ユーザー作成に失敗しました')
+      console.error('一括ユーザー作成エラー:', error)
+      setError(error.message || '一括ユーザー作成に失敗しました')
     } finally {
-      setLoading(false)
+      setIsUploading(false)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // バリデーション
-    const validUsers = users.filter(user => user.email && user.name && user.password)
-    if (validUsers.length === 0) {
-      alert('有効なユーザーデータがありません')
-      return
-    }
-
-    setLoading(true)
-    try {
-      const response = await userAPI.bulkCreate({ users: validUsers })
-      setResult(response.data)
-    } catch (error: any) {
-      alert(error.response?.data?.error || '一括作成に失敗しました')
-    } finally {
-      setLoading(false)
+  const resetForm = () => {
+    setCsvText('')
+    setResult(null)
+    setError('')
+    const fileInput = document.getElementById('csv-file') as HTMLInputElement
+    if (fileInput) {
+      fileInput.value = ''
     }
   }
+
+  const sampleCsv = `name,email,role,groupId
+山田太郎,yamada@example.com,USER,2
+佐藤花子,sato@example.com,ADMIN,1
+田中次郎,tanaka@example.com,USER,3`
 
   return (
-    <AdminPageWrapper 
-      title="一括ユーザー作成" 
-      description="CSV・手動入力でユーザーを一括作成します"
-    >
-
-        {result ? (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">作成結果</h2>
-            
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-green-800">成功</h3>
-                <p className="text-3xl font-bold text-green-600">{result.success}</p>
-              </div>
-              <div className="bg-red-50 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-red-800">失敗</h3>
-                <p className="text-3xl font-bold text-red-600">{result.errors}</p>
-              </div>
-            </div>
-
-            {result.failed && result.failed.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-lg font-medium text-red-800 mb-2">エラー詳細</h3>
-                <div className="bg-red-50 rounded-lg p-4">
-                  {result.failed.map((error: any, index: number) => (
-                    <div key={index} className="text-sm text-red-700 mb-1">
-                      行 {error.index}: {error.email} - {error.error}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => {
-                  setResult(null)
-                  setUsers([{ email: '', name: '', password: '', role: 'USER' }])
-                }}
-                className="btn-primary"
-              >
-                新しく作成
-              </button>
-              <Link href="/admin/users" className="btn-secondary">
-                ユーザー管理へ
-              </Link>
-            </div>
+    <AuthGuard requireAdmin>
+      <Header />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">一括ユーザー作成</h1>
+            <p className="mt-2 text-gray-600">
+              CSVファイルから複数のユーザーを一度に作成します
+            </p>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {/* CSV インポート */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">CSVファイルからユーザー作成</h2>
-              <p className="text-gray-600 mb-4">
-                CSVファイルをアップロードしてユーザーを一括作成できます。<br />
-                形式: email, name, password, role, groupId
-              </p>
-              
-              <div className="space-y-4">
-                {/* テンプレートダウンロード */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={downloadTemplate}
-                    className="btn-secondary"
-                  >
-                    📥 CSVテンプレートをダウンロード
-                  </button>
-                </div>
+          <Link
+            href="/admin/users"
+            className="btn-secondary"
+          >
+            ユーザー管理に戻る
+          </Link>
+        </div>
 
-                {/* ファイルアップロード */}
-                <div>
-                  <label className="form-label">CSVファイルを選択</label>
-                  <input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileUpload}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                </div>
-
-                {/* プレビュー */}
-                {csvData && (
-                  <div>
-                    <label className="form-label">プレビュー</label>
-                    <textarea
-                      value={csvData}
-                      onChange={(e) => setCsvData(e.target.value)}
-                      className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      readOnly
-                    />
-                  </div>
-                )}
-
-                {/* 作成ボタン */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={createUsersFromCsv}
-                    disabled={!csvData.trim() || loading}
-                    className="btn-primary disabled:opacity-50"
-                  >
-                    {loading ? '作成中...' : 'CSVからユーザーを作成'}
-                  </button>
-                  <button
-                    onClick={handleCsvImport}
-                    disabled={!csvData.trim()}
-                    className="btn-secondary disabled:opacity-50"
-                  >
-                    手動入力フォームに読み込み
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* 手動CSV入力 */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">CSV手動入力</h2>
-              <p className="text-gray-600 mb-4">
-                CSVデータを直接入力してユーザーを設定できます。<br />
-                形式: email, name, password, role, groupId
-              </p>
-              <textarea
-                value={csvData}
-                onChange={(e) => setCsvData(e.target.value)}
-                placeholder="email,name,password,role,groupId&#10;user1@example.com,山田太郎,password123,USER,1&#10;user2@example.com,田中花子,password456,USER,2"
-                className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <div className="mt-2 flex gap-4">
-                <button
-                  onClick={createUsersFromCsv}
-                  disabled={!csvData.trim() || loading}
-                  className="btn-primary disabled:opacity-50"
-                >
-                  {loading ? '作成中...' : 'CSVからユーザーを作成'}
-                </button>
-                <button
-                  onClick={handleCsvImport}
-                  disabled={!csvData.trim()}
-                  className="btn-secondary disabled:opacity-50"
-                >
-                  手動入力フォームに読み込み
-                </button>
-              </div>
-            </div>
-
-            {/* 手動入力フォーム */}
-            <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">ユーザー情報入力</h2>
-                <button
-                  type="button"
-                  onClick={addUser}
-                  className="btn-secondary"
-                >
-                  ユーザーを追加
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {users.map((user, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-medium">ユーザー {index + 1}</h3>
-                      {users.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeUser(index)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          削除
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div>
-                        <label className="form-label">メールアドレス *</label>
-                        <input
-                          type="email"
-                          value={user.email}
-                          onChange={(e) => updateUser(index, 'email', e.target.value)}
-                          className="form-input"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="form-label">名前 *</label>
-                        <input
-                          type="text"
-                          value={user.name}
-                          onChange={(e) => updateUser(index, 'name', e.target.value)}
-                          className="form-input"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="form-label">パスワード *</label>
-                        <input
-                          type="password"
-                          value={user.password}
-                          onChange={(e) => updateUser(index, 'password', e.target.value)}
-                          className="form-input"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="form-label">ロール</label>
-                        <select
-                          value={user.role}
-                          onChange={(e) => updateUser(index, 'role', e.target.value)}
-                          className="form-select"
-                        >
-                          <option value="USER">ユーザー</option>
-                          <option value="ADMIN">管理者</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="form-label">グループ</label>
-                        <select
-                          value={user.groupId || ''}
-                          onChange={(e) => updateUser(index, 'groupId', e.target.value ? parseInt(e.target.value) : undefined)}
-                          className="form-select"
-                        >
-                          <option value="">グループなし</option>
-                          {groups.map(group => (
-                            <option key={group.id} value={group.id}>
-                              {group.name} ({group.code})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 flex gap-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn-primary disabled:opacity-50"
-                >
-                  {loading ? '作成中...' : `${users.length}人のユーザーを作成`}
-                </button>
-                <Link href="/admin/users" className="btn-secondary">
-                  キャンセル
-                </Link>
-              </div>
-            </form>
+        {error && (
+          <div className="rounded-md bg-red-50 p-4 mb-6">
+            <div className="text-sm text-red-700">{error}</div>
+            <button 
+              onClick={() => setError('')}
+              className="mt-2 btn-primary text-sm"
+            >
+              閉じる
+            </button>
           </div>
         )}
-    </AdminPageWrapper>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* CSV入力エリア */}
+          <div className="card">
+            <h2 className="text-lg font-semibold mb-4">CSVデータ入力</h2>
+            
+            <div className="space-y-4">
+              {/* ファイルアップロード */}
+              <div>
+                <label className="form-label">CSVファイル選択</label>
+                <input
+                  id="csv-file"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileUpload}
+                  className="form-input"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  .csv形式のファイルを選択してください
+                </p>
+              </div>
+
+              <div className="text-center text-gray-500">または</div>
+
+              {/* 直接入力 */}
+              <div>
+                <label className="form-label">CSVテキスト直接入力</label>
+                <textarea
+                  value={csvText}
+                  onChange={(e) => setCsvText(e.target.value)}
+                  className="form-input"
+                  rows={10}
+                  placeholder="name,email,role,groupId&#10;山田太郎,yamada@example.com,USER,2&#10;佐藤花子,sato@example.com,ADMIN,1"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  1行目にヘッダー、2行目以降にデータを入力してください
+                </p>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleSubmit}
+                  disabled={isUploading || !csvText.trim()}
+                  className="btn-primary flex-1 disabled:opacity-50"
+                >
+                  {isUploading ? '作成中...' : 'ユーザーを一括作成'}
+                </button>
+                <button
+                  onClick={resetForm}
+                  className="btn-secondary"
+                >
+                  リセット
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* サンプル・説明 */}
+          <div className="card">
+            <h2 className="text-lg font-semibold mb-4">CSVフォーマット説明</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">必須フィールド</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li><code className="bg-gray-100 px-1 rounded">name</code> - ユーザー名（必須）</li>
+                  <li><code className="bg-gray-100 px-1 rounded">email</code> - メールアドレス（必須）</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">任意フィールド</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li><code className="bg-gray-100 px-1 rounded">role</code> - USER または ADMIN（デフォルト: USER）</li>
+                  <li><code className="bg-gray-100 px-1 rounded">groupId</code> - グループID（1: 管理、2: 開発、3: 営業）</li>
+                  <li><code className="bg-gray-100 px-1 rounded">password</code> - 初期パスワード（未指定時は自動生成）</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">サンプルCSV</h3>
+                <pre className="text-xs bg-gray-100 p-3 rounded overflow-x-auto">
+{sampleCsv}
+                </pre>
+                <button
+                  onClick={() => setCsvText(sampleCsv)}
+                  className="btn-secondary text-sm mt-2"
+                >
+                  サンプルデータを使用
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 結果表示 */}
+        {result && (
+          <div className="mt-8">
+            <div className="card">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">作成結果</h2>
+                <div className="flex space-x-2">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    成功: {result.success}件
+                  </span>
+                  {result.errors > 0 && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      エラー: {result.errors}件
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* 成功一覧 */}
+              {result.created.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-medium text-green-900 mb-2">作成成功 ({result.created.length}件)</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">名前</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">メール</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">権限</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">グループ</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {result.created.map((user, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="px-4 py-2 text-sm text-gray-900">{user.name}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{user.email}</td>
+                            <td className="px-4 py-2 text-sm">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                user.role === 'ADMIN' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                              }`}>
+                                {user.role === 'ADMIN' ? '管理者' : '一般ユーザー'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-600">
+                              {user.group ? user.group.name : '未所属'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* エラー一覧 */}
+              {result.failed.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-red-900 mb-2">作成失敗 ({result.failed.length}件)</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">行</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">メール</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">エラー</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {result.failed.map((error, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="px-4 py-2 text-sm text-gray-900">{error.index}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{error.email}</td>
+                            <td className="px-4 py-2 text-sm text-red-600">{error.error}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => router.push('/admin/users')}
+                  className="btn-primary"
+                >
+                  ユーザー管理に移動
+                </button>
+                <button
+                  onClick={resetForm}
+                  className="btn-secondary"
+                >
+                  新しいCSVを作成
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </AuthGuard>
   )
 }

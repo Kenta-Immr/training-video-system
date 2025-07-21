@@ -2,251 +2,385 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useForm } from 'react-hook-form'
 import AuthGuard from '@/components/AuthGuard'
 import Header from '@/components/Header'
-import { logAPI } from '@/lib/api'
+import { userAPI, UserData } from '@/lib/api'
 
-interface UserStat {
-  id: number
-  name: string
+interface UserForm {
   email: string
-  completedVideos: number
-  totalVideos: number
-  progressRate: number
-  totalWatchedSeconds: number
+  name: string
+  role: 'USER' | 'ADMIN'
+  groupId?: number
+  password?: string
 }
 
-interface StatsData {
-  userStats: UserStat[]
-  totalUsers: number
-  totalVideos: number
-}
-
-export default function AdminUsersPage() {
-  const [stats, setStats] = useState<StatsData | null>(null)
+export default function UsersPage() {
+  const [users, setUsers] = useState<UserData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState<'name' | 'progress' | 'watchTime'>('progress')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [showForm, setShowForm] = useState(false)
+  const [editingUser, setEditingUser] = useState<UserData | null>(null)
+
+  const userForm = useForm<UserForm>()
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await logAPI.getStats()
-        setStats(response.data)
-      } catch (error: any) {
-        setError(error.response?.data?.error || '統計データの取得に失敗しました')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchStats()
+    fetchUsers()
   }, [])
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600)
-    const mins = Math.floor((seconds % 3600) / 60)
-    return `${hours}時間${mins}分`
-  }
-
-  const getProgressColor = (rate: number) => {
-    if (rate >= 80) return 'text-green-600 bg-green-100'
-    if (rate >= 50) return 'text-yellow-600 bg-yellow-100'
-    return 'text-red-600 bg-red-100'
-  }
-
-  const filteredAndSortedUsers = stats?.userStats
-    .filter(user => 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      let aValue: number, bValue: number
+  const fetchUsers = async () => {
+    try {
+      console.log('ユーザー一覧取得開始')
+      const response = await userAPI.getAll()
+      console.log('ユーザー一覧API応答:', response.data)
       
-      switch (sortBy) {
-        case 'name':
-          return sortOrder === 'asc' 
-            ? a.name.localeCompare(b.name)
-            : b.name.localeCompare(a.name)
-        case 'progress':
-          aValue = a.progressRate
-          bValue = b.progressRate
-          break
-        case 'watchTime':
-          aValue = a.totalWatchedSeconds
-          bValue = b.totalWatchedSeconds
-          break
-        default:
-          return 0
-      }
-      
-      return sortOrder === 'asc' ? aValue - bValue : bValue - aValue
-    }) || []
-
-  const handleSort = (newSortBy: 'name' | 'progress' | 'watchTime') => {
-    if (sortBy === newSortBy) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortBy(newSortBy)
-      setSortOrder('desc')
+      const usersData = response.data.data || response.data
+      setUsers(Array.isArray(usersData) ? usersData : [])
+    } catch (error: any) {
+      console.error('ユーザー取得エラー:', error)
+      setError('ユーザーの取得に失敗しました')
+    } finally {
+      setLoading(false)
     }
+  }
+
+  const onSubmit = async (data: UserForm) => {
+    try {
+      setError('')
+      console.log('ユーザー保存開始:', data)
+
+      if (editingUser) {
+        await userAPI.update(editingUser.id, data)
+        console.log('ユーザー更新完了')
+      } else {
+        await userAPI.create(data)
+        console.log('ユーザー作成完了')
+      }
+
+      userForm.reset()
+      setShowForm(false)
+      setEditingUser(null)
+      fetchUsers()
+    } catch (error: any) {
+      console.error('ユーザー保存エラー:', error)
+      setError(error.response?.data?.message || 'ユーザーの保存に失敗しました')
+    }
+  }
+
+  const handleEdit = (user: UserData) => {
+    setEditingUser(user)
+    userForm.setValue('email', user.email)
+    userForm.setValue('name', user.name)
+    userForm.setValue('role', user.role as 'USER' | 'ADMIN')
+    userForm.setValue('groupId', user.groupId)
+    setShowForm(true)
+  }
+
+  const handleDelete = async (user: UserData) => {
+    if (!confirm(`「${user.name}」を削除しますか？`)) return
+
+    try {
+      await userAPI.delete(user.id)
+      fetchUsers()
+    } catch (error: any) {
+      console.error('ユーザー削除エラー:', error)
+      setError(error.response?.data?.message || 'ユーザーの削除に失敗しました')
+    }
+  }
+
+  const handleCancel = () => {
+    userForm.reset()
+    setShowForm(false)
+    setEditingUser(null)
+    setError('')
+  }
+
+  const getRoleBadge = (role: string) => {
+    if (role === 'ADMIN') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          管理者
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        一般ユーザー
+      </span>
+    )
+  }
+
+  const getStatusBadge = (user: UserData) => {
+    if (user.isFirstLogin) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          初回ログイン待ち
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        アクティブ
+      </span>
+    )
+  }
+
+  if (loading) {
+    return (
+      <AuthGuard requireAdmin>
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">ユーザー情報を読み込み中...</p>
+            </div>
+          </div>
+        </main>
+      </AuthGuard>
+    )
   }
 
   return (
     <AuthGuard requireAdmin>
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <Link href="/admin" className="text-blue-600 hover:text-blue-800 text-sm">
-            ← 管理者ダッシュボードに戻る
-          </Link>
-        </div>
-
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">受講者管理</h1>
-          <p className="mt-2 text-gray-600">受講者の進捗状況と詳細な視聴ログを確認できます</p>
-        </div>
-
-        {loading && (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">ユーザー管理</h1>
+            <p className="mt-2 text-gray-600">
+              システムユーザーの作成、編集、削除を行います
+            </p>
           </div>
-        )}
+          <div className="flex space-x-3">
+            <Link
+              href="/admin/users/bulk-create"
+              className="btn-secondary"
+            >
+              一括作成
+            </Link>
+            <button
+              onClick={() => setShowForm(true)}
+              className="btn-primary"
+            >
+              新規ユーザー作成
+            </button>
+          </div>
+        </div>
 
         {error && (
           <div className="rounded-md bg-red-50 p-4 mb-6">
-            <p className="text-sm text-red-800">{error}</p>
+            <div className="text-sm text-red-700">{error}</div>
+            <button 
+              onClick={() => setError('')}
+              className="mt-2 btn-primary text-sm"
+            >
+              閉じる
+            </button>
           </div>
         )}
 
-        {stats && (
-          <>
-            {/* 検索・フィルター */}
-            <div className="card mb-6">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
+        {/* ユーザー作成・編集フォーム */}
+        {showForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-lg font-semibold mb-4">
+                {editingUser ? 'ユーザー編集' : '新規ユーザー作成'}
+              </h2>
+              
+              <form onSubmit={userForm.handleSubmit(onSubmit)} className="space-y-4">
+                <div>
+                  <label className="form-label">メールアドレス</label>
                   <input
-                    type="text"
-                    placeholder="受講者名またはメールアドレスで検索..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    {...userForm.register('email', { 
+                      required: 'メールアドレスは必須です',
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: '有効なメールアドレスを入力してください'
+                      }
+                    })}
+                    type="email"
                     className="form-input"
+                    placeholder="user@example.com"
                   />
+                  {userForm.formState.errors.email && (
+                    <p className="mt-1 text-sm text-red-600">{userForm.formState.errors.email.message}</p>
+                  )}
                 </div>
-                <div className="flex gap-2">
+
+                <div>
+                  <label className="form-label">名前</label>
+                  <input
+                    {...userForm.register('name', { required: '名前は必須です' })}
+                    className="form-input"
+                    placeholder="山田太郎"
+                  />
+                  {userForm.formState.errors.name && (
+                    <p className="mt-1 text-sm text-red-600">{userForm.formState.errors.name.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="form-label">権限</label>
                   <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
+                    {...userForm.register('role')}
                     className="form-input"
                   >
-                    <option value="progress">進捗率順</option>
-                    <option value="name">名前順</option>
-                    <option value="watchTime">視聴時間順</option>
+                    <option value="USER">一般ユーザー</option>
+                    <option value="ADMIN">管理者</option>
                   </select>
-                  <button
-                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    className="btn-secondary"
+                </div>
+
+                <div>
+                  <label className="form-label">グループID（任意）</label>
+                  <select
+                    {...userForm.register('groupId')}
+                    className="form-input"
                   >
-                    {sortOrder === 'asc' ? '↑' : '↓'}
+                    <option value="">グループを選択</option>
+                    <option value="1">管理グループ</option>
+                    <option value="2">開発チーム</option>
+                    <option value="3">営業チーム</option>
+                  </select>
+                </div>
+
+                {!editingUser && (
+                  <div>
+                    <label className="form-label">初期パスワード（任意）</label>
+                    <input
+                      {...userForm.register('password')}
+                      type="password"
+                      className="form-input"
+                      placeholder="未入力の場合は自動生成されます"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      最初のログイン時にパスワード変更が必要です
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-4">
+                  <button
+                    type="submit"
+                    disabled={userForm.formState.isSubmitting}
+                    className="btn-primary flex-1 disabled:opacity-50"
+                  >
+                    {userForm.formState.isSubmitting ? '保存中...' : '保存'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="btn-secondary flex-1"
+                  >
+                    キャンセル
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
-
-            {/* 受講者一覧 */}
-            <div className="card">
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  受講者一覧 ({filteredAndSortedUsers.length}人)
-                </h2>
-              </div>
-
-              {filteredAndSortedUsers.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th 
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                          onClick={() => handleSort('name')}
-                        >
-                          受講者 {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
-                        </th>
-                        <th 
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                          onClick={() => handleSort('progress')}
-                        >
-                          進捗率 {sortBy === 'progress' && (sortOrder === 'asc' ? '↑' : '↓')}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          完了動画
-                        </th>
-                        <th 
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                          onClick={() => handleSort('watchTime')}
-                        >
-                          総視聴時間 {sortBy === 'watchTime' && (sortOrder === 'asc' ? '↑' : '↓')}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          操作
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredAndSortedUsers.map((user) => (
-                        <tr key={user.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                              <div className="text-sm text-gray-500">{user.email}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-1 mr-3">
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div
-                                    className="bg-blue-600 h-2 rounded-full"
-                                    style={{ width: `${user.progressRate}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getProgressColor(user.progressRate)}`}>
-                                {user.progressRate}%
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {user.completedVideos} / {user.totalVideos}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {formatTime(user.totalWatchedSeconds)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <Link
-                              href={`/admin/users/${user.id}`}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              詳細
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">
-                    {searchTerm ? '検索条件に一致する受講者が見つかりません' : '受講者データがありません'}
-                  </p>
-                </div>
-              )}
-            </div>
-          </>
+          </div>
         )}
+
+        {/* ユーザー一覧テーブル */}
+        <div className="card">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ユーザー
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    権限
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    グループ
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    状態
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    最終ログイン
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    操作
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {user.name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {user.email}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getRoleBadge(user.role)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {user.group ? user.group.name : '未所属'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(user)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {user.lastLoginAt 
+                        ? new Date(user.lastLoginAt).toLocaleDateString('ja-JP', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : '未ログイン'
+                      }
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEdit(user)}
+                          className="btn-secondary text-sm px-3"
+                        >
+                          編集
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user)}
+                          className="btn-danger text-sm px-3"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {users.length === 0 && !loading && !error && (
+            <div className="text-center py-12">
+              <h3 className="mt-2 text-sm font-medium text-gray-900">ユーザーがありません</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                最初のユーザーを作成してください。
+              </p>
+              <div className="mt-6">
+                <button 
+                  onClick={() => setShowForm(true)}
+                  className="btn-primary"
+                >
+                  新規ユーザー作成
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
     </AuthGuard>
   )

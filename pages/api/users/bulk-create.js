@@ -1,4 +1,47 @@
-// Bulk user creation endpoint
+// Bulk user creation endpoint with CSV support
+
+// 共有データストア関数
+function getUsersDataFromSharedStore() {
+  if (global.usersData) {
+    return global.usersData
+  }
+  return []
+}
+
+function getNextUserId() {
+  if (!global.nextUserId) {
+    global.nextUserId = 4
+  }
+  return ++global.nextUserId
+}
+
+// パスワード生成（デモ用）
+function generateTempPassword() {
+  return Math.random().toString(36).slice(-8)
+}
+
+// CSVパースヘルパー関数
+function parseCSV(csvText) {
+  const lines = csvText.trim().split('\n')
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+  
+  const users = []
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
+    if (values.length >= 2) { // 最低限の name, email
+      const user = {}
+      headers.forEach((header, index) => {
+        if (values[index]) {
+          user[header] = values[index]
+        }
+      })
+      users.push(user)
+    }
+  }
+  
+  return users
+}
+
 export default function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
@@ -10,73 +53,167 @@ export default function handler(req, res) {
     return res.status(200).end()
   }
   
-  if (req.method === 'POST') {
-    const { users } = req.body
-    
-    if (!users || !Array.isArray(users)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid users data'
-      })
-    }
-    
-    // 一括ユーザー作成を模擬
-    const created = []
-    const failed = []
-    
-    users.forEach((user, index) => {
-      try {
-        // バリデーション
-        if (!user.email || !user.name || !user.password) {
-          failed.push({
-            index,
-            email: user.email || '',
-            error: 'メールアドレス、名前、パスワードは必須です'
-          })
-          return
-        }
-        
-        // メール形式チェック
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
-          failed.push({
-            index,
-            email: user.email,
-            error: 'メールアドレスの形式が正しくありません'
-          })
-          return
-        }
-        
-        // 成功として追加
-        created.push({
-          id: Date.now() + index,
-          email: user.email,
-          name: user.name,
-          role: user.role || 'USER',
-          groupId: user.groupId || null,
-          isFirstLogin: true,
-          lastLoginAt: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        })
-      } catch (error) {
-        failed.push({
-          index,
-          email: user.email || '',
-          error: 'ユーザー作成でエラーが発生しました'
-        })
-      }
-    })
-    
-    return res.json({
-      success: true,
-      data: {
-        success: created.length,
-        errors: failed.length,
-        created,
-        failed
-      }
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      success: false,
+      message: 'POSTメソッドのみサポートされています'
     })
   }
   
-  return res.status(405).json({ message: 'Method not allowed' })
+  // 認証チェック（管理者のみ）
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      message: '認証が必要です'
+    })
+  }
+  
+  const token = authHeader.substring(7)
+  if (!token.startsWith('demo-admin')) {
+    return res.status(403).json({
+      success: false,
+      message: '管理者権限が必要です'
+    })
+  }
+  
+  try {
+    const { users: usersArray, csvText } = req.body
+    let usersToCreate = []
+    
+    // CSVテキストが提供された場合
+    if (csvText) {
+      console.log('CSVテキストから一括ユーザー作成を開始')
+      usersToCreate = parseCSV(csvText)
+    } 
+    // ユーザー配列が提供された場合
+    else if (usersArray && Array.isArray(usersArray)) {
+      console.log('ユーザー配列から一括ユーザー作成を開始')
+      usersToCreate = usersArray
+    } 
+    else {
+      return res.status(400).json({
+        success: false,
+        message: 'CSVテキストまたはユーザー配列が必要です'
+      })
+    }
+    
+    if (usersToCreate.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: '作成するユーザーが見つかりません'
+      })
+    }
+    
+    console.log(`${usersToCreate.length}件のユーザー作成を開始`)
+    
+    // 共有データを取得
+    const existingUsers = getUsersDataFromSharedStore()
+    
+    // グループ情報マッピング
+    const groupMapping = {
+      '1': { id: 1, name: '管理グループ', code: 'ADMIN001' },
+      '2': { id: 2, name: '開発チーム', code: 'DEV001' },
+      '3': { id: 3, name: '営業チーム', code: 'SALES001' },
+      'ADMIN001': { id: 1, name: '管理グループ', code: 'ADMIN001' },
+      'DEV001': { id: 2, name: '開発チーム', code: 'DEV001' },
+      'SALES001': { id: 3, name: '営業チーム', code: 'SALES001' },
+      '管理グループ': { id: 1, name: '管理グループ', code: 'ADMIN001' },
+      '開発チーム': { id: 2, name: '開発チーム', code: 'DEV001' },
+      '営業チーム': { id: 3, name: '営業チーム', code: 'SALES001' }
+    }
+    
+    const results = {
+      success: 0,
+      errors: 0,
+      created: [],
+      failed: []
+    }
+    
+    for (let i = 0; i < usersToCreate.length; i++) {
+      const userData = usersToCreate[i]
+      
+      try {
+        // 必須フィールドチェック
+        if (!userData.name || !userData.email) {
+          results.failed.push({
+            index: i + 1,
+            email: userData.email || '未指定',
+            error: '名前とメールアドレスは必須です'
+          })
+          results.errors++
+          continue
+        }
+        
+        // 重複チェック
+        if (existingUsers.find(u => u.email === userData.email)) {
+          results.failed.push({
+            index: i + 1,
+            email: userData.email,
+            error: 'このメールアドレスは既に使用されています'
+          })
+          results.errors++
+          continue
+        }
+        
+        // グループ情報の解決
+        let group = null
+        let groupId = null
+        
+        if (userData.groupId || userData.groupName || userData.groupCode) {
+          const groupKey = userData.groupId || userData.groupName || userData.groupCode
+          group = groupMapping[groupKey]
+          if (group) {
+            groupId = group.id
+          }
+        }
+        
+        // 新規ユーザー作成
+        const newUser = {
+          id: getNextUserId(),
+          email: userData.email,
+          name: userData.name,
+          role: (userData.role || 'USER').toUpperCase(),
+          groupId,
+          group,
+          isFirstLogin: true,
+          lastLoginAt: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          tempPassword: userData.password || generateTempPassword()
+        }
+        
+        existingUsers.push(newUser)
+        results.created.push(newUser)
+        results.success++
+        
+        console.log(`ユーザー作成成功: ${newUser.name} (${newUser.email})`)
+        
+      } catch (error) {
+        console.error(`ユーザー作成エラー (${i + 1}行目):`, error)
+        results.failed.push({
+          index: i + 1,
+          email: userData.email || '未指定',
+          error: error.message || '不明なエラー'
+        })
+        results.errors++
+      }
+    }
+    
+    console.log(`一括ユーザー作成完了: 成功=${results.success}, エラー=${results.errors}`)
+    
+    return res.json({
+      success: true,
+      data: results,
+      message: `${results.success}件のユーザーを作成しました（エラー: ${results.errors}件）`
+    })
+    
+  } catch (error) {
+    console.error('一括ユーザー作成エラー:', error)
+    return res.status(500).json({
+      success: false,
+      message: 'サーバー内部エラーが発生しました',
+      error: error.message
+    })
+  }
 }
