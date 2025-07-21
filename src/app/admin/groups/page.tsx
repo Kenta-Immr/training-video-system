@@ -94,9 +94,17 @@ export default function AdminGroupsPage() {
       setEditingGroup(null)
       
       // データ保存後の強制リフレッシュ（遅延付き）
+      console.log('グループ作成完了、リフレッシュを実行します...')
       setTimeout(() => {
+        console.log('500ms後のリフレッシュ実行')
         fetchData(true)
       }, 500)
+      
+      // 即座にもう一度実行（二重チェック）
+      setTimeout(() => {
+        console.log('1500ms後の追加リフレッシュ実行')
+        fetchData(true)
+      }, 1500)
     } catch (error: any) {
       setError(error.response?.data?.error || 'グループの保存に失敗しました')
     }

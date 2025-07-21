@@ -129,6 +129,20 @@ export default async function handler(req, res) {
     
     console.log(`新規ユーザー作成: ${name} (${email}) - ID: ${newUser.id}`)
     
+    // 保存確認: 作成後にデータストアから取得して確認
+    try {
+      const savedUsers = await dataStore.getUsersAsync()
+      const foundUser = savedUsers.find(u => u.id === newUser.id)
+      if (foundUser) {
+        console.log('✓ ユーザーデータ保存確認済み:', foundUser.name)
+      } else {
+        console.error('✗ ユーザーデータが見つかりません:', newUser.id)
+      }
+      console.log(`現在の総ユーザー数: ${savedUsers.length}件`)
+    } catch (verifyError) {
+      console.error('ユーザー保存確認エラー:', verifyError)
+    }
+    
     // レスポンス用にグループ情報を付与
     const responseUser = {
       ...newUser,

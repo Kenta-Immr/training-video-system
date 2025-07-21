@@ -98,9 +98,17 @@ export default function UsersPage() {
       setEditingUser(null)
       
       // データ保存後の強制リフレッシュ（遅延付き）
+      console.log('ユーザー作成完了、リフレッシュを実行します...')
       setTimeout(() => {
+        console.log('500ms後のリフレッシュ実行')
         fetchUsers(true)
       }, 500)
+      
+      // 即座にもう一度実行（二重チェック）
+      setTimeout(() => {
+        console.log('1500ms後の追加リフレッシュ実行')
+        fetchUsers(true)
+      }, 1500)
     } catch (error: any) {
       console.error('ユーザー保存エラー:', error)
       setError(error.response?.data?.message || 'ユーザーの保存に失敗しました')

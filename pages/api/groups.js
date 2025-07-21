@@ -109,6 +109,20 @@ export default async function handler(req, res) {
     
     console.log(`新規グループ作成: ${name} (${code}) - ID: ${newGroup.id}`)
     
+    // 保存確認: 作成後にデータストアから取得して確認
+    try {
+      const savedGroups = await dataStore.getGroupsAsync()
+      const foundGroup = savedGroups.find(g => g.id === newGroup.id)
+      if (foundGroup) {
+        console.log('✓ グループデータ保存確認済み:', foundGroup.name)
+      } else {
+        console.error('✗ グループデータが見つかりません:', newGroup.id)
+      }
+      console.log(`現在の総グループ数: ${savedGroups.length}件`)
+    } catch (verifyError) {
+      console.error('グループ保存確認エラー:', verifyError)
+    }
+    
     return res.json({
       success: true,
       data: {

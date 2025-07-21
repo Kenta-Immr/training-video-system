@@ -9,6 +9,9 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
   },
   timeout: 30000, // 30秒のタイムアウト
 })
@@ -20,6 +23,12 @@ api.interceptors.request.use((config) => {
     baseURL: config.baseURL,
     data: config.data
   })
+  
+  // キャッシュ回避のためタイムスタンプパラメータを追加
+  if (config.method === 'get') {
+    const separator = config.url?.includes('?') ? '&' : '?'
+    config.url = `${config.url}${separator}_t=${Date.now()}`
+  }
   
   const token = getToken()
   if (token) {
