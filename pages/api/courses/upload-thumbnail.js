@@ -34,6 +34,15 @@ export default function handler(req, res) {
   try {
     console.log('サムネイル画像のアップロード処理を開始')
     
+    // リクエストサイズをチェック（5MB制限）
+    const contentLength = req.headers['content-length']
+    if (contentLength && parseInt(contentLength) > 5 * 1024 * 1024) {
+      return res.status(413).json({
+        success: false,
+        message: 'ファイルサイズが大きすぎます（5MB以下にしてください）'
+      })
+    }
+    
     // 実際の本番環境では、ここでformidableを使ってファイルを処理
     // const form = formidable({
     //   uploadDir: './public/uploads',

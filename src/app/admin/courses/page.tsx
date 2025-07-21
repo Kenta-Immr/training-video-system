@@ -73,21 +73,23 @@ export default function AdminCoursesPage() {
       // サムネイル画像のアップロード
       if (data.thumbnailFile && data.thumbnailFile.length > 0) {
         console.log('=== THUMBNAIL UPLOAD START ===')
-        console.log('Selected file:', data.thumbnailFile[0])
-        console.log('File name:', data.thumbnailFile[0].name)
-        console.log('File size:', data.thumbnailFile[0].size)
-        console.log('File type:', data.thumbnailFile[0].type)
+        const file = data.thumbnailFile[0]
+        console.log('Selected file:', file.name, 'Size:', Math.round(file.size / 1024) + 'KB')
+        
+        // 事前チェック
+        if (file.size > 5 * 1024 * 1024) {
+          setError('ファイルサイズは5MB以下にしてください')
+          return
+        }
         
         const formData = new FormData()
-        formData.append('thumbnail', data.thumbnailFile[0])
+        formData.append('thumbnail', file)
         
         try {
           console.log('Sending upload request to API...')
           const uploadResponse = await courseAPI.uploadThumbnail(formData)
           console.log('=== UPLOAD SUCCESS ===')
           console.log('Upload response:', uploadResponse)
-          console.log('Response status:', uploadResponse.status)
-          console.log('Response data:', uploadResponse.data)
           
           if (uploadResponse.data && uploadResponse.data.data && uploadResponse.data.data.thumbnailUrl) {
             thumbnailUrl = uploadResponse.data.data.thumbnailUrl
@@ -262,29 +264,69 @@ export default function AdminCoursesPage() {
 
                 <div>
                   <label className="form-label">サムネイル画像</label>
-                  <input
-                    {...register('thumbnailFile')}
-                    type="file"
-                    accept="image/*"
-                    className="form-input"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      setSelectedFile(file || null)
-                      console.log('Selected file:', file)
-                    }}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    JPG, PNG, GIF形式（最大5MB）
-                  </p>
+                  <div className="space-y-2">
+                    <input
+                      {...register('thumbnailFile')}
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="hidden"
+                      id="thumbnail-file-input"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          // ファイルサイズチェック（5MB制限）
+                          if (file.size > 5 * 1024 * 1024) {
+                            setError('ファイルサイズは5MB以下にしてください')
+                            e.target.value = ''
+                            return
+                          }
+                          // ファイル形式チェック
+                          if (!file.type.startsWith('image/')) {
+                            setError('画像ファイルを選択してください')
+                            e.target.value = ''
+                            return
+                          }
+                          setSelectedFile(file)
+                          setError('') // エラーをクリア
+                          console.log('Selected file:', file.name, 'Size:', Math.round(file.size / 1024) + 'KB')
+                        } else {
+                          setSelectedFile(null)
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('thumbnail-file-input')?.click()}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      {selectedFile ? '画像を変更' : '画像を選択'}
+                    </button>
+                    <p className="text-xs text-gray-500">
+                      JPEG, PNG, GIF, WebP形式（最大5MB）
+                    </p>
+                  </div>
                   
                   {selectedFile && (
-                    <div className="mt-2 p-2 bg-blue-50 rounded border">
-                      <p className="text-xs text-blue-700 mb-1">選択された画像:</p>
-                      <p className="text-xs text-gray-600">
-                        ファイル名: {selectedFile.name}<br/>
-                        サイズ: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB<br/>
-                        タイプ: {selectedFile.type}
-                      </p>
+                    <div className="mt-2 p-3 bg-green-50 rounded border border-green-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-green-800">{selectedFile.name}</p>
+                          <p className="text-xs text-green-600">
+                            サイズ: {Math.round(selectedFile.size / 1024)}KB
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFile(null)
+                            const input = document.getElementById('thumbnail-file-input') as HTMLInputElement
+                            if (input) input.value = ''
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          削除
+                        </button>
+                      </div>
                     </div>
                   )}
                   
