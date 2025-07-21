@@ -1,7 +1,7 @@
 // Course thumbnail upload endpoint
-import formidable from 'formidable'
-import fs from 'fs'
-import path from 'path'
+// import formidable from 'formidable'
+// import fs from 'fs'
+// import path from 'path'
 
 // Next.jsの自動bodyパースを無効化（ファイルアップロード用）
 export const config = {
