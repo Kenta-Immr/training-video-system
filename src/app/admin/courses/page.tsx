@@ -37,22 +37,17 @@ export default function AdminCoursesPage() {
     try {
       setLoading(true)
       setError('')
-      console.log('Fetching courses...')
       const response = await courseAPI.getAll()
-      console.log('Courses API response:', response.data)
       
       // APIレスポンス構造を処理
       const coursesData = response.data?.data || response.data
-      console.log('Processed courses data:', coursesData)
       
       if (Array.isArray(coursesData)) {
         setCourses(coursesData)
       } else {
-        console.warn('Invalid courses data format:', coursesData)
         setCourses([])
       }
     } catch (error: any) {
-      console.error('Fetch courses error:', error)
       setError(error.response?.data?.error || error.message || 'コースの取得に失敗しました')
       setCourses([])
     } finally {
@@ -66,15 +61,11 @@ export default function AdminCoursesPage() {
       setSuccess('') // 成功メッセージもクリア
       let thumbnailUrl = editingCourse?.thumbnailUrl
 
-      console.log('=== FORM SUBMISSION START ===')
-      console.log('Form data:', data)
-      console.log('Has thumbnail file:', !!selectedFile)
+      // フォーム送信開始
 
       // サムネイル画像のアップロード（selectedFileステートから取得）
       if (selectedFile) {
-        console.log('=== THUMBNAIL UPLOAD START ===')
         const file = selectedFile
-        console.log('Selected file:', file.name, 'Size:', Math.round(file.size / 1024) + 'KB')
         
         // 事前チェック
         if (file.size > 5 * 1024 * 1024) {
@@ -86,35 +77,20 @@ export default function AdminCoursesPage() {
         formData.append('thumbnail', file)
         
         try {
-          console.log('Sending upload request to API...')
           const uploadResponse = await courseAPI.uploadThumbnail(formData)
-          console.log('=== UPLOAD SUCCESS ===')
-          console.log('Upload response:', uploadResponse)
           
-          if (uploadResponse.data && uploadResponse.data.data && uploadResponse.data.data.thumbnailUrl) {
+          if (uploadResponse.data?.data?.thumbnailUrl) {
             thumbnailUrl = uploadResponse.data.data.thumbnailUrl
-            console.log('Thumbnail URL successfully set to:', thumbnailUrl)
-          } else if (uploadResponse.data && uploadResponse.data.thumbnailUrl) {
+          } else if (uploadResponse.data?.thumbnailUrl) {
             thumbnailUrl = uploadResponse.data.thumbnailUrl
-            console.log('Thumbnail URL successfully set to:', thumbnailUrl)
           } else {
-            console.error('No thumbnailUrl in response data!')
-            console.error('Response structure:', uploadResponse.data)
             setError('アップロードレスポンスにサムネイルURLが含まれていません')
             return
           }
         } catch (uploadError: any) {
-          console.log('=== UPLOAD ERROR ===')
-          console.error('Upload error:', uploadError)
-          console.error('Error message:', uploadError.message)
-          console.error('Error response:', uploadError.response)
-          console.error('Error response data:', uploadError.response?.data)
-          console.error('Error response status:', uploadError.response?.status)
           setError(`画像アップロードエラー: ${uploadError.response?.data?.error || uploadError.message}`)
           return
         }
-      } else {
-        console.log('No thumbnail file selected, keeping existing URL:', thumbnailUrl)
       }
 
       const courseData = {
@@ -123,24 +99,15 @@ export default function AdminCoursesPage() {
         thumbnailUrl
       }
 
-      console.log('=== COURSE SAVE START ===')
-      console.log('Course data to save:', courseData)
+      // コース保存開始
 
-      let savedCourse
       if (editingCourse) {
-        console.log('Updating existing course ID:', editingCourse.id)
-        const updateResponse = await courseAPI.update(editingCourse.id, courseData)
-        savedCourse = updateResponse.data.data || updateResponse.data
-        console.log('Course update response:', updateResponse)
+        await courseAPI.update(editingCourse.id, courseData)
       } else {
-        console.log('Creating new course')
-        const createResponse = await courseAPI.create(courseData)
-        savedCourse = createResponse.data.data || createResponse.data
-        console.log('Course create response:', createResponse)
+        await courseAPI.create(courseData)
       }
       
-      console.log('=== COURSE SAVE SUCCESS ===')
-      console.log('Saved course:', savedCourse)
+      // 保存成功
       
       setSuccess(`コースが正常に保存されました${thumbnailUrl ? ' (サムネイル含む)' : ''}`)
       setTimeout(() => setSuccess(''), 5000) // 5秒後にメッセージを消去
@@ -152,13 +119,9 @@ export default function AdminCoursesPage() {
       setSelectedFile(null)
       
       // コース一覧を再取得
-      console.log('Refreshing course list...')
       await fetchCourses()
-      console.log('=== PROCESS COMPLETE ===')
       
     } catch (error: any) {
-      console.error('Course save error:', error)
-      console.error('Error response:', error.response?.data)
       const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'コースの保存に失敗しました'
       setError(errorMessage)
     }
@@ -338,7 +301,6 @@ export default function AdminCoursesPage() {
                         alt="現在のサムネイル"
                         className="w-20 h-20 object-cover rounded border"
                         onError={(e) => {
-                          console.error('Image load error:', e)
                           e.currentTarget.style.display = 'none'
                         }}
                       />
@@ -384,7 +346,6 @@ export default function AdminCoursesPage() {
                         alt={course.title}
                         className="w-full h-40 object-cover rounded"
                         onError={(e) => {
-                          console.error('Image load error for course:', course.id, course.thumbnailUrl)
                           e.currentTarget.style.display = 'none'
                         }}
                       />
