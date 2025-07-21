@@ -15,27 +15,36 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
   },
-  // 強制的にすべてのキャッシュを無効化
+  // 安定したビルドID（デプロイ安定性のため）
   generateBuildId: async () => {
-    return 'force-clear-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)
+    // 日次ベースの安定したビルドID
+    const today = new Date().toISOString().split('T')[0].replace(/-/g, '')
+    return `stable-${today}-${process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || 'dev'}`
   },
-  // 全ファイルのキャッシュを完全無効化
+  // バランスの取れたキャッシュ戦略
   async headers() {
     return [
       {
-        source: '/(.*)',
+        // APIのみキャッシュ無効化
+        source: '/api/(.*)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate, max-age=0',
+            value: 'no-cache, no-store, must-revalidate',
           },
           {
             key: 'Pragma',
             value: 'no-cache',
           },
+        ],
+      },
+      {
+        // 静的アセットは適切にキャッシュ
+        source: '/_next/static/(.*)',
+        headers: [
           {
-            key: 'Expires',
-            value: '0',
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
