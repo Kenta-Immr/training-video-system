@@ -46,9 +46,18 @@
       "curriculums": [],
       "createdAt": "2025-07-21T03:45:09.670Z",
       "updatedAt": "2025-07-21T03:45:09.670Z"
+    },
+    "3": {
+      "id": 3,
+      "title": "プログラミング基礎",
+      "description": "プログラミングの基本概念を学ぶコース",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=300&fit=crop",
+      "curriculums": [],
+      "createdAt": "2025-07-21T05:01:30.349Z",
+      "updatedAt": "2025-07-21T05:01:30.349Z"
     }
   },
-  "nextCourseId": 3,
+  "nextCourseId": 4,
   "nextCurriculumId": 2,
   "nextVideoId": 3
 }

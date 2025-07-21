@@ -34,21 +34,38 @@ export default function AdminCoursesPage() {
     fetchCourses()
   }, [])
 
-  const fetchCourses = async () => {
+  const fetchCourses = async (forceRefresh = false) => {
     try {
       setLoading(true)
       setError('')
+      console.log('fetchCourses: コース一覧取得開始', forceRefresh ? '(強制更新)' : '')
+      
       const response = await courseAPI.getAll()
+      console.log('fetchCourses: APIレスポンス:', response)
+      console.log('fetchCourses: レスポンスステータス:', response.status)
+      console.log('fetchCourses: レスポンスヘッダー:', response.headers)
       
       // APIレスポンス構造を処理
       const coursesData = response.data?.data || response.data
+      console.log('fetchCourses: 処理後のデータ:', coursesData)
+      console.log('fetchCourses: データタイプ:', typeof coursesData, Array.isArray(coursesData))
       
       if (Array.isArray(coursesData)) {
+        console.log('fetchCourses: コース設定完了:', coursesData.length, '件')
+        console.log('fetchCourses: 個別コース:', coursesData.map(c => ({ id: c.id, title: c.title })))
         setCourses(coursesData)
       } else {
+        console.log('fetchCourses: データが配列ではありません:', coursesData)
         setCourses([])
       }
     } catch (error: any) {
+      console.error('fetchCourses: エラー発生:', error)
+      console.error('fetchCourses: エラー詳細:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      })
       setError(error.response?.data?.error || error.message || 'コースの取得に失敗しました')
       setCourses([])
     } finally {
@@ -123,8 +140,11 @@ export default function AdminCoursesPage() {
       }
       setPreviewUrl(null)
       
-      // コース一覧を再取得
-      await fetchCourses()
+      // コース一覧を強制再取得（少し遅延を入れてデータベース書き込み完了を待つ）
+      console.log('onSubmit: コース保存完了、一覧を再取得します')
+      setTimeout(async () => {
+        await fetchCourses(true)
+      }, 500)
       
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'コースの保存に失敗しました'
@@ -180,7 +200,10 @@ export default function AdminCoursesPage() {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => fetchCourses()}
+                onClick={() => {
+                  console.log('手動更新ボタンクリック')
+                  fetchCourses(true)
+                }}
                 className="btn-secondary"
                 disabled={loading}
               >

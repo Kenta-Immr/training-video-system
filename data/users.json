@@ -1,0 +1,27 @@
+{
+  "users": {
+    "1": {
+      "id": 1,
+      "email": "admin@example.com",
+      "name": "管理者",
+      "role": "ADMIN",
+      "groupId": null,
+      "isFirstLogin": false,
+      "lastLoginAt": "2024-01-01T00:00:00.000Z",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "2": {
+      "id": 2,
+      "email": "user@example.com",
+      "name": "一般ユーザー",
+      "role": "USER",
+      "groupId": 1,
+      "isFirstLogin": false,
+      "lastLoginAt": "2024-01-01T00:00:00.000Z",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  },
+  "nextUserId": 3
+}

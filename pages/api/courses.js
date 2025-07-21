@@ -38,13 +38,23 @@ export default function handler(req, res) {
     try {
       console.log('コース一覧取得API開始')
       
+      // キャッシュ制御ヘッダーを追加
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+      res.setHeader('Pragma', 'no-cache')
+      res.setHeader('Expires', '0')
+      res.setHeader('Last-Modified', new Date().toUTCString())
+      res.setHeader('ETag', `"${Date.now()}"`)
+      
       // コース一覧を取得
       const courseList = dataStore.getCourses()
       console.log(`コース一覧取得: ${courseList.length}件`)
+      console.log('取得したコースリスト:', courseList.map(c => ({ id: c.id, title: c.title })))
       
       return res.json({
         success: true,
-        data: courseList
+        data: courseList,
+        timestamp: new Date().toISOString(),
+        count: courseList.length
       })
     } catch (error) {
       console.error('コース一覧取得エラー:', error)

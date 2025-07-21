@@ -205,8 +205,8 @@ const DEMO_COURSES: Course[] = [
 ];
 
 export const courseAPI = {
-  getAll: () => api.get<Course[]>('/api/courses/'),
-  getById: (id: number) => api.get<Course>(`/api/courses/${id}/`),
+  getAll: () => api.get<Course[]>(`/api/courses/?t=${Date.now()}`),
+  getById: (id: number) => api.get<Course>(`/api/courses/${id}/?t=${Date.now()}`),
   create: (data: { title: string; description?: string; thumbnailUrl?: string }) =>
     api.post<Course>('/api/courses/', data),
   update: (id: number, data: { title: string; description?: string; thumbnailUrl?: string }) =>
