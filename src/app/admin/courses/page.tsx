@@ -20,6 +20,7 @@ export default function AdminCoursesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const {
     register,
@@ -117,6 +118,10 @@ export default function AdminCoursesPage() {
       setShowForm(false)
       setEditingCourse(null)
       setSelectedFile(null)
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
+      setPreviewUrl(null)
       
       // コース一覧を再取得
       await fetchCourses()
@@ -132,6 +137,10 @@ export default function AdminCoursesPage() {
     setValue('title', course.title)
     setValue('description', course.description || '')
     setSelectedFile(null)
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+    setPreviewUrl(null)
     setShowForm(true)
   }
 
@@ -150,6 +159,11 @@ export default function AdminCoursesPage() {
     reset()
     setShowForm(false)
     setEditingCourse(null)
+    setSelectedFile(null)
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+    setPreviewUrl(null)
   }
 
   return (
@@ -234,19 +248,23 @@ export default function AdminCoursesPage() {
                       className="hidden"
                       id="thumbnail-file-input"
                       onChange={(e) => {
-                        // 軽量化：最小限の処理のみ
                         const file = e.target.files?.[0]
                         if (file) {
-                          // 基本チェックのみ（重い処理は送信時に）
-                          if (file.size > 10 * 1024 * 1024) { // 10MB以上は即座に拒否
-                            setError('ファイルサイズが大きすぎます')
+                          // 5MB制限で統一
+                          if (file.size > 5 * 1024 * 1024) {
+                            setError('ファイルサイズは5MB以下にしてください')
                             e.target.value = ''
                             return
                           }
+                          
+                          // 画像プレビュー用URLを作成
+                          const url = URL.createObjectURL(file)
                           setSelectedFile(file)
+                          setPreviewUrl(url)
                           setError('')
                         } else {
                           setSelectedFile(null)
+                          setPreviewUrl(null)
                         }
                       }}
                     />
@@ -271,8 +289,15 @@ export default function AdminCoursesPage() {
                   
                   {selectedFile && (
                     <div className="mt-2 p-3 bg-green-50 rounded border border-green-200">
-                      <div className="flex items-center justify-between">
-                        <div>
+                      <div className="flex items-start gap-3">
+                        {previewUrl && (
+                          <img
+                            src={previewUrl}
+                            alt="プレビュー"
+                            className="w-16 h-16 object-cover rounded border"
+                          />
+                        )}
+                        <div className="flex-1">
                           <p className="text-sm font-medium text-green-800">{selectedFile.name}</p>
                           <p className="text-xs text-green-600">
                             サイズ: {selectedFile.size ? Math.round(selectedFile.size / 1024) : 0}KB
@@ -282,6 +307,10 @@ export default function AdminCoursesPage() {
                           type="button"
                           onClick={() => {
                             setSelectedFile(null)
+                            if (previewUrl) {
+                              URL.revokeObjectURL(previewUrl)
+                            }
+                            setPreviewUrl(null)
                             const input = document.getElementById('thumbnail-file-input') as HTMLInputElement
                             if (input) input.value = ''
                           }}
