@@ -85,10 +85,11 @@ export default function handler(req, res) {
       })
     }
     
-    if (!videoUrl) {
+    // URLが空の場合は、通常ファイルアップロード経由で呼ばれる
+    if (!videoUrl || videoUrl.trim() === '') {
       return res.status(400).json({
         success: false,
-        message: '動画URLは必須です'
+        message: '動画URLが必要です。ファイルアップロードの場合は /api/videos/upload を使用してください'
       })
     }
     

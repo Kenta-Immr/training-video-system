@@ -124,11 +124,14 @@ export default function handler(req, res) {
     const courseDataStore = getCourseDataFromSharedStore()
     
     // FormDataから情報を取得（デモ用のシミュレーション）
+    // 本来はformidableで解析するが、デモ版ではリクエストヘッダーから取得
     const mockFormData = {
-      title: "アップロードされた動画" + Date.now(),
-      description: "ファイルアップロードによる動画",
-      curriculumId: 1 // デフォルト値、実際はフォームから取得
+      title: req.headers['x-video-title'] || "アップロードされた動画" + Date.now(),
+      description: req.headers['x-video-description'] || "ファイルアップロードによる動画",
+      curriculumId: parseInt(req.headers['x-curriculum-id']) || 1
     }
+    
+    console.log('フォームデータ（ヘッダーから取得）:', mockFormData)
     
     // カリキュラムを検索
     let curriculum = null

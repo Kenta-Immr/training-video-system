@@ -111,15 +111,42 @@ export default function CourseDetailPage() {
           })
         } else {
           console.log('新規動画のアップロード')
-          await videoAPI.upload(formData)
+          // カスタムヘッダーを追加してアップロード
+          const token = localStorage.getItem('authToken')
+          const response = await fetch('/api/videos/upload', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'X-Video-Title': data.title,
+              'X-Video-Description': data.description || '',
+              'X-Curriculum-Id': selectedCurriculumId.toString()
+            },
+            body: formData
+          })
+          
+          if (!response.ok) {
+            throw new Error(`アップロードエラー: ${response.status}`)
+          }
+          
+          const result = await response.json()
+          if (!result.success) {
+            throw new Error(result.message || 'アップロードに失敗しました')
+          }
         }
       } else {
         console.log('URLモード')
+        
+        // URLが入力されているかチェック
+        if (!data.videoUrl || data.videoUrl.trim() === '') {
+          setError('動画URLまたはファイルのどちらかを入力してください')
+          return
+        }
+        
         // URLでの動画追加・更新
         const videoData = {
           title: data.title,
           description: data.description,
-          videoUrl: data.videoUrl || '',
+          videoUrl: data.videoUrl.trim(),
           curriculumId: selectedCurriculumId
         }
         console.log('動画データ:', videoData)
@@ -346,22 +373,52 @@ export default function CourseDetailPage() {
                 <div>
                   <label className="form-label">動画URL</label>
                   <input
-                    {...videoForm.register('videoUrl')}
+                    {...videoForm.register('videoUrl', {
+                      validate: (value, formValues) => {
+                        const hasFile = formValues.videoFile && formValues.videoFile.length > 0
+                        const hasUrl = value && value.trim() !== ''
+                        
+                        if (!hasFile && !hasUrl && !editingVideo) {
+                          return '動画URLまたはファイルのどちらかを入力してください'
+                        }
+                        return true
+                      }
+                    })}
                     className="form-input"
-                    placeholder="https://example.com/video.mp4"
+                    placeholder="https://example.com/video.mp4 または YouTube URL"
                   />
+                  {videoForm.formState.errors.videoUrl && (
+                    <p className="mt-1 text-sm text-red-600">{videoForm.formState.errors.videoUrl.message}</p>
+                  )}
+                </div>
+
+                <div className="text-center text-sm text-gray-500 py-2">
+                  ── または ──
                 </div>
 
                 <div>
-                  <label className="form-label">または動画ファイル</label>
+                  <label className="form-label">動画ファイル</label>
                   <input
-                    {...videoForm.register('videoFile')}
+                    {...videoForm.register('videoFile', {
+                      validate: (value, formValues) => {
+                        const hasFile = value && value.length > 0
+                        const hasUrl = formValues.videoUrl && formValues.videoUrl.trim() !== ''
+                        
+                        if (!hasFile && !hasUrl && !editingVideo) {
+                          return '動画ファイルまたはURLのどちらかを入力してください'
+                        }
+                        return true
+                      }
+                    })}
                     type="file"
                     accept="video/*"
                     className="form-input"
                   />
+                  {videoForm.formState.errors.videoFile && (
+                    <p className="mt-1 text-sm text-red-600">{videoForm.formState.errors.videoFile.message}</p>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
-                    MP4, WebM, OGG形式がサポートされています
+                    MP4, WebM, OGG形式がサポートされています（最大50MB）
                   </p>
                 </div>
 
