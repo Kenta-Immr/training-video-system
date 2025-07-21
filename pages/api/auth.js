@@ -28,10 +28,19 @@ export default function handler(req, res) {
   const user = dataStore.getUserByEmailAndPassword(email, password)
   
   if (user) {
-    // トークン生成（デモ用）
-    const token = user.role === 'ADMIN' ? 'demo-admin' : 'demo-user'
+    // より堅牢なトークン生成
+    const timestamp = Date.now()
+    const userInfo = `${user.id}_${user.role}_${timestamp}`
+    const token = user.role === 'ADMIN' 
+      ? `admin_${Buffer.from(userInfo).toString('base64').substring(0, 20)}`
+      : `user_${Buffer.from(userInfo).toString('base64').substring(0, 20)}`
     
-    console.log('認証成功:', { email, role: user.role, token })
+    console.log('認証成功:', { 
+      email, 
+      role: user.role, 
+      tokenPrefix: token.substring(0, 10),
+      env: process.env.NODE_ENV
+    })
     
     res.json({
       success: true,

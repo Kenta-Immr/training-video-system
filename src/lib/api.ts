@@ -120,13 +120,13 @@ export interface ViewingLogRequest {
 export const authAPI = {
   login: (data: LoginRequest) => {
     console.log('AuthAPI Login called with:', data)
-    return api.post<LoginResponse>('/api/auth', data)
+    return api.post<LoginResponse>('/api/auth/', data)
   },
   register: (data: RegisterRequest) =>
-    api.post<LoginResponse>('/api/auth', data),
+    api.post<LoginResponse>('/api/auth/', data),
   debugLogin: (data: LoginRequest) => {
     console.log('Debug AuthAPI Login called with:', data)
-    return api.post<LoginResponse>('/api/debug-auth', data)
+    return api.post<LoginResponse>('/api/debug-auth/', data)
   }
 }
 
@@ -230,7 +230,7 @@ export const courseAPI = {
     })
   },
   createCurriculum: (courseId: number, data: { title: string; description?: string }) =>
-    api.post<Curriculum>(`/api/courses/${courseId}/curriculums`, data),
+    api.post<Curriculum>(`/api/courses/${courseId}/curriculums/`, data),
   updateCurriculum: (id: number, data: { title: string; description?: string }) =>
     api.put<Curriculum>(`/api/courses/curriculums/${id}`, data),
   deleteCurriculum: (id: number) =>
@@ -240,9 +240,9 @@ export const courseAPI = {
 export const videoAPI = {
   getById: (id: number) => api.get<Video>(`/api/videos/${id}`),
   create: (data: { title: string; description?: string; videoUrl: string; curriculumId: number }) =>
-    api.post<Video>('/api/videos', data),
+    api.post<Video>('/api/videos/', data),
   upload: (formData: FormData) =>
-    api.post<Video>('/api/videos/upload', formData, {
+    api.post<Video>('/api/videos/upload/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -256,7 +256,7 @@ export const videoAPI = {
 
 export const logAPI = {
   saveLog: (data: ViewingLogRequest) =>
-    api.post<ViewingLog>('/api/logs', data),
+    api.post<ViewingLog>('/api/logs/', data),
   getMyLogs: () =>
     api.get<ViewingLog[]>('/api/logs/my-logs'),
   getUserLogs: (userId: number) =>
@@ -334,13 +334,13 @@ export const userAPI = {
   getById: (id: number) =>
     api.get<UserData>(`/api/users/${id}`),
   create: (data: CreateUserRequest) =>
-    api.post<UserData>('/api/users', data),
+    api.post<UserData>('/api/users/', data),
   update: (id: number, data: UpdateUserRequest) =>
     api.put<UserData>(`/api/users/${id}`, data),
   delete: (id: number) =>
     api.delete(`/api/users/${id}`),
   resetPassword: (id: number, newPassword: string) =>
-    api.post(`/api/users/${id}/reset-password`, { newPassword }),
+    api.post(`/api/users/${id}/reset-password/`, { newPassword }),
   bulkCreate: (data: BulkCreateUserRequest) =>
     api.post<BulkCreateUserResponse>('/api/users/bulk-create/', data),
   getFirstLoginPending: () =>
@@ -381,13 +381,13 @@ export const groupAPI = {
   getById: (id: number) =>
     api.get<Group>(`/api/groups/${id}`),
   create: (data: { name: string; code: string; description?: string }) =>
-    api.post<Group>('/api/groups', data),
+    api.post<Group>('/api/groups/', data),
   update: (id: number, data: { name: string; code: string; description?: string }) =>
     api.put<Group>(`/api/groups/${id}`, data),
   delete: (id: number) =>
     api.delete(`/api/groups/${id}`),
   addUsers: (id: number, userIds: number[]) =>
-    api.post(`/api/groups/${id}/users`, { userIds }),
+    api.post(`/api/groups/${id}/users/`, { userIds }),
   removeUsers: (id: number, userIds: number[]) =>
     api.delete(`/api/groups/${id}/users`, { data: { userIds } }),
   getCourses: (id: number) =>

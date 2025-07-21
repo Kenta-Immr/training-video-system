@@ -86,12 +86,17 @@ export default function handler(req, res) {
       })
     }
     
-    // トークン生成（デモ用）
-    const token = user.role === 'ADMIN' ? 'demo-admin' : 'demo-user'
+    // より堅牢なトークン生成
+    const timestamp = Date.now()
+    const userInfo = `${user.id}_${user.role}_${timestamp}`
+    const token = user.role === 'ADMIN' 
+      ? `admin_${Buffer.from(userInfo).toString('base64').substring(0, 20)}`
+      : `user_${Buffer.from(userInfo).toString('base64').substring(0, 20)}`
     
     console.log('=== DEBUG AUTH: 認証成功 ===')
     console.log('User:', user)
     console.log('Token:', token)
+    console.log('Env:', process.env.NODE_ENV)
     
     return res.json({
       success: true,
