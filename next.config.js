@@ -4,7 +4,7 @@ const nextConfig = {
     domains: ['example.com', 'images.unsplash.com', 'localhost'],
     unoptimized: true
   },
-  trailingSlash: true,
+  trailingSlash: false, // 末尾スラッシュを無効化してAPI呼び出しを修正
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -14,6 +14,10 @@ const nextConfig = {
   swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
+  },
+  // キャッシュバスティング
+  generateBuildId: async () => {
+    return 'fix-api-' + Date.now()
   }
 }
 
