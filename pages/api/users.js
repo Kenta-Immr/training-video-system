@@ -118,7 +118,7 @@ export default async function handler(req, res) {
     
     const tempPassword = password || generateTempPassword()
     
-    const newUser = dataStore.createUser({
+    const newUser = await dataStore.createUserAsync({
       email,
       name,
       password: tempPassword,

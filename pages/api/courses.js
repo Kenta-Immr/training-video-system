@@ -87,10 +87,12 @@ export default async function handler(req, res) {
         })
       }
 
-      const newCourse = dataStore.createCourse({
+      console.log('受信したthumbnailUrl:', thumbnailUrl)
+      
+      const newCourse = await dataStore.createCourseAsync({
         title: title.trim(),
         description: description ? description.trim() : '',
-        thumbnailUrl: thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
+        thumbnailUrl: thumbnailUrl && thumbnailUrl.trim() !== '' ? thumbnailUrl.trim() : ''
       })
       
       if (!newCourse) {

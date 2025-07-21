@@ -100,7 +100,7 @@ export default async function handler(req, res) {
       })
     }
     
-    const newGroup = dataStore.createGroup({
+    const newGroup = await dataStore.createGroupAsync({
       name,
       code,
       description: description || '',
