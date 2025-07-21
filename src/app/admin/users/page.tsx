@@ -7,6 +7,7 @@ import AuthGuard from '@/components/AuthGuard'
 import Header from '@/components/Header'
 import { userAPI, UserData } from '@/lib/api'
 import EmergencyUserForm from './emergency-form'
+import UnifiedUserForm from './unified-form'
 
 interface UserForm {
   email: string
@@ -225,16 +226,22 @@ export default function UsersPage() {
               一括作成
             </Link>
             <Link
+              href="/admin/users/ultimate-create"
+              className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-blue-600 inline-block font-bold shadow-lg transform transition hover:scale-105"
+            >
+              🚀 究極ユーザー作成
+            </Link>
+            <Link
               href="/admin/users/create"
               className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 inline-block"
             >
-              🚀 確実ユーザー作成
+              ✅ 確実作成
             </Link>
             <button
               onClick={() => setShowEmergencyForm(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
             >
-              ⚡ モーダル作成
+              ⚡ モーダル
             </button>
           </div>
         </div>
@@ -253,7 +260,7 @@ export default function UsersPage() {
 
         {/* 緊急ユーザー作成フォーム */}
         {showEmergencyForm && (
-          <EmergencyUserForm
+          <UnifiedUserForm
             onUserCreated={handleEmergencyUserCreated}
             onClose={() => setShowEmergencyForm(false)}
           />
@@ -351,16 +358,22 @@ export default function UsersPage() {
               </p>
               <div className="mt-6 space-x-3">
                 <Link
+                  href="/admin/users/ultimate-create"
+                  className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-blue-600 inline-block font-bold shadow-lg transform transition hover:scale-105"
+                >
+                  🚀 究極ユーザー作成
+                </Link>
+                <Link
                   href="/admin/users/create"
                   className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 inline-block"
                 >
-                  🚀 確実ユーザー作成
+                  ✅ 確実作成
                 </Link>
                 <button 
                   onClick={() => setShowEmergencyForm(true)}
                   className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                 >
-                  ⚡ モーダル作成
+                  ⚡ モーダル
                 </button>
               </div>
             </div>

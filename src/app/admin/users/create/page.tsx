@@ -2,7 +2,7 @@
 
 import AuthGuard from '@/components/AuthGuard'
 import Header from '@/components/Header'
-import SimpleUserForm from '../simple-form'
+import UnifiedUserForm from '../unified-form'
 import RealtimeUserList from '../realtime-list'
 
 export default function CreateUserPage() {
@@ -19,7 +19,7 @@ export default function CreateUserPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
-            <SimpleUserForm />
+            <UnifiedUserForm standalone={true} />
           </div>
           
           <div>

@@ -31,57 +31,120 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await logAPI.getStats()
-        console.log('Stats API response:', response.data)
+        console.log('🔄 リアルタイム統計データ取得開始')
         
-        // APIレスポンスの構造を確認
-        const statsData = response.data?.data || response.data
-        console.log('Stats data:', statsData)
+        // 新しいリアルタイム統計APIを使用
+        const token = localStorage.getItem('token')
+        const timestamp = Date.now()
         
-        // データ構造を正規化
-        if (statsData && typeof statsData === 'object') {
+        const response = await fetch(`/api/realtime-stats?_=${timestamp}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        })
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+        
+        const result = await response.json()
+        console.log('✅ リアルタイム統計取得成功:', result)
+        
+        if (result.success && result.data) {
+          const statsData = result.data
           setStats({
             userStats: Array.isArray(statsData.userStats) ? statsData.userStats : [],
             totalUsers: statsData.totalUsers || 0,
             totalVideos: statsData.totalVideos || 0
           })
+          console.log(`📊 ダッシュボード更新: ユーザー${statsData.totalUsers}名, 動画${statsData.totalVideos}本`)
         } else {
-          throw new Error('Invalid stats data format')
+          throw new Error(result.message || 'Invalid stats data format')
         }
       } catch (error: any) {
-        console.warn('API統計データが取得できないため、デモデータを表示します:', error)
-        // デモデータを設定
-        setStats({
-          userStats: [
-            {
-              id: 1,
-              name: '管理者',
-              email: 'admin@example.com',
-              completedVideos: 8,
-              totalVideos: 10,
-              progressRate: 80,
-              totalWatchedSeconds: 1200
-            },
-            {
-              id: 2,
-              name: '一般ユーザー',
-              email: 'user@example.com',
-              completedVideos: 5,
-              totalVideos: 10,
-              progressRate: 50,
-              totalWatchedSeconds: 800
+        console.warn('⚠️ リアルタイム統計取得失敗、古いAPIを試行:', error.message)
+        
+        // フォールバック: 古いAPIを試行
+        try {
+          const response = await logAPI.getStats()
+          console.log('Stats API response:', response.data)
+          
+          // APIレスポンスの構造を確認
+          const statsData = response.data?.data || response.data
+          console.log('Stats data:', statsData)
+          
+          // データ構造を正規化
+          if (statsData && typeof statsData === 'object') {
+            setStats({
+              userStats: Array.isArray(statsData.userStats) ? statsData.userStats : [],
+              totalUsers: statsData.totalUsers || 0,
+              totalVideos: statsData.totalVideos || 0
+            })
+          } else {
+            throw new Error('Invalid stats data format')
+          }
+        } catch (fallbackError: any) {
+          console.error('❌ 全ての統計API失敗、最新ユーザー数のみ取得を試行:', fallbackError.message)
+          
+          // 最終フォールバック: ユーザー数のみ取得
+          try {
+            const token = localStorage.getItem('token')
+            const userResponse = await fetch(`/api/get-users?_=${Date.now()}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache'
+              }
+            })
+            
+            if (userResponse.ok) {
+              const userData = await userResponse.json()
+              const userCount = userData.success ? userData.count || userData.data?.length || 0 : 0
+              
+              console.log(`🔧 緊急対応: ユーザー数のみ取得成功 - ${userCount}名`)
+              
+              setStats({
+                userStats: [],
+                totalUsers: userCount,
+                totalVideos: 0
+              })
+              setError(`統計データの一部のみ表示中（ユーザー数: ${userCount}名）`)
+            } else {
+              throw new Error('User count fetch failed')
             }
-          ],
-          totalUsers: 2,
-          totalVideos: 10
-        })
-        setError('') // エラーをクリア
+          } catch (finalError: any) {
+            console.error('💥 全てのAPI失敗、デモデータを表示:', finalError.message)
+            // 最後のデモデータ
+            setStats({
+              userStats: [
+                {
+                  id: 1,
+                  name: 'データ取得エラー',
+                  email: 'error@system.com',
+                  completedVideos: 0,
+                  totalVideos: 0,
+                  progressRate: 0,
+                  totalWatchedSeconds: 0
+                }
+              ],
+              totalUsers: 1,
+              totalVideos: 0
+            })
+            setError('統計データの取得に失敗しました。リアルタイムデータが利用できません。')
+          }
+        }
       } finally {
         setLoading(false)
       }
     }
 
     fetchStats()
+    
+    // 30秒ごとに自動更新
+    const interval = setInterval(fetchStats, 30000)
+    return () => clearInterval(interval)
   }, [])
 
   const formatTime = (seconds: number) => {
