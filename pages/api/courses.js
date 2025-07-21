@@ -43,31 +43,55 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    // 新規コース作成
-    const { title, description, thumbnailUrl } = req.body
-    
-    console.log('新規コース作成リクエスト:', { title, description, thumbnailUrl })
-    
-    if (!title) {
-      return res.status(400).json({
+    try {
+      // 新規コース作成
+      const { title, description, thumbnailUrl } = req.body
+      
+      console.log('新規コース作成リクエスト:', { 
+        title, 
+        description, 
+        thumbnailUrl,
+        headers: req.headers,
+        body: req.body 
+      })
+      
+      if (!title || title.trim() === '') {
+        console.log('エラー: コースタイトルが空です')
+        return res.status(400).json({
+          success: false,
+          message: 'コースタイトルは必須です'
+        })
+      }
+
+      const newCourse = dataStore.createCourse({
+        title: title.trim(),
+        description: description ? description.trim() : '',
+        thumbnailUrl: thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
+      })
+      
+      if (!newCourse) {
+        console.log('エラー: コース作成に失敗しました')
+        return res.status(500).json({
+          success: false,
+          message: 'コースの作成に失敗しました'
+        })
+      }
+      
+      console.log(`新規コース作成完了: ${title} (ID: ${newCourse.id})`)
+
+      return res.json({
+        success: true,
+        data: newCourse,
+        message: 'コースを作成しました'
+      })
+    } catch (error) {
+      console.error('コース作成エラー:', error)
+      return res.status(500).json({
         success: false,
-        message: 'コースタイトルは必須です'
+        message: 'サーバー内部エラーが発生しました',
+        error: error.message
       })
     }
-
-    const newCourse = dataStore.createCourse({
-      title,
-      description: description || '',
-      thumbnailUrl: thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
-    })
-    
-    console.log(`新規コース作成完了: ${title} (ID: ${newCourse.id})`)
-
-    return res.json({
-      success: true,
-      data: newCourse,
-      message: 'コースを作成しました'
-    })
   }
 
   return res.status(405).json({
