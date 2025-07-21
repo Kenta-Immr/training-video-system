@@ -4,7 +4,9 @@
 export const config = {
   api: {
     bodyParser: false,
+    responseLimit: '50mb',
   },
+  maxDuration: 30,
 }
 
 // 共有データストア関数

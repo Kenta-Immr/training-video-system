@@ -7,7 +7,9 @@
 export const config = {
   api: {
     bodyParser: false,
+    responseLimit: '10mb',
   },
+  maxDuration: 30,
 }
 
 export default function handler(req, res) {
