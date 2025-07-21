@@ -248,11 +248,17 @@ export default function UsersPage() {
             >
               一括作成
             </Link>
-            <button
-              onClick={() => setShowEmergencyForm(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+            <Link
+              href="/admin/users/create"
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 inline-block"
             >
               🚀 確実ユーザー作成
+            </Link>
+            <button
+              onClick={() => setShowEmergencyForm(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            >
+              ⚡ モーダル作成
             </button>
           </div>
         </div>
@@ -367,12 +373,18 @@ export default function UsersPage() {
               <p className="mt-1 text-sm text-gray-500">
                 最初のユーザーを作成してください。
               </p>
-              <div className="mt-6">
-                <button 
-                  onClick={() => setShowEmergencyForm(true)}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+              <div className="mt-6 space-x-3">
+                <Link
+                  href="/admin/users/create"
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 inline-block"
                 >
                   🚀 確実ユーザー作成
+                </Link>
+                <button 
+                  onClick={() => setShowEmergencyForm(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                >
+                  ⚡ モーダル作成
                 </button>
               </div>
             </div>
