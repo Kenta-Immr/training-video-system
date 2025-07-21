@@ -108,32 +108,8 @@ export default function UsersPage() {
         await userAPI.update(editingUser.id, data)
         console.log('ユーザー更新完了')
       } else {
-        // 緊急対応：新しいユーザー作成エンドポイント使用
-        console.log('緊急ユーザー作成開始:', data)
-        const token = localStorage.getItem('token')
-        const response = await fetch('/api/create-user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'Cache-Control': 'no-cache'
-          },
-          body: JSON.stringify(data)
-        })
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-        }
-        
-        const result = await response.json()
-        console.log('ユーザー作成完了 - 直接API結果:', result)
-        
-        // 成功時は作成したユーザーを即座にリストに追加（リアルタイム更新）
-        if (result.success && result.data) {
-          const newUser = result.data
-          setUsers(prevUsers => [...prevUsers, newUser])
-          console.log('新しいユーザーを即座にリストに追加:', newUser.name)
-        }
+        // モーダルフォームは無効化 - 専用ページを使用するようメッセージ表示
+        throw new Error('ユーザー作成は専用ページをご使用ください。「🚀 確実ユーザー作成」ボタンをクリックしてください。')
       }
 
       userForm.reset()

@@ -4,7 +4,7 @@ const nextConfig = {
     domains: ['example.com', 'images.unsplash.com', 'localhost'],
     unoptimized: true
   },
-  trailingSlash: false, // 末尾スラッシュを無効化してAPI呼び出しを修正
+  trailingSlash: false,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -15,28 +15,27 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
   },
-  // 完全キャッシュバスティング - 毎回新しいビルドID
+  // 強制的にすべてのキャッシュを無効化
   generateBuildId: async () => {
-    return 'realtime-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)
+    return 'force-clear-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)
   },
-  // 静的ファイルのキャッシュも無効化
+  // 全ファイルのキャッシュを完全無効化
   async headers() {
     return [
       {
-        source: '/_next/static/(.*)',
+        source: '/(.*)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate',
+            value: 'no-cache, no-store, must-revalidate, max-age=0',
           },
-        ],
-      },
-      {
-        source: '/api/(.*)',
-        headers: [
           {
-            key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate',
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
           },
         ],
       },

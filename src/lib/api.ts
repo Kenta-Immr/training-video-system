@@ -340,11 +340,10 @@ export const userAPI = {
   getMe: () =>
     api.get<UserData>('/api/users/me'),
   getAll: () =>
-    api.get<UserData[]>(`/api/users?t=${Date.now()}`),
+    api.get<UserData[]>(`/api/get-users?t=${Date.now()}`),
   getById: (id: number) =>
     api.get<UserData>(`/api/users/${id}`),
-  create: (data: CreateUserRequest) =>
-    api.post<UserData>('/api/users', data),
+  // 古い create を完全削除 - 緊急エンドポイントのみ使用
   update: (id: number, data: UpdateUserRequest) =>
     api.put<UserData>(`/api/users/${id}`, data),
   delete: (id: number) =>
