@@ -72,6 +72,10 @@ export default function CourseDetailPage() {
 
   const onSubmitVideo = async (data: VideoForm) => {
     try {
+      console.log('=== 動画追加開始 ===')
+      console.log('フォームデータ:', data)
+      console.log('選択されたカリキュラムID:', selectedCurriculumId)
+      
       if (!selectedCurriculumId) {
         setError('カリキュラムが選択されていません')
         return
@@ -79,6 +83,7 @@ export default function CourseDetailPage() {
 
       // ファイルアップロードがある場合
       if (data.videoFile && data.videoFile.length > 0) {
+        console.log('ファイルアップロードモード')
         const formData = new FormData()
         formData.append('video', data.videoFile[0])
         formData.append('title', data.title)
@@ -86,16 +91,18 @@ export default function CourseDetailPage() {
         formData.append('curriculumId', selectedCurriculumId.toString())
 
         if (editingVideo) {
-          // ファイル更新の場合は既存APIを使用
+          console.log('既存動画の更新')
           await videoAPI.update(editingVideo.id, {
             title: data.title,
             description: data.description,
             videoUrl: data.videoUrl || editingVideo.videoUrl
           })
         } else {
+          console.log('新規動画のアップロード')
           await videoAPI.upload(formData)
         }
       } else {
+        console.log('URLモード')
         // URLでの動画追加・更新
         const videoData = {
           title: data.title,
@@ -103,21 +110,29 @@ export default function CourseDetailPage() {
           videoUrl: data.videoUrl || '',
           curriculumId: selectedCurriculumId
         }
+        console.log('動画データ:', videoData)
 
         if (editingVideo) {
+          console.log('既存動画の更新 (URL)')
           await videoAPI.update(editingVideo.id, videoData)
         } else {
+          console.log('新規動画の作成 (URL)')
           await videoAPI.create(videoData)
         }
       }
       
+      console.log('動画保存成功 - フォームをリセット中')
       videoForm.reset()
       setShowVideoForm(false)
       setEditingVideo(null)
       setSelectedCurriculumId(null)
-      fetchCourse()
+      console.log('コース情報を再取得中')
+      await fetchCourse()
+      console.log('=== 動画追加完了 ===')
     } catch (error: any) {
-      setError(error.response?.data?.error || '動画の保存に失敗しました')
+      console.error('動画保存エラー:', error)
+      console.error('エラーレスポンス:', error.response?.data)
+      setError(error.response?.data?.message || error.response?.data?.error || error.message || '動画の保存に失敗しました')
     }
   }
 

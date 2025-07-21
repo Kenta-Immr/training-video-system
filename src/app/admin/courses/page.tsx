@@ -89,11 +89,15 @@ export default function AdminCoursesPage() {
           console.log('Response status:', uploadResponse.status)
           console.log('Response data:', uploadResponse.data)
           
-          if (uploadResponse.data && uploadResponse.data.thumbnailUrl) {
+          if (uploadResponse.data && uploadResponse.data.data && uploadResponse.data.data.thumbnailUrl) {
+            thumbnailUrl = uploadResponse.data.data.thumbnailUrl
+            console.log('Thumbnail URL successfully set to:', thumbnailUrl)
+          } else if (uploadResponse.data && uploadResponse.data.thumbnailUrl) {
             thumbnailUrl = uploadResponse.data.thumbnailUrl
             console.log('Thumbnail URL successfully set to:', thumbnailUrl)
           } else {
             console.error('No thumbnailUrl in response data!')
+            console.error('Response structure:', uploadResponse.data)
             setError('アップロードレスポンスにサムネイルURLが含まれていません')
             return
           }
