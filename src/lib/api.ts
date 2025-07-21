@@ -218,10 +218,13 @@ export const courseAPI = {
     const file = formData.get('thumbnail') as File
     const filename = file ? file.name : 'thumbnail'
     
+    // ファイル名をBase64エンコードしてHTTPヘッダーで安全に送信
+    const encodedFilename = btoa(encodeURIComponent(filename))
+    
     return api.post<{ thumbnailUrl: string }>('/api/courses/upload-thumbnail', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-        'X-Filename': filename,
+        'X-Filename': encodedFilename,
       },
       timeout: 60000, // サムネイルアップロードは60秒タイムアウト
     })

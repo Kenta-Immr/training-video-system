@@ -1,132 +1,63 @@
 // Groups management endpoint
-
-// デモグループデータ
-let groupsData = [
-  {
-    id: 1,
-    name: '管理グループ',
-    code: 'ADMIN001',
-    description: '管理者グループ',
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: new Date().toISOString(),
-    users: [
-      {
-        id: 1,
-        name: '管理者ユーザー',
-        email: 'admin@test.com',
-        role: 'ADMIN'
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: '開発チーム',
-    code: 'DEV001',
-    description: '開発チームグループ',
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: new Date().toISOString(),
-    users: [
-      {
-        id: 2,
-        name: '開発者A',
-        email: 'dev1@test.com',
-        role: 'USER'
-      },
-      {
-        id: 3,
-        name: '開発者B',
-        email: 'dev2@test.com',
-        role: 'USER'
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: '営業チーム',
-    code: 'SALES001',
-    description: '営業チームグループ',
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: new Date().toISOString(),
-    users: [
-      {
-        id: 4,
-        name: '営業担当A',
-        email: 'sales1@test.com',
-        role: 'USER'
-      },
-      {
-        id: 5,
-        name: '営業担当B',
-        email: 'sales2@test.com',
-        role: 'USER'
-      }
-    ]
-  }
-]
-
-// 共有データストア関数
-function getGroupsDataFromSharedStore() {
-  if (global.groupsData) {
-    return global.groupsData
-  }
-  global.groupsData = groupsData
-  return global.groupsData
-}
+const dataStore = require('../../lib/dataStore')
 
 export default function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,PUT,DELETE')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
   
+  // 認証チェック（管理者のみ）
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      message: '認証が必要です'
+    })
+  }
+  
+  const token = authHeader.substring(7)
+  if (!token.startsWith('demo-admin')) {
+    return res.status(403).json({
+      success: false,
+      message: '管理者権限が必要です'
+    })
+  }
+  
   if (req.method === 'GET') {
-    // グループ一覧を返す
+    const groups = dataStore.getGroups()
+    
+    // 各グループにメンバー数を追加
+    const groupsWithMembers = groups.map(group => {
+      const users = dataStore.getUsers()
+      const members = users.filter(user => user.groupId === group.id)
+      
+      return {
+        ...group,
+        memberCount: members.length,
+        members: members
+      }
+    })
+    
+    console.log(`グループ一覧取得: ${groups.length}件`)
+    
     return res.json({
       success: true,
-      data: [
-        {
-          id: 1,
-          name: '開発部',
-          code: 'DEV001',
-          description: 'ソフトウェア開発チーム',
-          createdAt: '2023-10-01T10:00:00Z',
-          updatedAt: '2023-10-01T10:00:00Z',
-          users: [
-            { id: 3, name: '山田太郎', email: 'user1@example.com' }
-          ]
-        },
-        {
-          id: 2,
-          name: '営業部',
-          code: 'SALES001',
-          description: '営業・マーケティングチーム',
-          createdAt: '2023-10-01T10:00:00Z',
-          updatedAt: '2023-10-01T10:00:00Z',
-          users: [
-            { id: 4, name: '佐藤花子', email: 'user2@example.com' }
-          ]
-        },
-        {
-          id: 3,
-          name: '人事部',
-          code: 'HR001',
-          description: '人事・総務チーム',
-          createdAt: '2023-10-01T10:00:00Z',
-          updatedAt: '2023-10-01T10:00:00Z',
-          users: []
-        }
-      ]
+      data: groupsWithMembers
     })
   }
   
   if (req.method === 'POST') {
-    const { name, code, description } = req.body
+    const { name, code, description, courseIds } = req.body
     
+    console.log('グループ作成リクエスト:', { name, code, description, courseIds })
+    
+    // バリデーション
     if (!name || !code) {
       return res.status(400).json({
         success: false,
@@ -134,20 +65,37 @@ export default function handler(req, res) {
       })
     }
     
-    // 新しいグループを作成（模擬）
+    // コードの重複チェック
+    const existingGroup = dataStore.getGroupByCode(code)
+    if (existingGroup) {
+      return res.status(400).json({
+        success: false,
+        message: 'このグループコードは既に使用されています'
+      })
+    }
+    
+    const newGroup = dataStore.createGroup({
+      name,
+      code,
+      description: description || '',
+      courseIds: courseIds || []
+    })
+    
+    console.log(`新規グループ作成: ${name} (${code}) - ID: ${newGroup.id}`)
+    
     return res.json({
       success: true,
       data: {
-        id: Date.now(),
-        name,
-        code,
-        description: description || '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        users: []
-      }
+        ...newGroup,
+        memberCount: 0,
+        members: []
+      },
+      message: 'グループを作成しました'
     })
   }
   
-  return res.status(405).json({ message: 'Method not allowed' })
+  return res.status(405).json({
+    success: false,
+    message: 'Method not allowed'
+  })
 }

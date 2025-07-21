@@ -1,58 +1,5 @@
 // Courses endpoint
-
-// 共有データストア関数
-function getCourseDataFromSharedStore() {
-  if (global.courseData) {
-    return global.courseData
-  }
-  // デフォルトデータ
-  global.courseData = {
-    1: {
-      id: 1,
-      title: "ウェブ開発入門",
-      description: "HTML、CSS、JavaScriptの基礎から学ぶウェブ開発コース",
-      thumbnailUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop",
-      curriculums: [
-        {
-          id: 1,
-          title: "HTML基礎",
-          description: "HTMLの基本構文と要素",
-          courseId: 1,
-          videos: [
-            { id: 1, title: "HTML入門", description: "HTMLとは何か", videoUrl: "#", curriculumId: 1 },
-            { id: 2, title: "基本タグ", description: "よく使うHTMLタグ", videoUrl: "#", curriculumId: 1 }
-          ]
-        }
-      ]
-    },
-    2: {
-      id: 2,
-      title: "データベース設計",
-      description: "SQL、NoSQLの基礎とデータベース設計の実践的な学習",
-      thumbnailUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&h=300&fit=crop",
-      curriculums: [
-        {
-          id: 2,
-          title: "SQL基礎",
-          description: "SQLの基本構文",
-          courseId: 2,
-          videos: [
-            { id: 3, title: "SELECT文", description: "データの抽出", videoUrl: "#", curriculumId: 2 },
-            { id: 4, title: "INSERT文", description: "データの挿入", videoUrl: "#", curriculumId: 2 }
-          ]
-        }
-      ]
-    }
-  }
-  return global.courseData
-}
-
-function getNextCourseId() {
-  if (!global.nextCourseId) {
-    global.nextCourseId = 3
-  }
-  return ++global.nextCourseId
-}
+const dataStore = require('../../lib/dataStore')
 
 export default function handler(req, res) {
   // CORS設定
@@ -84,11 +31,9 @@ export default function handler(req, res) {
     }
   }
 
-  const courses = getCourseDataFromSharedStore()
-
   if (req.method === 'GET') {
     // コース一覧を取得
-    const courseList = Object.values(courses)
+    const courseList = dataStore.getCourses()
     console.log(`コース一覧取得: ${courseList.length}件`)
     
     return res.json({
@@ -110,18 +55,11 @@ export default function handler(req, res) {
       })
     }
 
-    const newCourse = {
-      id: getNextCourseId(),
+    const newCourse = dataStore.createCourse({
       title,
       description: description || '',
-      thumbnailUrl: thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop',
-      curriculums: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-
-    // 新しいコースを追加
-    courses[newCourse.id] = newCourse
+      thumbnailUrl: thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
+    })
     
     console.log(`新規コース作成完了: ${title} (ID: ${newCourse.id})`)
 

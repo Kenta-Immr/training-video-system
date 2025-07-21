@@ -9,38 +9,8 @@ export const config = {
   maxDuration: 30,
 }
 
-// 共有データストア関数
-function getCourseDataFromSharedStore() {
-  if (global.courseData) {
-    return global.courseData
-  }
-  // デフォルトデータ
-  global.courseData = {
-    1: {
-      id: 1,
-      title: "ウェブ開発入門",
-      description: "HTML、CSS、JavaScriptの基礎から学ぶウェブ開発コース",
-      thumbnailUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop",
-      curriculums: [
-        {
-          id: 1,
-          title: "HTML基礎",
-          description: "HTMLの基本構文と要素",
-          courseId: 1,
-          videos: []
-        }
-      ]
-    }
-  }
-  return global.courseData
-}
-
-function getNextVideoId() {
-  if (!global.nextVideoId) {
-    global.nextVideoId = 100
-  }
-  return ++global.nextVideoId
-}
+// データストアの読み込み
+const dataStore = require('../../../lib/dataStore')
 
 export default function handler(req, res) {
   // CORS設定
@@ -121,8 +91,6 @@ export default function handler(req, res) {
     const randomIndex = Math.floor(Math.random() * mockVideoUrls.length)
     const videoUrl = mockVideoUrls[randomIndex]
     
-    const courseDataStore = getCourseDataFromSharedStore()
-    
     // FormDataから情報を取得（デモ用のシミュレーション）
     // 本来はformidableで解析するが、デモ版ではリクエストヘッダーから取得
     const mockFormData = {
@@ -141,47 +109,22 @@ export default function handler(req, res) {
     
     console.log('フォームデータ（ヘッダーから取得）:', mockFormData)
     
-    // カリキュラムを検索
-    let curriculum = null
-    let course = null
-    
-    for (const courseId in courseDataStore) {
-      const courseData = courseDataStore[courseId]
-      if (courseData.curriculums) {
-        const foundCurriculum = courseData.curriculums.find(c => c.id === mockFormData.curriculumId)
-        if (foundCurriculum) {
-          curriculum = foundCurriculum
-          course = courseData
-          break
-        }
-      }
-    }
-    
-    if (!curriculum) {
-      return res.status(404).json({
-        success: false,
-        message: 'カリキュラムが見つかりません'
-      })
-    }
-    
     // 新しい動画を作成
-    const newVideo = {
-      id: getNextVideoId(),
+    const newVideo = dataStore.createVideo({
       title: mockFormData.title,
       description: mockFormData.description,
       videoUrl: videoUrl,
       curriculumId: mockFormData.curriculumId,
       duration: 0, // 本来はアップロードされた動画から取得
-      uploadedFile: true, // アップロードファイルフラグ
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
+      uploadedFile: true // アップロードファイルフラグ
+    })
     
-    // カリキュラムに動画を追加
-    if (!curriculum.videos) {
-      curriculum.videos = []
+    if (!newVideo) {
+      return res.status(404).json({
+        success: false,
+        message: 'カリキュラムが見つかりません'
+      })
     }
-    curriculum.videos.push(newVideo)
     
     console.log(`動画ファイルアップロード完了: ${newVideo.title} (ID: ${newVideo.id})`)
     console.log(`アップロード先URL: ${videoUrl}`)

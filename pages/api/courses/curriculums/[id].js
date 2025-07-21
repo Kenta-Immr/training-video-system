@@ -1,97 +1,5 @@
 // Individual curriculum management endpoint
-
-// 共有データストア
-let courseData = {
-  1: {
-    id: 1,
-    title: "ウェブ開発入門",
-    description: "HTML、CSS、JavaScriptの基礎から学ぶウェブ開発コース",
-    thumbnailUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop",
-    curriculums: [
-      {
-        id: 1,
-        title: "HTML基礎",
-        description: "HTMLの基本構文と要素",
-        courseId: 1,
-        videos: [
-          { 
-            id: 1, 
-            title: "HTML入門", 
-            description: "HTMLとは何か", 
-            videoUrl: "https://www.youtube.com/embed/UB1O30fR-EE", 
-            curriculumId: 1,
-            duration: 600
-          },
-          { 
-            id: 2, 
-            title: "基本タグ", 
-            description: "よく使うHTMLタグ", 
-            videoUrl: "https://www.youtube.com/embed/ok-plXXHlWw", 
-            curriculumId: 1,
-            duration: 480
-          }
-        ]
-      }
-    ]
-  },
-  2: {
-    id: 2,
-    title: "データベース設計",
-    description: "SQL、NoSQLの基礎とデータベース設計の実践的な学習",
-    thumbnailUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&h=300&fit=crop",
-    curriculums: [
-      {
-        id: 2,
-        title: "SQL基礎",
-        description: "SQLの基本構文",
-        courseId: 2,
-        videos: [
-          { 
-            id: 3, 
-            title: "SELECT文", 
-            description: "データの抽出", 
-            videoUrl: "https://www.youtube.com/embed/HXV3zeQKqGY", 
-            curriculumId: 2,
-            duration: 720
-          },
-          { 
-            id: 4, 
-            title: "INSERT文", 
-            description: "データの挿入", 
-            videoUrl: "https://www.youtube.com/embed/9ylj9NR0Lcg", 
-            curriculumId: 2,
-            duration: 540
-          }
-        ]
-      }
-    ]
-  }
-}
-
-// データストア共有関数
-function getCourseDataFromSharedStore() {
-  if (global.courseData) {
-    return global.courseData
-  }
-  global.courseData = courseData
-  return global.courseData
-}
-
-function findCurriculumAndCourse(curriculumId) {
-  const courseDataStore = getCourseDataFromSharedStore()
-  for (const courseId in courseDataStore) {
-    const course = courseDataStore[courseId]
-    const curriculumIndex = course.curriculums.findIndex(c => c.id === curriculumId)
-    if (curriculumIndex !== -1) {
-      return {
-        course,
-        curriculum: course.curriculums[curriculumIndex],
-        curriculumIndex
-      }
-    }
-  }
-  return null
-}
+const dataStore = require('../../../../lib/dataStore')
 
 export default function handler(req, res) {
   const { id } = req.query
@@ -107,20 +15,32 @@ export default function handler(req, res) {
     return res.status(200).end()
   }
   
-  const result = findCurriculumAndCourse(curriculumId)
-  
-  if (!result) {
-    return res.status(404).json({
-      success: false,
-      message: 'カリキュラムが見つかりません'
-    })
-  }
-  
   if (req.method === 'GET') {
     // カリキュラム詳細取得
+    // NOTE: dataStoreに直接カリキュラム取得機能がないため、コース経由で検索
+    const courses = dataStore.getCourses()
+    let curriculum = null
+    
+    for (const course of courses) {
+      if (course.curriculums) {
+        const found = course.curriculums.find(c => c.id === curriculumId)
+        if (found) {
+          curriculum = found
+          break
+        }
+      }
+    }
+    
+    if (!curriculum) {
+      return res.status(404).json({
+        success: false,
+        message: 'カリキュラムが見つかりません'
+      })
+    }
+    
     return res.json({
       success: true,
-      data: result.curriculum
+      data: curriculum
     })
   }
   
@@ -135,22 +55,37 @@ export default function handler(req, res) {
       })
     }
     
-    // カリキュラム情報を更新
-    result.curriculum.title = title
-    result.curriculum.description = description || ''
+    const updatedCurriculum = dataStore.updateCurriculum(curriculumId, {
+      title,
+      description: description || ''
+    })
+    
+    if (!updatedCurriculum) {
+      return res.status(404).json({
+        success: false,
+        message: 'カリキュラムが見つかりません'
+      })
+    }
     
     console.log(`カリキュラム更新: ${title} (ID: ${curriculumId})`)
     
     return res.json({
       success: true,
-      data: result.curriculum,
+      data: updatedCurriculum,
       message: 'カリキュラムを更新しました'
     })
   }
   
   if (req.method === 'DELETE') {
     // カリキュラム削除
-    result.course.curriculums.splice(result.curriculumIndex, 1)
+    const deleted = dataStore.deleteCurriculum(curriculumId)
+    
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: 'カリキュラムが見つかりません'
+      })
+    }
     
     console.log(`カリキュラム削除: ID ${curriculumId}`)
     

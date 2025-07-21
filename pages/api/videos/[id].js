@@ -1,12 +1,5 @@
 // Individual video management endpoint
-
-// 共有データストア関数
-function getCourseDataFromSharedStore() {
-  if (global.courseData) {
-    return global.courseData
-  }
-  return {}
-}
+const dataStore = require('../../../lib/dataStore')
 
 export default function handler(req, res) {
   const { id } = req.query
@@ -39,48 +32,21 @@ export default function handler(req, res) {
     })
   }
   
-  const courseDataStore = getCourseDataFromSharedStore()
-  
-  // 動画を検索
-  let targetVideo = null
-  let targetCurriculum = null
-  let targetCourse = null
-  
-  for (const courseId in courseDataStore) {
-    const courseData = courseDataStore[courseId]
-    if (courseData.curriculums) {
-      for (const curriculum of courseData.curriculums) {
-        if (curriculum.videos) {
-          const foundVideo = curriculum.videos.find(v => v.id === videoId)
-          if (foundVideo) {
-            targetVideo = foundVideo
-            targetCurriculum = curriculum
-            targetCourse = courseData
-            break
-          }
-        }
-      }
-      if (targetVideo) break
-    }
-  }
-  
-  if (!targetVideo) {
-    return res.status(404).json({
-      success: false,
-      message: '動画が見つかりません'
-    })
-  }
-  
   if (req.method === 'GET') {
-    console.log(`動画取得: ${targetVideo.title} (ID: ${videoId})`)
+    const video = dataStore.getVideoById(videoId)
+    
+    if (!video) {
+      return res.status(404).json({
+        success: false,
+        message: '動画が見つかりません'
+      })
+    }
+    
+    console.log(`動画取得: ${video.title} (ID: ${videoId})`)
     
     return res.json({
       success: true,
-      data: {
-        ...targetVideo,
-        courseName: targetCourse.title,
-        curriculumName: targetCurriculum.title
-      }
+      data: video
     })
   }
   
@@ -94,35 +60,42 @@ export default function handler(req, res) {
       })
     }
     
-    // 動画情報を更新
-    targetVideo.title = title
-    targetVideo.description = description || targetVideo.description
-    if (videoUrl) {
-      targetVideo.videoUrl = videoUrl
+    const updatedVideo = dataStore.updateVideo(videoId, {
+      title,
+      description: description || '',
+      videoUrl: videoUrl || ''
+    })
+    
+    if (!updatedVideo) {
+      return res.status(404).json({
+        success: false,
+        message: '動画が見つかりません'
+      })
     }
-    targetVideo.updatedAt = new Date().toISOString()
     
     console.log(`動画更新: ${title} (ID: ${videoId})`)
     
     return res.json({
       success: true,
-      data: targetVideo,
+      data: updatedVideo,
       message: '動画情報を更新しました'
     })
   }
   
   if (req.method === 'DELETE') {
-    // 動画を削除
-    const videoIndex = targetCurriculum.videos.findIndex(v => v.id === videoId)
-    if (videoIndex > -1) {
-      targetCurriculum.videos.splice(videoIndex, 1)
+    const deleted = dataStore.deleteVideo(videoId)
+    
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: '動画が見つかりません'
+      })
     }
     
-    console.log(`動画削除: ${targetVideo.title} (ID: ${videoId})`)
+    console.log(`動画削除: (ID: ${videoId})`)
     
     return res.json({
       success: true,
-      data: targetVideo,
       message: '動画を削除しました'
     })
   }

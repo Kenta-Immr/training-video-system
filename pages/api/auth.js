@@ -1,4 +1,6 @@
 // Authentication endpoint
+const dataStore = require('../../lib/dataStore')
+
 export default function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
@@ -22,19 +24,12 @@ export default function handler(req, res) {
   
   console.log('Login attempt:', { email, password })
   
-  // Mock authentication with multiple test users
-  const testUsers = [
-    { email: 'admin@test.com', password: 'password', role: 'admin', name: 'Admin User' },
-    { email: 'admin@example.com', password: 'admin', role: 'admin', name: 'Admin' },
-    { email: 'user@test.com', password: 'password', role: 'user', name: 'Test User' },
-    { email: 'test@test.com', password: 'test', role: 'user', name: 'Test User' }
-  ]
-  
-  const user = testUsers.find(u => u.email === email && u.password === password)
+  // persistent dataStoreから実際のユーザーデータを取得
+  const user = dataStore.getUserByEmailAndPassword(email, password)
   
   if (user) {
     // トークン生成（デモ用）
-    const token = user.role === 'admin' ? 'demo-admin' : 'demo-user'
+    const token = user.role === 'ADMIN' ? 'demo-admin' : 'demo-user'
     
     console.log('認証成功:', { email, role: user.role, token })
     
@@ -42,10 +37,10 @@ export default function handler(req, res) {
       success: true,
       token: token,
       user: {
-        id: 1,
+        id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role.toUpperCase()
+        role: user.role
       },
       message: 'ログインに成功しました'
     })

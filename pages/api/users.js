@@ -1,74 +1,5 @@
 // Users management endpoint
-
-// デモユーザーデータ
-let usersData = [
-  {
-    id: 1,
-    email: 'admin@test.com',
-    name: '管理者ユーザー',
-    role: 'ADMIN',
-    groupId: 1,
-    group: {
-      id: 1,
-      name: '管理グループ',
-      code: 'ADMIN001'
-    },
-    isFirstLogin: false,
-    lastLoginAt: new Date().toISOString(),
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 2,
-    email: 'user1@test.com',
-    name: '開発者A',
-    role: 'USER',
-    groupId: 2,
-    group: {
-      id: 2,
-      name: '開発チーム',
-      code: 'DEV001'
-    },
-    isFirstLogin: false,
-    lastLoginAt: new Date().toISOString(),
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 3,
-    email: 'user2@test.com',
-    name: '開発者B',
-    role: 'USER',
-    groupId: 2,
-    group: {
-      id: 2,
-      name: '開発チーム',
-      code: 'DEV001'
-    },
-    isFirstLogin: true,
-    lastLoginAt: null,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: new Date().toISOString()
-  }
-]
-
-let nextUserId = 4
-
-// 共有データストア関数
-function getUsersDataFromSharedStore() {
-  if (global.usersData) {
-    return global.usersData
-  }
-  global.usersData = usersData
-  return global.usersData
-}
-
-function getNextUserId() {
-  if (!global.nextUserId) {
-    global.nextUserId = nextUserId
-  }
-  return ++global.nextUserId
-}
+const dataStore = require('../../lib/dataStore')
 
 // パスワード生成（デモ用）
 function generateTempPassword() {
@@ -103,15 +34,26 @@ export default function handler(req, res) {
     })
   }
   
-  // 共有データを取得
-  const users = getUsersDataFromSharedStore()
-  
   if (req.method === 'GET') {
+    const users = dataStore.getUsers()
+    
+    // グループ情報を付与
+    const usersWithGroups = users.map(user => {
+      let group = null
+      if (user.groupId) {
+        group = dataStore.getGroupById(user.groupId)
+      }
+      return {
+        ...user,
+        group
+      }
+    })
+    
     console.log(`ユーザー一覧取得: ${users.length}件`)
     
     return res.json({
       success: true,
-      data: users
+      data: usersWithGroups
     })
   }
   
@@ -129,41 +71,46 @@ export default function handler(req, res) {
     }
     
     // メールアドレスの重複チェック
-    if (users.find(u => u.email === email)) {
+    const existingUser = dataStore.getUserByEmail(email)
+    if (existingUser) {
       return res.status(400).json({
         success: false,
         message: 'このメールアドレスは既に使用されています'
       })
     }
     
-    // グループ情報取得（簡単なマッピング）
-    const groupMapping = {
-      1: { id: 1, name: '管理グループ', code: 'ADMIN001' },
-      2: { id: 2, name: '開発チーム', code: 'DEV001' },
-      3: { id: 3, name: '営業チーム', code: 'SALES001' }
+    // グループの存在確認
+    let group = null
+    if (groupId) {
+      group = dataStore.getGroupById(groupId)
+      if (!group) {
+        return res.status(400).json({
+          success: false,
+          message: '指定されたグループが見つかりません'
+        })
+      }
     }
     
-    const newUser = {
-      id: getNextUserId(),
+    const newUser = dataStore.createUser({
       email,
       name,
       role: role.toUpperCase(),
       groupId: groupId || null,
-      group: groupId && groupMapping[groupId] ? groupMapping[groupId] : null,
-      isFirstLogin: true,
-      lastLoginAt: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      tempPassword: password || generateTempPassword() // デモ用
-    }
-    
-    users.push(newUser)
+      isFirstLogin: true
+    })
     
     console.log(`新規ユーザー作成: ${name} (${email}) - ID: ${newUser.id}`)
     
+    // レスポンス用にグループ情報を付与
+    const responseUser = {
+      ...newUser,
+      group,
+      tempPassword: password || generateTempPassword() // デモ用
+    }
+    
     return res.json({
       success: true,
-      data: newUser,
+      data: responseUser,
       message: 'ユーザーを作成しました'
     })
   }

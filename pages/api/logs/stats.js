@@ -1,4 +1,6 @@
 // Statistics endpoint
+const dataStore = require('../../../lib/dataStore')
+
 export default function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
@@ -10,53 +12,62 @@ export default function handler(req, res) {
     return res.status(200).end()
   }
   
+  // 認証チェック（管理者のみ）
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      message: '認証が必要です'
+    })
+  }
+  
+  const token = authHeader.substring(7)
+  if (!token.startsWith('demo-admin')) {
+    return res.status(403).json({
+      success: false,
+      message: '管理者権限が必要です'
+    })
+  }
+  
   if (req.method === 'GET') {
-    // 統計データを返す
+    // 基本統計を取得
+    const stats = dataStore.getViewingStats()
+    
+    // ユーザー別統計を計算
+    const users = dataStore.getUsers()
+    const userStats = users.map(user => {
+      const userLogs = dataStore.getUserViewingLogs(user.id)
+      const completedLogs = userLogs.filter(log => log.isCompleted)
+      const totalWatchedSeconds = userLogs.reduce((sum, log) => sum + (log.watchedSeconds || 0), 0)
+      
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        completedVideos: completedLogs.length,
+        totalVideos: stats.totalVideos,
+        progressRate: stats.totalVideos > 0 ? Math.round((completedLogs.length / stats.totalVideos) * 100) : 0,
+        totalWatchedSeconds: totalWatchedSeconds
+      }
+    })
+    
+    const groups = dataStore.getGroups()
+    const averageProgress = userStats.length > 0 
+      ? Math.round(userStats.reduce((sum, stat) => sum + stat.progressRate, 0) / userStats.length)
+      : 0
+    
+    console.log('統計データ取得完了')
+    
     return res.json({
       success: true,
       data: {
-        userStats: [
-          {
-            id: 1,
-            name: 'Admin User',
-            email: 'admin@test.com',
-            completedVideos: 8,
-            totalVideos: 10,
-            progressRate: 80,
-            totalWatchedSeconds: 1800
-          },
-          {
-            id: 2,
-            name: 'Test User',
-            email: 'test@test.com',
-            completedVideos: 3,
-            totalVideos: 10,
-            progressRate: 30,
-            totalWatchedSeconds: 900
-          },
-          {
-            id: 3,
-            name: '山田太郎',
-            email: 'user1@example.com',
-            completedVideos: 6,
-            totalVideos: 10,
-            progressRate: 60,
-            totalWatchedSeconds: 1200
-          },
-          {
-            id: 4,
-            name: '佐藤花子',
-            email: 'user2@example.com',
-            completedVideos: 9,
-            totalVideos: 10,
-            progressRate: 90,
-            totalWatchedSeconds: 2100
-          }
-        ],
-        totalUsers: 4,
-        totalVideos: 10,
-        totalGroups: 3,
-        averageProgress: 65
+        userStats: userStats,
+        totalUsers: stats.totalUsers,
+        totalVideos: stats.totalVideos,
+        totalGroups: groups.length,
+        totalViewingLogs: stats.totalViewingLogs,
+        completedViewings: stats.completedViewings,
+        averageProgress: averageProgress
       }
     })
   }

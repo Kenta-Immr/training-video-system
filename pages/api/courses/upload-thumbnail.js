@@ -73,7 +73,19 @@ export default function handler(req, res) {
     
     // ファイル名とタイムスタンプでハッシュ化して一意性を保つ
     const timestamp = Date.now()
-    const filename = req.headers['x-filename'] || 'thumbnail'
+    let filename = 'thumbnail'
+    
+    try {
+      // Base64エンコードされたファイル名をデコード
+      const encodedFilename = req.headers['x-filename']
+      if (encodedFilename) {
+        filename = decodeURIComponent(atob(encodedFilename))
+      }
+    } catch (error) {
+      console.warn('ファイル名のデコードに失敗:', error.message)
+      // デフォルトのファイル名を使用
+    }
+    
     const hashInput = filename + timestamp
     const hashIndex = hashInput.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % mockThumbnailUrls.length
     const thumbnailUrl = mockThumbnailUrls[hashIndex] + '&t=' + timestamp

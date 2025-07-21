@@ -1,41 +1,10 @@
 // User profile endpoint
+const dataStore = require('../../../lib/dataStore')
 
-// デモユーザーデータ
-const demoUsers = {
-  'demo-admin': {
-    id: 1,
-    email: 'admin@test.com',
-    name: '管理者ユーザー',
-    role: 'ADMIN',
-    groupId: 1,
-    group: {
-      id: 1,
-      name: '管理グループ',
-      code: 'ADMIN001',
-      description: '管理者グループ'
-    },
-    isFirstLogin: false,
-    lastLoginAt: new Date().toISOString(),
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: new Date().toISOString()
-  },
-  'demo-user': {
-    id: 2,
-    email: 'user@test.com',
-    name: '一般ユーザー',
-    role: 'USER',
-    groupId: 2,
-    group: {
-      id: 2,
-      name: '一般グループ',
-      code: 'USER001',
-      description: '一般ユーザーグループ'
-    },
-    isFirstLogin: true,
-    lastLoginAt: null,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: new Date().toISOString()
-  }
+// デモユーザー用トークンマッピング（本番ではJWTを使用）
+const demoTokenToUser = {
+  'demo-admin': { email: 'admin@example.com' },
+  'demo-user': { email: 'user@example.com' }
 }
 
 export default function handler(req, res) {
@@ -63,13 +32,28 @@ export default function handler(req, res) {
     
     // デモトークンチェック
     if (token.startsWith('demo-')) {
-      const user = demoUsers[token]
-      if (user) {
-        console.log(`ユーザー情報取得: ${user.name} (${user.email})`)
-        return res.json({
-          success: true,
-          data: user
-        })
+      const tokenUser = demoTokenToUser[token]
+      if (tokenUser) {
+        // データストアから実際のユーザー情報を取得
+        const user = dataStore.getUserByEmail(tokenUser.email)
+        if (user) {
+          // グループ情報を付与
+          let group = null
+          if (user.groupId) {
+            group = dataStore.getGroupById(user.groupId)
+          }
+          
+          const userWithGroup = {
+            ...user,
+            group
+          }
+          
+          console.log(`ユーザー情報取得: ${user.name} (${user.email})`)
+          return res.json({
+            success: true,
+            data: userWithGroup
+          })
+        }
       }
     }
     
