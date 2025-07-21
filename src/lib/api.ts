@@ -248,8 +248,8 @@ export const courseAPI = {
 
 export const videoAPI = {
   getById: (id: number) => api.get<Video>(`/api/videos/${id}`),
-  create: (data: { title: string; description?: string; videoUrl: string; curriculumId: number }) =>
-    api.post<Video>('/api/videos', data),
+  getAll: () => api.get<Video[]>(`/api/get-videos?t=${Date.now()}`),
+  // 古い create を削除 - 確実エンドポイントのみ使用
   upload: (formData: FormData) =>
     api.post<Video>('/api/videos/upload', formData, {
       headers: {

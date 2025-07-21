@@ -155,8 +155,29 @@ export default function CourseDetailPage() {
           console.log('既存動画の更新 (URL)')
           await videoAPI.update(editingVideo.id, videoData)
         } else {
-          console.log('新規動画の作成 (URL)')
-          await videoAPI.create(videoData)
+          console.log('新規動画の確実作成 (URL)')
+          // 確実動画作成エンドポイント使用
+          const token = localStorage.getItem('token')
+          const response = await fetch('/api/create-video', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'Cache-Control': 'no-cache'
+            },
+            body: JSON.stringify(videoData)
+          })
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+          }
+          
+          const result = await response.json()
+          console.log('確実動画作成完了:', result)
+          
+          if (!result.success) {
+            throw new Error(result.message || '動画作成に失敗しました')
+          }
         }
       }
       
