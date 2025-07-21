@@ -1,7 +1,7 @@
 // Courses endpoint
 const dataStore = require('../../lib/dataStore')
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   console.log(`API呼び出し: ${req.method} /api/courses`)
   
   // CORS設定
@@ -46,7 +46,7 @@ export default function handler(req, res) {
       res.setHeader('ETag', `"${Date.now()}"`)
       
       // コース一覧を取得（非同期対応）
-      const courseList = await dataStore.getCourses()
+      const courseList = await dataStore.getCoursesAsync()
       console.log(`コース一覧取得: ${courseList.length}件`)
       console.log('取得したコースリスト:', courseList.map(c => ({ id: c.id, title: c.title })))
       
