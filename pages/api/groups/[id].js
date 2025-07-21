@@ -1,6 +1,9 @@
 // Single group endpoint
+const dataStore = require('../../../lib/dataStore')
+
 export default function handler(req, res) {
   const { id } = req.query
+  const groupId = parseInt(id)
   
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
@@ -12,73 +15,25 @@ export default function handler(req, res) {
     return res.status(200).end()
   }
   
+  // 認証チェック（管理者のみ）
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      message: '認証が必要です'
+    })
+  }
+  
+  const token = authHeader.substring(7)
+  if (!token.startsWith('demo-admin')) {
+    return res.status(403).json({
+      success: false,
+      message: '管理者権限が必要です'
+    })
+  }
+  
   if (req.method === 'GET') {
-    const groupId = parseInt(id)
-    
-    // サンプルグループデータ
-    const sampleGroups = {
-      1: {
-        id: 1,
-        name: '開発部',
-        code: 'DEV001',
-        description: 'ソフトウェア開発チーム',
-        createdAt: '2023-10-01T10:00:00Z',
-        updatedAt: '2023-10-01T10:00:00Z',
-        users: [
-          {
-            id: 3,
-            name: '山田太郎',
-            email: 'user1@example.com',
-            role: 'USER',
-            isFirstLogin: false,
-            lastLoginAt: '2023-11-30T15:30:00Z',
-            createdAt: '2023-11-10T10:00:00Z',
-            updatedAt: '2023-11-30T15:30:00Z'
-          }
-        ]
-      },
-      2: {
-        id: 2,
-        name: '営業部',
-        code: 'SALES001',
-        description: '営業・マーケティングチーム',
-        createdAt: '2023-10-01T10:00:00Z',
-        updatedAt: '2023-10-01T10:00:00Z',
-        users: [
-          {
-            id: 4,
-            name: '佐藤花子',
-            email: 'user2@example.com',
-            role: 'USER',
-            isFirstLogin: false,
-            lastLoginAt: '2023-12-01T09:15:00Z',
-            createdAt: '2023-11-05T10:00:00Z',
-            updatedAt: '2023-12-01T09:15:00Z'
-          },
-          {
-            id: 2,
-            name: 'Test User',
-            email: 'test@test.com',
-            role: 'USER',
-            isFirstLogin: true,
-            lastLoginAt: null,
-            createdAt: '2023-11-15T10:00:00Z',
-            updatedAt: '2023-11-15T10:00:00Z'
-          }
-        ]
-      },
-      3: {
-        id: 3,
-        name: '人事部',
-        code: 'HR001',
-        description: '人事・総務チーム',
-        createdAt: '2023-10-01T10:00:00Z',
-        updatedAt: '2023-10-01T10:00:00Z',
-        users: []
-      }
-    }
-    
-    const group = sampleGroups[groupId]
+    const group = dataStore.getGroupById(groupId)
     
     if (!group) {
       return res.status(404).json({
@@ -87,30 +42,62 @@ export default function handler(req, res) {
       })
     }
     
+    // グループのメンバーを取得
+    const users = dataStore.getUsers()
+    const groupMembers = users.filter(user => user.groupId === groupId)
+    
+    const groupWithMembers = {
+      ...group,
+      users: groupMembers,
+      memberCount: groupMembers.length
+    }
+    
     return res.json({
       success: true,
-      data: group
+      data: groupWithMembers
     })
   }
   
   if (req.method === 'PUT') {
-    const { name, code, description } = req.body
+    const { name, code, description, courseIds } = req.body
+    
+    // バリデーション
+    if (!name || !code) {
+      return res.status(400).json({
+        success: false,
+        message: 'グループ名とコードは必須です'
+      })
+    }
+    
+    // コードの重複チェック（自分以外）
+    const existingGroup = dataStore.getGroupByCode(code)
+    if (existingGroup && existingGroup.id !== groupId) {
+      return res.status(400).json({
+        success: false,
+        message: 'このグループコードは既に使用されています'
+      })
+    }
+    
+    const updatedGroup = dataStore.updateGroup(groupId, {
+      name,
+      code,
+      description: description || '',
+      courseIds: courseIds || []
+    })
     
     return res.json({
       success: true,
-      data: {
-        id: parseInt(id),
-        name,
-        code,
-        description,
-        updatedAt: new Date().toISOString()
-      }
+      data: updatedGroup,
+      message: 'グループ情報を更新しました'
     })
   }
   
   if (req.method === 'DELETE') {
+    const deletedGroup = dataStore.deleteGroup(groupId)
+    
     return res.json({
       success: true,
+      data: deletedGroup,
       message: 'グループを削除しました'
     })
   }

@@ -1,19 +1,5 @@
 // Bulk user creation endpoint with CSV support
-
-// 共有データストア関数
-function getUsersDataFromSharedStore() {
-  if (global.usersData) {
-    return global.usersData
-  }
-  return []
-}
-
-function getNextUserId() {
-  if (!global.nextUserId) {
-    global.nextUserId = 4
-  }
-  return ++global.nextUserId
-}
+const dataStore = require('../../../lib/dataStore')
 
 // パスワード生成（デモ用）
 function generateTempPassword() {
@@ -107,21 +93,9 @@ export default function handler(req, res) {
     
     console.log(`${usersToCreate.length}件のユーザー作成を開始`)
     
-    // 共有データを取得
-    const existingUsers = getUsersDataFromSharedStore()
-    
-    // グループ情報マッピング
-    const groupMapping = {
-      '1': { id: 1, name: '管理グループ', code: 'ADMIN001' },
-      '2': { id: 2, name: '開発チーム', code: 'DEV001' },
-      '3': { id: 3, name: '営業チーム', code: 'SALES001' },
-      'ADMIN001': { id: 1, name: '管理グループ', code: 'ADMIN001' },
-      'DEV001': { id: 2, name: '開発チーム', code: 'DEV001' },
-      'SALES001': { id: 3, name: '営業チーム', code: 'SALES001' },
-      '管理グループ': { id: 1, name: '管理グループ', code: 'ADMIN001' },
-      '開発チーム': { id: 2, name: '開発チーム', code: 'DEV001' },
-      '営業チーム': { id: 3, name: '営業チーム', code: 'SALES001' }
-    }
+    // データストアから既存ユーザーとグループを取得
+    const existingUsers = dataStore.getUsers()
+    const groups = dataStore.getGroups()
     
     const results = {
       success: 0,
@@ -146,7 +120,7 @@ export default function handler(req, res) {
         }
         
         // 重複チェック
-        if (existingUsers.find(u => u.email === userData.email)) {
+        if (dataStore.getUserByEmail(userData.email)) {
           results.failed.push({
             index: i + 1,
             email: userData.email,
@@ -157,33 +131,37 @@ export default function handler(req, res) {
         }
         
         // グループ情報の解決
-        let group = null
         let groupId = null
         
         if (userData.groupId || userData.groupName || userData.groupCode) {
           const groupKey = userData.groupId || userData.groupName || userData.groupCode
-          group = groupMapping[groupKey]
+          
+          // グループIDで検索
+          let group = groups.find(g => g.id == groupKey)
+          if (!group) {
+            // グループコードで検索
+            group = groups.find(g => g.code === groupKey)
+          }
+          if (!group) {
+            // グループ名で検索
+            group = groups.find(g => g.name === groupKey)
+          }
+          
           if (group) {
             groupId = group.id
           }
         }
         
-        // 新規ユーザー作成
-        const newUser = {
-          id: getNextUserId(),
+        // データストアを使用してユーザー作成
+        const newUser = dataStore.createUser({
           email: userData.email,
           name: userData.name,
+          password: userData.password || generateTempPassword(),
           role: (userData.role || 'USER').toUpperCase(),
           groupId,
-          group,
-          isFirstLogin: true,
-          lastLoginAt: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          tempPassword: userData.password || generateTempPassword()
-        }
+          isFirstLoginPending: true
+        })
         
-        existingUsers.push(newUser)
         results.created.push(newUser)
         results.success++
         

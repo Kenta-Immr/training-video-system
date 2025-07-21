@@ -1,13 +1,5 @@
 // Individual user management endpoint
-
-// 共有データストア関数
-function getUsersDataFromSharedStore() {
-  if (global.usersData) {
-    return global.usersData
-  }
-  // 初期データが存在しない場合のフォールバック
-  return []
-}
+const dataStore = require('../../../lib/dataStore')
 
 export default function handler(req, res) {
   const { id } = req.query
@@ -40,11 +32,10 @@ export default function handler(req, res) {
     })
   }
   
-  // 共有データを取得
-  const users = getUsersDataFromSharedStore()
-  const userIndex = users.findIndex(u => u.id === userId)
+  // データストアからユーザーを取得
+  const user = dataStore.getUserById(userId)
   
-  if (userIndex === -1) {
+  if (!user) {
     return res.status(404).json({
       success: false,
       message: 'ユーザーが見つかりません'
@@ -52,7 +43,6 @@ export default function handler(req, res) {
   }
   
   if (req.method === 'GET') {
-    const user = users[userIndex]
     console.log(`ユーザー取得: ${user.name} (${user.email})`)
     
     return res.json({
@@ -72,47 +62,39 @@ export default function handler(req, res) {
     }
     
     // メールアドレスの重複チェック（自分以外）
-    if (users.find(u => u.id !== userId && u.email === email)) {
+    const existingUser = dataStore.getUserByEmail(email)
+    if (existingUser && existingUser.id !== userId) {
       return res.status(400).json({
         success: false,
         message: 'このメールアドレスは既に使用されています'
       })
     }
     
-    // グループ情報取得
-    const groupMapping = {
-      1: { id: 1, name: '管理グループ', code: 'ADMIN001' },
-      2: { id: 2, name: '開発チーム', code: 'DEV001' },
-      3: { id: 3, name: '営業チーム', code: 'SALES001' }
-    }
-    
     // ユーザー情報を更新
-    const user = users[userIndex]
-    user.email = email
-    user.name = name
-    user.role = role ? role.toUpperCase() : user.role
-    user.groupId = groupId || null
-    user.group = groupId && groupMapping[groupId] ? groupMapping[groupId] : null
-    user.updatedAt = new Date().toISOString()
+    const updatedUser = dataStore.updateUser(userId, {
+      email,
+      name,
+      role: role ? role.toUpperCase() : user.role,
+      groupId: groupId || null
+    })
     
     console.log(`ユーザー更新: ${name} (${email}) - ID: ${userId}`)
     
     return res.json({
       success: true,
-      data: user,
+      data: updatedUser,
       message: 'ユーザー情報を更新しました'
     })
   }
   
   if (req.method === 'DELETE') {
-    const user = users[userIndex]
-    users.splice(userIndex, 1)
+    const deletedUser = dataStore.deleteUser(userId)
     
-    console.log(`ユーザー削除: ${user.name} (${user.email}) - ID: ${userId}`)
+    console.log(`ユーザー削除: ${deletedUser.name} (${deletedUser.email}) - ID: ${userId}`)
     
     return res.json({
       success: true,
-      data: user,
+      data: deletedUser,
       message: 'ユーザーを削除しました'
     })
   }
