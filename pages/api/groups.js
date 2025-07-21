@@ -1,7 +1,7 @@
 // Groups management endpoint
 const dataStore = require('../../lib/dataStore')
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -51,11 +51,12 @@ export default function handler(req, res) {
     res.setHeader('Last-Modified', new Date().toUTCString())
     res.setHeader('ETag', `"${Date.now()}"`)
     
-    const groups = dataStore.getGroups()
+    // グループ一覧を取得（非同期対応）
+    const groups = await dataStore.getGroupsAsync()
     
     // 各グループにメンバー数を追加
-    const groupsWithMembers = groups.map(group => {
-      const users = dataStore.getUsers()
+    const groupsWithMembers = await Promise.all(groups.map(async group => {
+      const users = await dataStore.getUsersAsync()
       const members = users.filter(user => user.groupId === group.id)
       
       return {
@@ -64,7 +65,7 @@ export default function handler(req, res) {
         members: members,
         users: members // 互換性のため
       }
-    })
+    }))
     
     console.log(`グループ一覧取得: ${groups.length}件`)
     console.log('取得したグループ:', groupsWithMembers.map(g => ({ id: g.id, name: g.name, code: g.code, memberCount: g.memberCount })))

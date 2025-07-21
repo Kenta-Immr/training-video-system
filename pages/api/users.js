@@ -6,7 +6,7 @@ function generateTempPassword() {
   return Math.random().toString(36).slice(-8)
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -56,7 +56,8 @@ export default function handler(req, res) {
     res.setHeader('Last-Modified', new Date().toUTCString())
     res.setHeader('ETag', `"${Date.now()}"`)
     
-    const users = dataStore.getUsers()
+    // ユーザー一覧を取得（非同期対応）
+    const users = await dataStore.getUsersAsync()
     
     // グループ情報を付与
     const usersWithGroups = users.map(user => {
