@@ -2,6 +2,8 @@
 const dataStore = require('../../lib/dataStore')
 
 export default function handler(req, res) {
+  console.log(`API呼び出し: ${req.method} /api/courses`)
+  
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -9,6 +11,7 @@ export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   
   if (req.method === 'OPTIONS') {
+    console.log('OPTIONS request - CORS preflight')
     return res.status(200).end()
   }
   
@@ -32,14 +35,25 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    // コース一覧を取得
-    const courseList = dataStore.getCourses()
-    console.log(`コース一覧取得: ${courseList.length}件`)
-    
-    return res.json({
-      success: true,
-      data: courseList
-    })
+    try {
+      console.log('コース一覧取得API開始')
+      
+      // コース一覧を取得
+      const courseList = dataStore.getCourses()
+      console.log(`コース一覧取得: ${courseList.length}件`)
+      
+      return res.json({
+        success: true,
+        data: courseList
+      })
+    } catch (error) {
+      console.error('コース一覧取得エラー:', error)
+      return res.status(500).json({
+        success: false,
+        message: 'コース一覧の取得に失敗しました',
+        error: error.message
+      })
+    }
   }
 
   if (req.method === 'POST') {
@@ -94,8 +108,9 @@ export default function handler(req, res) {
     }
   }
 
+  console.log(`サポートされていないメソッド: ${req.method}`)
   return res.status(405).json({
     success: false,
-    message: 'Method not allowed'
+    message: `Method ${req.method} not allowed. Supported methods: GET, POST, OPTIONS`
   })
 }

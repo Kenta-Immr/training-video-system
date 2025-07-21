@@ -30,46 +30,75 @@ export default function handler(req, res) {
   }
   
   if (req.method === 'GET') {
-    // 基本統計を取得
-    const stats = dataStore.getViewingStats()
-    
-    // ユーザー別統計を計算
-    const users = dataStore.getUsers()
-    const userStats = users.map(user => {
-      const userLogs = dataStore.getUserViewingLogs(user.id)
-      const completedLogs = userLogs.filter(log => log.isCompleted)
-      const totalWatchedSeconds = userLogs.reduce((sum, log) => sum + (log.watchedSeconds || 0), 0)
+    try {
+      console.log('統計データ取得開始')
       
-      return {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        completedVideos: completedLogs.length,
-        totalVideos: stats.totalVideos,
-        progressRate: stats.totalVideos > 0 ? Math.round((completedLogs.length / stats.totalVideos) * 100) : 0,
-        totalWatchedSeconds: totalWatchedSeconds
-      }
-    })
-    
-    const groups = dataStore.getGroups()
-    const averageProgress = userStats.length > 0 
-      ? Math.round(userStats.reduce((sum, stat) => sum + stat.progressRate, 0) / userStats.length)
-      : 0
-    
-    console.log('統計データ取得完了')
-    
-    return res.json({
-      success: true,
-      data: {
-        userStats: userStats,
-        totalUsers: stats.totalUsers,
-        totalVideos: stats.totalVideos,
-        totalGroups: groups.length,
-        totalViewingLogs: stats.totalViewingLogs,
-        completedViewings: stats.completedViewings,
-        averageProgress: averageProgress
-      }
-    })
+      // 基本統計を取得
+      const stats = dataStore.getViewingStats()
+      console.log('基本統計取得:', stats)
+      
+      // ユーザー別統計を計算
+      const users = dataStore.getUsers()
+      console.log('ユーザー一覧取得:', users.length, '件')
+      
+      const userStats = users.map(user => {
+        try {
+          const userLogs = dataStore.getUserViewingLogs(user.id)
+          const completedLogs = userLogs.filter(log => log.isCompleted)
+          const totalWatchedSeconds = userLogs.reduce((sum, log) => sum + (log.watchedSeconds || 0), 0)
+          
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            completedVideos: completedLogs.length,
+            totalVideos: stats.totalVideos,
+            progressRate: stats.totalVideos > 0 ? Math.round((completedLogs.length / stats.totalVideos) * 100) : 0,
+            totalWatchedSeconds: totalWatchedSeconds
+          }
+        } catch (userError) {
+          console.error(`ユーザー ${user.id} の統計処理エラー:`, userError)
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            completedVideos: 0,
+            totalVideos: stats.totalVideos,
+            progressRate: 0,
+            totalWatchedSeconds: 0
+          }
+        }
+      })
+      
+      const groups = dataStore.getGroups()
+      console.log('グループ一覧取得:', groups.length, '件')
+      
+      const averageProgress = userStats.length > 0 
+        ? Math.round(userStats.reduce((sum, stat) => sum + stat.progressRate, 0) / userStats.length)
+        : 0
+      
+      console.log('統計データ取得完了')
+      
+      return res.json({
+        success: true,
+        data: {
+          userStats: userStats,
+          totalUsers: stats.totalUsers,
+          totalVideos: stats.totalVideos,
+          totalGroups: groups.length,
+          totalViewingLogs: stats.totalViewingLogs,
+          completedViewings: stats.completedViewings,
+          averageProgress: averageProgress
+        }
+      })
+    } catch (error) {
+      console.error('統計データ取得エラー:', error)
+      return res.status(500).json({
+        success: false,
+        message: 'サーバー内部エラーが発生しました',
+        error: error.message
+      })
+    }
   }
   
   return res.status(405).json({ message: 'Method not allowed' })
