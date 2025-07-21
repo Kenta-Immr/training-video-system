@@ -1,0 +1,60 @@
+{
+  "viewingLogs": {
+    "1": {
+      "id": 1,
+      "userId": 2,
+      "videoId": 1,
+      "watchedSeconds": 596,
+      "totalDuration": 596,
+      "isCompleted": true,
+      "lastWatchedAt": "2025-07-21T08:00:00.000Z",
+      "createdAt": "2025-07-21T07:00:00.000Z",
+      "updatedAt": "2025-07-21T08:00:00.000Z"
+    },
+    "2": {
+      "id": 2,
+      "userId": 2,
+      "videoId": 2,
+      "watchedSeconds": 400,
+      "totalDuration": 653,
+      "isCompleted": false,
+      "lastWatchedAt": "2025-07-21T08:30:00.000Z",
+      "createdAt": "2025-07-21T08:30:00.000Z",
+      "updatedAt": "2025-07-21T08:30:00.000Z"
+    },
+    "3": {
+      "id": 3,
+      "userId": 9,
+      "videoId": 1,
+      "watchedSeconds": 200,
+      "totalDuration": 596,
+      "isCompleted": false,
+      "lastWatchedAt": "2025-07-21T09:00:00.000Z",
+      "createdAt": "2025-07-21T09:00:00.000Z",
+      "updatedAt": "2025-07-21T09:00:00.000Z"
+    },
+    "4": {
+      "id": 4,
+      "userId": 10,
+      "videoId": 1,
+      "watchedSeconds": 596,
+      "totalDuration": 596,
+      "isCompleted": true,
+      "lastWatchedAt": "2025-07-21T10:00:00.000Z",
+      "createdAt": "2025-07-21T10:00:00.000Z",
+      "updatedAt": "2025-07-21T10:00:00.000Z"
+    },
+    "5": {
+      "id": 5,
+      "userId": 10,
+      "videoId": 2,
+      "watchedSeconds": 653,
+      "totalDuration": 653,
+      "isCompleted": true,
+      "lastWatchedAt": "2025-07-21T11:00:00.000Z",
+      "createdAt": "2025-07-21T11:00:00.000Z",
+      "updatedAt": "2025-07-21T11:00:00.000Z"
+    }
+  },
+  "nextLogId": 6
+}

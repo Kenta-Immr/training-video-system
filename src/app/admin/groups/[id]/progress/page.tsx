@@ -30,47 +30,17 @@ export default function GroupProgressPage() {
       
       try {
         console.log('📈 Fetching group progress for ID:', groupId)
-        // groupAPI.getProgressが存在しないので、グループ情報で代替
-        const response = await groupAPI.getById(groupId)
-        console.log('📈 Group API response:', response.data)
+        // 実際のグループ進捗APIを呼び出し
+        const response = await groupAPI.getProgress(groupId)
+        console.log('📈 Group progress API response:', response.data)
         
-        const groupData = response.data?.data || response.data
-        console.log('📈 Processed group data:', groupData)
+        const progressData = response.data?.data || response.data
+        console.log('📈 Processed progress data:', progressData)
         
-        if (groupData) {
-          // グループ進捗データをモックで作成
-          const mockProgressData: GroupProgress = {
-            group: {
-              id: groupData.id,
-              name: groupData.name,
-              code: groupData.code,
-              description: groupData.description || ''
-            },
-            members: (groupData.users || []).map((user: any) => ({
-              user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                isFirstLogin: user.isFirstLogin || false,
-                lastLoginAt: user.lastLoginAt || null
-              },
-              progress: {
-                totalVideos: 10,
-                watchedVideos: Math.floor(Math.random() * 8) + 1,
-                completedVideos: Math.floor(Math.random() * 6) + 1,
-                completionRate: Math.floor(Math.random() * 80) + 20,
-                watchRate: Math.floor(Math.random() * 90) + 10
-              }
-            })),
-            courses: [
-              { id: 1, title: 'サンプルコース1', description: 'サンプル説明1' },
-              { id: 2, title: 'サンプルコース2', description: 'サンプル説明2' }
-            ]
-          }
-          console.log('📈 Mock progress data created:', mockProgressData)
-          setProgressData(mockProgressData)
+        if (progressData) {
+          setProgressData(progressData)
         } else {
-          setError('グループ情報の取得に失敗しました')
+          setError('グループ進捗情報の取得に失敗しました')
         }
       } catch (error: any) {
         console.error('📈 Fetch progress error:', error)

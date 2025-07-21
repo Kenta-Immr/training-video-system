@@ -45,8 +45,8 @@ export default function handler(req, res) {
       res.setHeader('Last-Modified', new Date().toUTCString())
       res.setHeader('ETag', `"${Date.now()}"`)
       
-      // コース一覧を取得
-      const courseList = dataStore.getCourses()
+      // コース一覧を取得（非同期対応）
+      const courseList = await dataStore.getCourses()
       console.log(`コース一覧取得: ${courseList.length}件`)
       console.log('取得したコースリスト:', courseList.map(c => ({ id: c.id, title: c.title })))
       
