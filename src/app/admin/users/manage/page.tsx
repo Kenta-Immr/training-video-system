@@ -65,10 +65,14 @@ export default function UserManagePage() {
 
   const onSubmit = async (data: CreateUserRequest & { groupId: string }) => {
     try {
+      setError('')
       const groupId = data.groupId === '' ? undefined : parseInt(data.groupId)
+      const token = localStorage.getItem('token')
       
       if (editingUser) {
-        const updateData: UpdateUserRequest & { groupId?: number } = {
+        // ユーザー更新
+        const updateData: UpdateUserRequest & { userId: number; groupId?: number } = {
+          userId: editingUser.id,
           email: data.email,
           name: data.name,
           role: data.role,
@@ -77,8 +81,26 @@ export default function UserManagePage() {
         if (data.password && data.password.trim() !== '') {
           updateData.password = data.password
         }
-        await userAPI.update(editingUser.id, updateData)
+
+        console.log('ユーザー更新開始:', updateData)
+        const response = await fetch('/api/users', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+          },
+          body: JSON.stringify(updateData)
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        console.log('ユーザー更新完了')
       } else {
+        // ユーザー作成
         const createData: CreateUserRequest & { groupId?: number } = {
           email: data.email,
           name: data.name,
@@ -86,7 +108,24 @@ export default function UserManagePage() {
           role: data.role,
           groupId
         }
-        await userAPI.create(createData)
+
+        console.log('ユーザー作成開始:', createData)
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+          },
+          body: JSON.stringify(createData)
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        console.log('ユーザー作成完了')
       }
       
       reset()
@@ -94,7 +133,8 @@ export default function UserManagePage() {
       setEditingUser(null)
       fetchData()
     } catch (error: any) {
-      setError(error.response?.data?.error || 'ユーザーの保存に失敗しました')
+      console.error('ユーザー保存エラー:', error)
+      setError(error.message || 'ユーザーの保存に失敗しました')
     }
   }
 
@@ -130,10 +170,34 @@ export default function UserManagePage() {
     if (!confirm(`「${user.name}」を削除しますか？\n※関連する視聴ログも削除されます。`)) return
 
     try {
-      await userAPI.delete(user.id)
+      setError('')
+      console.log('ユーザー削除開始:', user.id)
+      
+      // 直接fetch APIを使用してキャッシュ問題を回避
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/users', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
+        body: JSON.stringify({ userId: user.id })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      console.log('ユーザー削除完了:', result)
+      
+      // データを再取得
       fetchData()
     } catch (error: any) {
-      setError(error.response?.data?.error || 'ユーザーの削除に失敗しました')
+      console.error('ユーザー削除エラー:', error)
+      setError(error.message || 'ユーザーの削除に失敗しました')
     }
   }
 
