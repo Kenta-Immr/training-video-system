@@ -90,61 +90,114 @@ export default async function handler(req, res) {
     
     const tempPassword = password || generateTempPassword()
     
-    // KVに直接保存（より確実）
-    const { kv } = require('@vercel/kv')
+    // 環境に応じた確実な保存処理
+    const isKVAvailable = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL
     
-    // 現在のユーザーデータを取得
-    let usersData = await kv.get('users')
-    if (!usersData) {
-      usersData = {
-        users: {},
-        nextUserId: 1,
-        lastUpdated: new Date().toISOString()
+    let newUser = null
+    let kvSaved = false
+    let dataStoreSaved = false
+    
+    if (isProduction && isKVAvailable) {
+      try {
+        // 本番環境: KVに直接保存
+        const { kv } = require('@vercel/kv')
+        
+        // 現在のユーザーデータを取得
+        let usersData = await kv.get('users')
+        if (!usersData) {
+          usersData = {
+            users: {},
+            nextUserId: 1,
+            lastUpdated: new Date().toISOString()
+          }
+        }
+        
+        const newUserId = usersData.nextUserId
+        newUser = {
+          id: newUserId,
+          email,
+          name,
+          password: tempPassword,
+          role: role.toUpperCase(),
+          groupId: groupId || null,
+          isFirstLogin: true,
+          lastLoginAt: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+        
+        // ユーザーデータに追加
+        usersData.users[newUserId.toString()] = newUser
+        usersData.nextUserId = newUserId + 1
+        usersData.lastUpdated = new Date().toISOString()
+        
+        // KVに保存
+        await kv.set('users', usersData)
+        kvSaved = true
+        console.log('KV保存成功:', newUser.name)
+        
+      } catch (kvError) {
+        console.error('KV保存失敗:', kvError)
       }
     }
     
-    const newUserId = usersData.nextUserId
-    const newUser = {
-      id: newUserId,
-      email,
-      name,
-      password: tempPassword,
-      role: role.toUpperCase(),
-      groupId: groupId || null,
-      isFirstLogin: true,
-      lastLoginAt: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    // DataStore経由での保存も試行（フォールバック）
+    try {
+      const dataStoreUser = await dataStore.createUserAsync({
+        email,
+        name,
+        password: tempPassword,
+        role: role.toUpperCase(),
+        groupId: groupId || null,
+        isFirstLogin: true
+      })
+      
+      if (dataStoreUser) {
+        newUser = dataStoreUser
+        dataStoreSaved = true
+        console.log('DataStore保存成功:', dataStoreUser.name)
+      }
+    } catch (dsError) {
+      console.error('DataStore保存失敗:', dsError)
     }
     
-    // ユーザーデータに追加
-    usersData.users[newUserId.toString()] = newUser
-    usersData.nextUserId = newUserId + 1
-    usersData.lastUpdated = new Date().toISOString()
+    if (!newUser) {
+      throw new Error('ユーザー作成に失敗しました（すべての保存方式が失敗）')
+    }
     
-    // KVに保存
-    await kv.set('users', usersData)
-    
-    console.log(`緊急ユーザー作成成功: ${name} (${email}) - ID: ${newUser.id}`)
+    console.log(`ユーザー作成成功: ${newUser.name} (${email}) - ID: ${newUser.id}`)
+    console.log('保存方式:', { kvSaved, dataStoreSaved })
     
     // 保存確認
-    const verifyData = await kv.get('users')
-    const foundUser = verifyData?.users?.[newUserId.toString()]
-    if (foundUser) {
-      console.log('✓ KVに直接保存確認済み:', foundUser.name)
+    if (isProduction && isKVAvailable && kvSaved) {
+      try {
+        const { kv } = require('@vercel/kv')
+        const verifyData = await kv.get('users')
+        const foundUser = verifyData?.users?.[newUser.id.toString()]
+        if (foundUser) {
+          console.log('✓ KV保存確認済み:', foundUser.name)
+        }
+      } catch (verifyError) {
+        console.error('保存確認エラー:', verifyError)
+      }
     }
     
     // レスポンス用にグループ情報を付与
     const responseUser = {
       ...newUser,
       group,
-      tempPassword // デモ用
+      tempPassword, // デモ用
+      saveInfo: {
+        kvSaved,
+        dataStoreSaved
+      }
     }
     
     return res.json({
       success: true,
       data: responseUser,
-      message: 'ユーザーを作成しました（緊急エンドポイント経由）',
+      message: 'ユーザーを作成しました',
       endpoint: 'create-user'
     })
     
