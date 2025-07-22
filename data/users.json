@@ -99,17 +99,6 @@
       "createdAt": "2025-07-21T05:39:34.482Z",
       "updatedAt": "2025-07-21T05:39:34.482Z"
     },
-    "10": {
-      "id": 10,
-      "email": "test2@example.com",
-      "name": "テストユーザー2",
-      "role": "ADMIN",
-      "groupId": 1,
-      "isFirstLogin": true,
-      "lastLoginAt": null,
-      "createdAt": "2025-07-21T05:39:34.491Z",
-      "updatedAt": "2025-07-21T05:39:34.491Z"
-    },
     "11": {
       "id": 11,
       "email": "new-test@example.com",
@@ -119,18 +108,18 @@
       "isFirstLogin": true,
       "lastLoginAt": null,
       "createdAt": "2025-07-21T05:49:00.088Z",
-      "updatedAt": "2025-07-21T05:49:00.088Z"
+      "updatedAt": "2025-07-22T02:13:08.330Z"
     },
     "12": {
       "id": 12,
       "email": "stability-test@example.com",
       "name": "安定性テストユーザー",
       "role": "USER",
-      "groupId": null,
+      "groupId": 2,
       "isFirstLogin": true,
       "lastLoginAt": null,
       "createdAt": "2025-07-21T07:13:16.444Z",
-      "updatedAt": "2025-07-21T07:13:16.444Z"
+      "updatedAt": "2025-07-22T02:13:02.432Z"
     }
   },
   "nextUserId": 13

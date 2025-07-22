@@ -116,10 +116,12 @@ export default async function handler(req, res) {
 
 // ユーザー削除処理
 async function handleDeleteUser({ userId }, res) {
-  console.log('ユーザー削除開始:', { userId })
+  console.log('ユーザー削除開始:', { userId, env: process.env.NODE_ENV })
   
   // 既存ユーザーの確認
   const existingUser = await dataStore.getUserByIdAsync(userId)
+  console.log('既存ユーザー取得結果:', existingUser ? 'ユーザー存在' : 'ユーザー見つからない')
+  
   if (!existingUser) {
     return res.status(404).json({
       success: false,
@@ -132,43 +134,62 @@ async function handleDeleteUser({ userId }, res) {
     name: existingUser.name,
     email: existingUser.email
   }
+  console.log('削除対象ユーザー:', userToDelete)
   
   let deleted = false
   let kvDeleted = false
   
-  // 方式1: DataStore経由
+  // 方式1: DataStore経由（開発環境メイン）
   try {
+    console.log('DataStore削除を実行中...')
     deleted = await dataStore.deleteUserAsync(userId)
-    console.log('DataStore削除:', deleted ? '成功' : '失敗')
+    console.log('DataStore削除結果:', deleted ? '成功' : '失敗')
   } catch (error) {
     console.error('DataStore削除失敗:', error)
   }
   
-  // 方式2: KV直接操作
-  try {
-    const usersData = await getKVData('users')
-    if (usersData && usersData.users && usersData.users[userId.toString()]) {
-      delete usersData.users[userId.toString()]
-      usersData.lastUpdated = new Date().toISOString()
-      
-      kvDeleted = await setKVData('users', usersData)
-      console.log('KV直接削除:', kvDeleted ? '成功' : '失敗')
+  // 方式2: KV直接操作（本番環境のみ）
+  const isKVAvailable = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL
+  
+  console.log('KV環境チェック:', { isKVAvailable: !!isKVAvailable, isProduction })
+  
+  if (isProduction && isKVAvailable) {
+    try {
+      console.log('KV削除を実行中...')
+      const usersData = await getKVData('users')
+      if (usersData && usersData.users && usersData.users[userId.toString()]) {
+        delete usersData.users[userId.toString()]
+        usersData.lastUpdated = new Date().toISOString()
+        
+        kvDeleted = await setKVData('users', usersData)
+        console.log('KV直接削除結果:', kvDeleted ? '成功' : '失敗')
+      } else {
+        console.log('KVにユーザーが見つかりません')
+      }
+    } catch (error) {
+      console.error('KV直接削除失敗:', error)
     }
-  } catch (error) {
-    console.error('KV直接削除失敗:', error)
+  } else {
+    console.log('開発環境のためKV削除をスキップ')
   }
   
   // 削除確認
   let confirmDeleted = false
   try {
+    console.log('削除確認を実行中...')
     const checkUser = await dataStore.getUserByIdAsync(userId)
     confirmDeleted = !checkUser
+    console.log('削除確認結果:', confirmDeleted ? 'ユーザー削除済み' : 'ユーザーまだ存在')
   } catch (error) {
+    console.log('削除確認時エラー（削除成功の可能性）:', error.message)
     confirmDeleted = true // エラー = 削除成功の可能性
   }
   
+  console.log('最終結果:', { deleted, kvDeleted, confirmDeleted })
+  
   if (deleted || kvDeleted || confirmDeleted) {
-    console.log(`ユーザー削除完了: ${userToDelete.name}`)
+    console.log(`✓ ユーザー削除完了: ${userToDelete.name}`)
     return res.json({
       success: true,
       message: 'ユーザーを削除しました',
@@ -176,6 +197,7 @@ async function handleDeleteUser({ userId }, res) {
       methods: { dataStore: deleted, kv: kvDeleted, confirmed: confirmDeleted }
     })
   } else {
+    console.log(`✗ ユーザー削除失敗: ${userToDelete.name}`)
     return res.status(500).json({
       success: false,
       message: 'ユーザー削除に失敗しました',
