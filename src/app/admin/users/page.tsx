@@ -116,10 +116,46 @@ export default function UsersPage() {
       console.log('ユーザー保存開始:', data)
 
       if (editingUser) {
-        await userAPI.update(editingUser.id, data)
-        console.log('ユーザー更新完了')
+        // ユーザー更新
+        console.log('ユーザー更新開始:', editingUser.id, data)
+        const token = localStorage.getItem('token')
+        const response = await fetch('/api/users', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+          },
+          body: JSON.stringify({ userId: editingUser.id, ...data })
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        const result = await response.json()
+        console.log('ユーザー更新完了:', result.data)
       } else {
-        const result = await userAPI.create(data)
+        // ユーザー作成
+        console.log('ユーザー作成開始:', data)
+        const token = localStorage.getItem('token')
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+          },
+          body: JSON.stringify(data)
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        const result = await response.json()
         console.log('ユーザー作成完了:', result.data)
         
         // 成功時は作成したユーザーを即座にリストに追加
@@ -157,11 +193,35 @@ export default function UsersPage() {
     if (!confirm(`「${user.name}」を削除しますか？`)) return
 
     try {
-      await userAPI.delete(user.id)
-      fetchUsers()
+      setError('')
+      console.log('ユーザー削除開始:', user.id)
+      
+      // 直接fetch APIを使用してキャッシュ問題を回避
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/users', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
+        body: JSON.stringify({ userId: user.id })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      console.log('ユーザー削除完了:', result)
+      
+      // ユーザーリストから即座に削除
+      setUsers(prevUsers => prevUsers.filter(u => u.id !== user.id))
+      await fetchUsers(true)
     } catch (error: any) {
       console.error('ユーザー削除エラー:', error)
-      setError(error.response?.data?.message || 'ユーザーの削除に失敗しました')
+      setError(error.message || 'ユーザーの削除に失敗しました')
     }
   }
 
