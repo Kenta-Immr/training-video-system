@@ -185,7 +185,23 @@ export default function AdminDashboard() {
   const getProgressColor = (rate: number) => {
     if (rate >= 80) return 'text-green-600 bg-green-100'
     if (rate >= 50) return 'text-yellow-600 bg-yellow-100'
+    if (rate >= 20) return 'text-orange-600 bg-orange-100'
     return 'text-red-600 bg-red-100'
+  }
+
+  const getRowBackgroundColor = (rate: number) => {
+    if (rate <= 10) return 'bg-red-50 border-l-4 border-red-500'
+    if (rate <= 20) return 'bg-orange-50 border-l-4 border-orange-500'
+    if (rate <= 30) return 'bg-yellow-50 border-l-4 border-yellow-500'
+    return 'hover:bg-gray-50'
+  }
+
+  const getProgressStatus = (rate: number) => {
+    if (rate <= 10) return { label: '緊急', color: 'bg-red-100 text-red-800' }
+    if (rate <= 20) return { label: '遅れ', color: 'bg-orange-100 text-orange-800' }
+    if (rate <= 30) return { label: '注意', color: 'bg-yellow-100 text-yellow-800' }
+    if (rate < 70) return { label: '通常', color: 'bg-blue-100 text-blue-800' }
+    return { label: '順調', color: 'bg-green-100 text-green-800' }
   }
 
   // セーフティネット：statsが null の場合のデフォルト値
@@ -228,7 +244,7 @@ export default function AdminDashboard() {
         {safeStats && (
           <>
             {/* 概要統計 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
               <div className="card text-center">
                 <div className="text-3xl font-bold text-blue-600">{safeStats.totalUsers}</div>
                 <div className="text-gray-600">受講者数</div>
@@ -240,6 +256,20 @@ export default function AdminDashboard() {
               <div className="card text-center">
                 <div className="text-3xl font-bold text-purple-600">{safeStats.averageProgress}%</div>
                 <div className="text-gray-600">平均進捗率</div>
+              </div>
+              <div className="card text-center">
+                <div className="text-3xl font-bold text-red-600">
+                  {safeStats.userStats ? safeStats.userStats.filter(user => user.progressRate <= 20).length : 0}
+                </div>
+                <div className="text-gray-600">遅れユーザー</div>
+                <div className="text-xs text-gray-500 mt-1">20%以下</div>
+              </div>
+              <div className="card text-center">
+                <div className="text-3xl font-bold text-orange-600">
+                  {safeStats.userStats ? safeStats.userStats.filter(user => user.progressRate > 20 && user.progressRate <= 30).length : 0}
+                </div>
+                <div className="text-gray-600">注意ユーザー</div>
+                <div className="text-xs text-gray-500 mt-1">21-30%</div>
               </div>
             </div>
 
@@ -341,45 +371,81 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {(safeStats.userStats || []).slice(0, 10).map((user) => (
-                        <tr key={user.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                              <div className="text-sm text-gray-500">{user.email}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-1 mr-3">
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div
-                                    className="bg-blue-600 h-2 rounded-full"
-                                    style={{ width: `${user.progressRate}%` }}
-                                  ></div>
+                      {(safeStats.userStats || [])
+                        .sort((a, b) => a.progressRate - b.progressRate) // 進捗率の低い順にソート
+                        .slice(0, 15) // 表示数を増加
+                        .map((user) => {
+                          const status = getProgressStatus(user.progressRate)
+                          const rowBgColor = getRowBackgroundColor(user.progressRate)
+                          
+                          return (
+                            <tr key={user.id} className={`transition-colors ${rowBgColor}`}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                  <div className="text-sm text-gray-500">{user.email}</div>
+                                  <div className="mt-1">
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
+                                      {status.label}
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getProgressColor(user.progressRate)}`}>
-                                {user.progressRate}%
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {user.completedVideos} / {user.totalVideos}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {formatTime(user.totalWatchedSeconds)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <Link
-                              href={`/admin/users/${user.id}`}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              詳細
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-1 mr-3">
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                      <div
+                                        className={`h-2 rounded-full transition-all ${
+                                          user.progressRate <= 10 ? 'bg-red-500' :
+                                          user.progressRate <= 20 ? 'bg-orange-500' :
+                                          user.progressRate <= 30 ? 'bg-yellow-500' :
+                                          user.progressRate < 70 ? 'bg-blue-500' :
+                                          'bg-green-500'
+                                        }`}
+                                        style={{ width: `${user.progressRate}%` }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getProgressColor(user.progressRate)}`}>
+                                    {user.progressRate}%
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {user.completedVideos} / {user.totalVideos}
+                                {user.progressRate <= 20 && (
+                                  <div className="mt-1">
+                                    <span className="inline-flex items-center text-xs text-red-600">
+                                      ⚠️ 督促対象
+                                    </span>
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {formatTime(user.totalWatchedSeconds)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div className="flex space-x-2">
+                                  <Link
+                                    href={`/admin/users/${user.id}`}
+                                    className="text-blue-600 hover:text-blue-900"
+                                  >
+                                    詳細
+                                  </Link>
+                                  {user.progressRate <= 20 && (
+                                    <Link
+                                      href="/admin/notifications"
+                                      className="text-red-600 hover:text-red-900 text-xs"
+                                    >
+                                      督促
+                                    </Link>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
                     </tbody>
                   </table>
                 </div>

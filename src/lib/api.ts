@@ -127,6 +127,14 @@ export interface ViewingLogRequest {
   isCompleted?: boolean
 }
 
+export interface SessionLogRequest {
+  videoId: number
+  startTime: string
+  endTime: string
+  sessionDuration: number
+  videoPosition: number
+}
+
 export const authAPI = {
   login: (data: LoginRequest) => {
     console.log('AuthAPI Login called with:', data)
@@ -267,6 +275,8 @@ export const videoAPI = {
 export const logAPI = {
   saveLog: (data: ViewingLogRequest) =>
     api.post<ViewingLog>('/api/logs', data),
+  saveSessionLog: (data: SessionLogRequest) =>
+    api.post('/api/logs/sessions', data),
   getMyLogs: () =>
     api.get<ViewingLog[]>('/api/logs/my-logs'),
   getUserLogs: (userId: number) =>
@@ -279,6 +289,7 @@ export const logAPI = {
 
 export interface UserData {
   id: number
+  userId?: string
   email: string
   name: string
   role: 'USER' | 'ADMIN'
@@ -296,18 +307,30 @@ export interface Group {
   code: string
   description?: string
   users?: UserData[]
+  workingHours?: {
+    startTime: string // HH:mm format
+    endTime: string   // HH:mm format
+    workingDays: number[] // 0=日曜, 1=月曜, ..., 6=土曜
+  }
+  trainingPeriod?: {
+    startDate: string // YYYY-MM-DD format
+    endDate: string   // YYYY-MM-DD format
+  }
   createdAt: string
   updatedAt: string
 }
 
 export interface CreateUserRequest {
+  userId: string
   email: string
   name: string
   password: string
   role?: 'USER' | 'ADMIN'
+  groupId?: number
 }
 
 export interface UpdateUserRequest {
+  userId?: string
   email: string
   name: string
   role?: 'USER' | 'ADMIN'
@@ -316,6 +339,7 @@ export interface UpdateUserRequest {
 
 export interface BulkCreateUserRequest {
   users?: {
+    userId: string
     email: string
     name: string
     password: string

@@ -171,22 +171,33 @@ export default function handler(req, res) {
       
       try {
         // 必須フィールドチェック
-        if (!userData.name || !userData.email) {
+        if (!userData.name || !userData.email || !userData.userId) {
           results.failed.push({
             index: i + 1,
             email: userData.email || '未指定',
-            error: '名前とメールアドレスは必須です'
+            error: 'ユーザーID、名前、メールアドレスは必須です'
           })
           results.errors++
           continue
         }
         
-        // 重複チェック
+        // メールアドレスの重複チェック
         if (dataStore.getUserByEmail(userData.email)) {
           results.failed.push({
             index: i + 1,
             email: userData.email,
             error: 'このメールアドレスは既に使用されています'
+          })
+          results.errors++
+          continue
+        }
+        
+        // ユーザーIDの重複チェック
+        if (dataStore.isUserIdExists && dataStore.isUserIdExists(userData.userId)) {
+          results.failed.push({
+            index: i + 1,
+            email: userData.email,
+            error: 'このユーザーIDは既に使用されています'
           })
           results.errors++
           continue
@@ -216,6 +227,7 @@ export default function handler(req, res) {
         
         // データストアを使用してユーザー作成
         const newUser = dataStore.createUser({
+          userId: userData.userId,
           email: userData.email,
           name: userData.name,
           password: userData.password || generateTempPassword(),

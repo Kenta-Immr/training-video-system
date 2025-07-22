@@ -1,4 +1,6 @@
 // Course thumbnail upload endpoint
+import fs from 'fs'
+import path from 'path'
 
 // Next.jsの自動bodyパースを無効化（ファイルアップロード用）
 export const config = {
@@ -27,7 +29,7 @@ export default async function handler(req, res) {
     })
   }
   
-  // アップロード処理（デモ版では模擬的に処理）
+  // アップロード処理（実際のファイル保存）
   try {
     console.log('サムネイル画像のアップロード処理を開始')
     console.log('リクエストヘッダー:', {
@@ -55,15 +57,6 @@ export default async function handler(req, res) {
     const buffer = Buffer.concat(chunks)
     console.log('受信データサイズ:', buffer.length, 'バイト')
     
-    // デモ版では固定のサムネイルURLを返すが、ファイル内容に基づいて一意性を保つ
-    const mockThumbnailUrls = [
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=300&fit=crop", 
-      "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=400&h=300&fit=crop"
-    ]
-    
     let filename = 'thumbnail'
     
     try {
@@ -78,16 +71,32 @@ export default async function handler(req, res) {
       // デフォルトのファイル名を使用
     }
     
-    // ファイル内容とファイル名の組み合わせで一意のハッシュを生成
-    const fileHash = buffer.toString('base64').substring(0, 20)
-    const hashInput = filename + fileHash + buffer.length
-    const hashIndex = hashInput.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % mockThumbnailUrls.length
+    // ファイル拡張子の取得
+    const fileExt = path.extname(filename) || '.jpg'
     
-    // 一意性を保つためハッシュ値をパラメータに追加
-    const uniqueId = Buffer.from(hashInput).toString('base64').substring(0, 8)
-    const thumbnailUrl = mockThumbnailUrls[hashIndex] + '&demo_id=' + uniqueId
+    // 一意のファイル名を生成（タイムスタンプ + ランダム文字列）
+    const timestamp = Date.now()
+    const randomString = Math.random().toString(36).substring(2, 8)
+    const uniqueFilename = `thumbnail_${timestamp}_${randomString}${fileExt}`
     
-    console.log(`デモサムネイル生成: ${thumbnailUrl}`)
+    // 保存ディレクトリの設定
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'thumbnails')
+    const filePath = path.join(uploadDir, uniqueFilename)
+    
+    // ディレクトリが存在しない場合は作成
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true })
+      console.log('アップロードディレクトリを作成:', uploadDir)
+    }
+    
+    // ファイルを保存
+    fs.writeFileSync(filePath, buffer)
+    console.log('ファイル保存完了:', filePath)
+    
+    // 公開URLを生成
+    const thumbnailUrl = `/uploads/thumbnails/${uniqueFilename}`
+    
+    console.log(`サムネイル保存完了: ${thumbnailUrl}`)
     
     return res.status(200).json({
       success: true,

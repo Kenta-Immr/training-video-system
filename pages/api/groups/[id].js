@@ -59,7 +59,7 @@ export default function handler(req, res) {
   }
   
   if (req.method === 'PUT') {
-    const { name, code, description, courseIds } = req.body
+    const { name, code, description, courseIds, workingHours, trainingPeriod } = req.body
     
     // バリデーション
     if (!name || !code) {
@@ -82,7 +82,9 @@ export default function handler(req, res) {
       name,
       code,
       description: description || '',
-      courseIds: courseIds || []
+      courseIds: courseIds || [],
+      workingHours,
+      trainingPeriod
     })
     
     return res.json({

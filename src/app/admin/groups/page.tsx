@@ -10,6 +10,11 @@ interface GroupForm {
   name: string
   code: string
   description: string
+  workingStartTime: string
+  workingEndTime: string
+  workingDays: number[]
+  trainingStartDate: string
+  trainingEndDate: string
 }
 
 export default function AdminGroupsPage() {
@@ -88,10 +93,26 @@ export default function AdminGroupsPage() {
 
   const onSubmit = async (data: GroupForm) => {
     try {
+      // フォームデータを拡張してグループ設定を含める
+      const groupData = {
+        name: data.name,
+        code: data.code,
+        description: data.description,
+        workingHours: {
+          startTime: data.workingStartTime,
+          endTime: data.workingEndTime,
+          workingDays: data.workingDays || [1, 2, 3, 4, 5] // デフォルトは平日
+        },
+        trainingPeriod: {
+          startDate: data.trainingStartDate,
+          endDate: data.trainingEndDate
+        }
+      }
+      
       if (editingGroup) {
-        await groupAPI.update(editingGroup.id, data)
+        await groupAPI.update(editingGroup.id, groupData)
       } else {
-        await groupAPI.create(data)
+        await groupAPI.create(groupData)
       }
       
       reset()
@@ -133,6 +154,16 @@ export default function AdminGroupsPage() {
     setValue('name', group.name)
     setValue('code', group.code)
     setValue('description', group.description || '')
+    
+    // 勤務時間の設定
+    setValue('workingStartTime', group.workingHours?.startTime || '09:00')
+    setValue('workingEndTime', group.workingHours?.endTime || '18:00')
+    setValue('workingDays', group.workingHours?.workingDays || [1, 2, 3, 4, 5])
+    
+    // 研修期間の設定
+    setValue('trainingStartDate', group.trainingPeriod?.startDate || '')
+    setValue('trainingEndDate', group.trainingPeriod?.endDate || '')
+    
     setShowForm(true)
   }
 
@@ -312,8 +343,8 @@ export default function AdminGroupsPage() {
 
         {/* グループ作成・編集フォーム */}
         {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
               <h2 className="text-lg font-semibold mb-4">
                 {editingGroup ? 'グループ編集' : '新規グループ作成'}
               </h2>
@@ -354,6 +385,71 @@ export default function AdminGroupsPage() {
                     rows={3}
                     placeholder="グループの説明を入力"
                   />
+                </div>
+
+                {/* 勤務時間設定 */}
+                <div className="border-t pt-4">
+                  <h3 className="font-medium text-gray-900 mb-3">勤務時間設定</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="form-label">開始時間</label>
+                      <input
+                        {...register('workingStartTime')}
+                        type="time"
+                        className="form-input"
+                        defaultValue="09:00"
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">終了時間</label>
+                      <input
+                        {...register('workingEndTime')}
+                        type="time"
+                        className="form-input"
+                        defaultValue="18:00"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <label className="form-label">勤務日</label>
+                    <div className="flex gap-2 text-sm">
+                      {['日', '月', '火', '水', '木', '金', '土'].map((day, index) => (
+                        <label key={index} className="flex items-center">
+                          <input
+                            {...register('workingDays')}
+                            type="checkbox"
+                            value={index}
+                            className="mr-1"
+                            defaultChecked={[1, 2, 3, 4, 5].includes(index)}
+                          />
+                          {day}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 研修期間設定 */}
+                <div className="border-t pt-4">
+                  <h3 className="font-medium text-gray-900 mb-3">研修期間設定</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="form-label">開始日</label>
+                      <input
+                        {...register('trainingStartDate')}
+                        type="date"
+                        className="form-input"
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">終了日</label>
+                      <input
+                        {...register('trainingEndDate')}
+                        type="date"
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex gap-2 pt-4">

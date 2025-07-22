@@ -55,9 +55,9 @@ export default async function handler(req, res) {
   }
   
   try {
-    const { email, name, role = 'USER', password, groupId } = req.body
+    const { userId, email, name, role = 'USER', password, groupId } = req.body
     
-    console.log('緊急ユーザー作成リクエスト:', { email, name, role, groupId })
+    console.log('緊急ユーザー作成リクエスト:', { userId, email, name, role, groupId })
     
     // バリデーション
     if (!email || !name) {
@@ -67,12 +67,28 @@ export default async function handler(req, res) {
       })
     }
     
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'ユーザーIDは必須です'
+      })
+    }
+    
     // メールアドレスの重複チェック
     const existingUser = dataStore.getUserByEmail(email)
     if (existingUser) {
       return res.status(400).json({
         success: false,
         message: 'このメールアドレスは既に使用されています'
+      })
+    }
+    
+    // ユーザーIDの重複チェック
+    const existingUserByUserId = dataStore.isUserIdExists ? dataStore.isUserIdExists(userId) : false
+    if (existingUserByUserId) {
+      return res.status(400).json({
+        success: false,
+        message: 'このユーザーIDは既に使用されています'
       })
     }
     
@@ -116,6 +132,7 @@ export default async function handler(req, res) {
         const newUserId = usersData.nextUserId
         newUser = {
           id: newUserId,
+          userId,
           email,
           name,
           password: tempPassword,
@@ -145,6 +162,7 @@ export default async function handler(req, res) {
     // DataStore経由での保存も試行（フォールバック）
     try {
       const dataStoreUser = await dataStore.createUserAsync({
+        userId,
         email,
         name,
         password: tempPassword,

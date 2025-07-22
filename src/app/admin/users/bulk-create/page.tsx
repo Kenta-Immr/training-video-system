@@ -84,10 +84,32 @@ export default function BulkCreateUsersPage() {
     }
   }
 
-  const sampleCsv = `name,email,role,groupId
-山田太郎,yamada@example.com,USER,2
-佐藤花子,sato@example.com,ADMIN,1
-田中次郎,tanaka@example.com,USER,3`
+  const downloadSampleCSV = () => {
+    const sampleCSV = `userId,email,name,password,role,groupName
+user001,yamada@example.com,山田太郎,password123,USER,営業部
+user002,sato@example.com,佐藤花子,password456,USER,技術部
+user003,tanaka@example.com,田中次郎,password789,ADMIN,管理部
+user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
+
+    const blob = new Blob([sampleCSV], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', 'ユーザー一括作成_サンプル.csv')
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  }
+
+  const sampleCsv = `userId,email,name,password,role,groupName
+user001,yamada@example.com,山田太郎,password123,USER,営業部
+user002,sato@example.com,佐藤花子,password456,USER,技術部
+user003,tanaka@example.com,田中次郎,password789,ADMIN,管理部
+user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
 
   return (
     <AuthGuard requireAdmin>
@@ -165,6 +187,13 @@ export default function BulkCreateUsersPage() {
                   className="btn-primary flex-1 disabled:opacity-50"
                 >
                   {isUploading ? '作成中...' : 'ユーザーを一括作成'}
+                </button>
+                <button
+                  onClick={downloadSampleCSV}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                  title="サンプルCSVファイルをダウンロード"
+                >
+                  📄 CSV例
                 </button>
                 <button
                   onClick={resetForm}

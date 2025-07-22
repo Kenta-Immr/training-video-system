@@ -104,7 +104,9 @@ export default async function handler(req, res) {
       name,
       code,
       description: description || '',
-      courseIds: courseIds || []
+      courseIds: courseIds || [],
+      workingHours: req.body.workingHours,
+      trainingPeriod: req.body.trainingPeriod
     })
     
     console.log(`新規グループ作成: ${name} (${code}) - ID: ${newGroup.id}`)

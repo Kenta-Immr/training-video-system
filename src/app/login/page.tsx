@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { setCurrentUser, setToken } from '@/lib/auth'
-import { LoginRequest, authAPI } from '@/lib/api'
+import { LoginRequest, authAPI, userAPI } from '@/lib/api'
+import { validateAccess } from '@/lib/workingHours'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
@@ -56,9 +57,40 @@ export default function LoginPage() {
       
       setToken(response.data.token)
       
-      // ログイン成功後のリダイレクト
-      console.log('Redirecting to home...')
-      window.location.href = '/'
+      // ユーザー情報を取得してグループの勤務時間をチェック
+      try {
+        const userResponse = await userAPI.getMe()
+        const user = userResponse.data
+        
+        // 管理者は勤務時間チェックをスキップ
+        if (user.role === 'ADMIN') {
+          console.log('管理者ログイン - 勤務時間チェックをスキップ')
+          window.location.href = '/'
+          return
+        }
+        
+        // 一般ユーザーは勤務時間をチェック
+        const accessValidation = validateAccess(user.group)
+        
+        if (!accessValidation.isValid) {
+          // 勤務時間外の場合はログアウトしてエラー表示
+          localStorage.removeItem('token')
+          setError(`${accessValidation.reason}\n現在時刻: ${accessValidation.currentTime}${
+            accessValidation.allowedHours ? `\n勤務時間: ${accessValidation.allowedHours}` : ''
+          }${
+            accessValidation.allowedDays ? `\n勤務日: ${accessValidation.allowedDays.join('、')}曜日` : ''
+          }`)
+          return
+        }
+        
+        console.log('勤務時間チェック通過 - リダイレクト中...')
+        window.location.href = '/'
+        
+      } catch (userError: any) {
+        console.error('ユーザー情報取得エラー:', userError)
+        // ユーザー情報が取得できない場合でもログインは継続
+        window.location.href = '/'
+      }
     } catch (error: any) {
       console.error('=== LOGIN ERROR ===')
       console.error('Full error:', error)

@@ -10,6 +10,7 @@ interface UnifiedUserFormProps {
 
 export default function UnifiedUserForm({ onUserCreated, onClose, standalone = false }: UnifiedUserFormProps) {
   const [formData, setFormData] = useState({
+    userId: '',
     email: '',
     name: '',
     role: 'USER'
@@ -113,8 +114,10 @@ ID: ${newUser.id}
     const timestamp = Date.now()
     const randomNames = ['田中太郎', '佐藤花子', '鈴木一郎', '高橋美咲', '渡辺健太', '山田次郎', '加藤美月', '中村大輔']
     const randomName = randomNames[Math.floor(Math.random() * randomNames.length)]
+    const randomUserId = `user${timestamp}`
     
     setFormData({
+      userId: randomUserId,
       email: `test${timestamp}@example.com`,
       name: randomName,
       role: Math.random() > 0.8 ? 'ADMIN' : 'USER'
@@ -131,6 +134,21 @@ ID: ${newUser.id}
           </h2>
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ユーザーID *
+              </label>
+              <input
+                type="text"
+                name="userId"
+                value={formData.userId}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="yamada_taro"
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 メールアドレス *
@@ -221,6 +239,21 @@ ID: ${newUser.id}
       </h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            ユーザーID *
+          </label>
+          <input
+            type="text"
+            name="userId"
+            value={formData.userId}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="yamada_taro"
+          />
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             メールアドレス *
