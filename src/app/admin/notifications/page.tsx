@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import AdminPageWrapper from '@/components/AdminPageWrapper'
+import AuthGuard from '@/components/AuthGuard'
+import Header from '@/components/Header'
 import { userAPI, UserData, groupAPI, Group } from '@/lib/api'
 import { isAdmin } from '@/lib/auth'
 
@@ -184,8 +185,14 @@ export default function NotificationsPage() {
   }
 
   return (
-    <AdminPageWrapper title="通知・アラート" description="ユーザーのログイン状況とアラート管理">
-      <div>
+    <AuthGuard requireAdmin>
+      <Header />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">通知・アラート</h1>
+          <p className="mt-2 text-gray-600">ユーザーのログイン状況とアラート管理</p>
+        </div>
+
         {/* タブ切り替え */}
         <div className="mb-8">
         <div className="border-b border-gray-200">
@@ -557,8 +564,7 @@ export default function NotificationsPage() {
             )
           )}
         </div>
-      </div>
-      </div>
-    </AdminPageWrapper>
+      </main>
+    </AuthGuard>
   )
 }
