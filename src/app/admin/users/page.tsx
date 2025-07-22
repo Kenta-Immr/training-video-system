@@ -119,8 +119,8 @@ export default function UsersPage() {
         // ユーザー更新
         console.log('ユーザー更新開始:', editingUser.id, data)
         const token = localStorage.getItem('token')
-        const response = await fetch('/api/users', {
-          method: 'PUT',
+        const response = await fetch('/api/update-user', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
@@ -137,10 +137,10 @@ export default function UsersPage() {
         const result = await response.json()
         console.log('ユーザー更新完了:', result.data)
       } else {
-        // ユーザー作成
+        // ユーザー作成（既存の動作確認済みエンドポイントを使用）
         console.log('ユーザー作成開始:', data)
         const token = localStorage.getItem('token')
-        const response = await fetch('/api/users', {
+        const response = await fetch('/api/create-user', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

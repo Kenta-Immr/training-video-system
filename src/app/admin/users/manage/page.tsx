@@ -83,8 +83,8 @@ export default function UserManagePage() {
         }
 
         console.log('ユーザー更新開始:', updateData)
-        const response = await fetch('/api/users', {
-          method: 'PUT',
+        const response = await fetch('/api/update-user', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
@@ -100,7 +100,7 @@ export default function UserManagePage() {
 
         console.log('ユーザー更新完了')
       } else {
-        // ユーザー作成
+        // ユーザー作成（既存の動作確認済みエンドポイントを使用）
         const createData: CreateUserRequest & { groupId?: number } = {
           email: data.email,
           name: data.name,
@@ -110,7 +110,7 @@ export default function UserManagePage() {
         }
 
         console.log('ユーザー作成開始:', createData)
-        const response = await fetch('/api/users', {
+        const response = await fetch('/api/create-user', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
