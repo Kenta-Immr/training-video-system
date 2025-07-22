@@ -196,10 +196,10 @@ export default function UsersPage() {
       setError('')
       console.log('ユーザー削除開始:', user.id)
       
-      // 削除専用エンドポイントを使用
+      // メインのusersエンドポイントのDELETEメソッドを使用
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/delete-user', {
-        method: 'POST',
+      const response = await fetch('/api/users', {
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
