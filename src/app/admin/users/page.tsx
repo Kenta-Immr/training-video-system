@@ -95,8 +95,13 @@ export default function UsersPage() {
       })
       
       if (Array.isArray(usersData)) {
-        setUsers(usersData)
-        console.log(`ユーザー設定完了: ${usersData.length}件`)
+        // 重複排除とソート（IDの昇順）
+        const uniqueUsers = usersData.filter((user, index, arr) => 
+          arr.findIndex(u => u.id === user.id) === index
+        ).sort((a, b) => a.id - b.id)
+        
+        setUsers(uniqueUsers)
+        console.log(`ユーザー設定完了: ${uniqueUsers.length}件 (重複排除後)`)
       } else {
         console.warn('ユーザーデータが配列ではありません:', usersData)
         setUsers([])
@@ -157,13 +162,6 @@ export default function UsersPage() {
 
         const result = await response.json()
         console.log('ユーザー作成完了:', result.data)
-        
-        // 成功時は作成したユーザーを即座にリストに追加
-        if (result.data) {
-          const newUser = result.data
-          setUsers(prevUsers => [...prevUsers, newUser])
-          console.log('新しいユーザーを即座にリストに追加:', newUser.name)
-        }
       }
 
       userForm.reset()

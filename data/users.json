@@ -2,8 +2,10 @@
   "users": {
     "1": {
       "id": 1,
+      "userId": "admin",
       "email": "admin@example.com",
       "name": "管理者",
+      "password": "admin123",
       "role": "ADMIN",
       "groupId": null,
       "isFirstLogin": false,
@@ -13,8 +15,10 @@
     },
     "2": {
       "id": 2,
+      "userId": "user1",
       "email": "user@example.com",
       "name": "一般ユーザー",
+      "password": "user123",
       "role": "USER",
       "groupId": 1,
       "isFirstLogin": false,
@@ -24,8 +28,10 @@
     },
     "3": {
       "id": 3,
+      "userId": "testuser",
       "email": "test@example.com",
       "name": "テストユーザー",
+      "password": "test123",
       "role": "USER",
       "groupId": null,
       "isFirstLogin": true,
@@ -35,8 +41,10 @@
     },
     "4": {
       "id": 4,
+      "userId": "yamada",
       "email": "yamada@example.com",
       "name": "山田太郎",
+      "password": "yamada123",
       "role": "USER",
       "groupId": null,
       "isFirstLogin": true,
@@ -46,8 +54,10 @@
     },
     "5": {
       "id": 5,
+      "userId": "sato",
       "email": "sato@example.com",
       "name": "佐藤花子",
+      "password": "sato123",
       "role": "USER",
       "groupId": null,
       "isFirstLogin": true,
@@ -57,8 +67,10 @@
     },
     "6": {
       "id": 6,
+      "userId": "newuser",
       "email": "new@example.com",
       "name": "新しいユーザー",
+      "password": "new123",
       "role": "USER",
       "groupId": null,
       "isFirstLogin": true,
@@ -68,8 +80,10 @@
     },
     "7": {
       "id": 7,
+      "userId": "bulk1",
       "email": "bulk1@example.com",
       "name": "一括太郎",
+      "password": "bulk123",
       "role": "USER",
       "groupId": null,
       "isFirstLogin": true,
@@ -79,8 +93,10 @@
     },
     "8": {
       "id": 8,
+      "userId": "bulk2",
       "email": "bulk2@example.com",
       "name": "一括花子",
+      "password": "bulk123",
       "role": "ADMIN",
       "groupId": null,
       "isFirstLogin": true,
@@ -90,8 +106,10 @@
     },
     "9": {
       "id": 9,
+      "userId": "test1",
       "email": "test1@example.com",
       "name": "テストユーザー1",
+      "password": "test123",
       "role": "USER",
       "groupId": 1,
       "isFirstLogin": true,
@@ -101,8 +119,10 @@
     },
     "11": {
       "id": 11,
+      "userId": "newtest",
       "email": "new-test@example.com",
       "name": "新規テストユーザー",
+      "password": "newtest123",
       "role": "USER",
       "groupId": null,
       "isFirstLogin": true,
@@ -112,15 +132,43 @@
     },
     "12": {
       "id": 12,
+      "userId": "stability",
       "email": "stability-test@example.com",
       "name": "安定性テストユーザー",
+      "password": "stability123",
       "role": "USER",
       "groupId": 2,
       "isFirstLogin": true,
       "lastLoginAt": null,
       "createdAt": "2025-07-21T07:13:16.444Z",
       "updatedAt": "2025-07-22T02:13:02.432Z"
+    },
+    "13": {
+      "id": 13,
+      "userId": "debug",
+      "email": "debug-test@example.com",
+      "name": "デバッグテストユーザー",
+      "password": "debug123",
+      "role": "USER",
+      "groupId": null,
+      "isFirstLogin": true,
+      "lastLoginAt": null,
+      "createdAt": "2025-07-22T02:38:58.658Z",
+      "updatedAt": "2025-07-22T02:38:58.658Z"
+    },
+    "14": {
+      "id": 14,
+      "userId": "fixtest",
+      "email": "fix-test@example.com",
+      "name": "修正テストユーザー",
+      "password": "fix123",
+      "role": "USER",
+      "groupId": null,
+      "isFirstLogin": true,
+      "lastLoginAt": null,
+      "createdAt": "2025-07-22T02:40:47.891Z",
+      "updatedAt": "2025-07-22T02:40:47.891Z"
     }
   },
-  "nextUserId": 13
+  "nextUserId": 15
 }

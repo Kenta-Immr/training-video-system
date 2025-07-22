@@ -9,6 +9,7 @@ import { LoginRequest, authAPI } from '@/lib/api'
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [loginMode, setLoginMode] = useState<'email' | 'userId'>('userId') // デフォルトをuserIdに
   const router = useRouter()
 
   const {
@@ -20,12 +21,25 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginRequest) => {
     console.log('=== SUBMIT HANDLER CALLED ===')
-    console.log('Received data:', data)
+    console.log('Received data:', data, 'Login mode:', loginMode)
     
-    if (!data || !data.email || !data.password) {
-      console.error('Form validation failed - missing data')
-      setError('メールアドレスとパスワードを入力してください')
-      return
+    // ログインモードに応じてデータを準備
+    const loginData: LoginRequest = {
+      password: data.password
+    }
+    
+    if (loginMode === 'userId') {
+      loginData.userId = data.userId
+      if (!data.userId || !data.password) {
+        setError('ユーザーIDとパスワードを入力してください')
+        return
+      }
+    } else {
+      loginData.email = data.email
+      if (!data.email || !data.password) {
+        setError('メールアドレスとパスワードを入力してください')
+        return
+      }
     }
     
     setLoading(true)
@@ -33,10 +47,10 @@ export default function LoginPage() {
 
     try {
       console.log('=== LOGIN ATTEMPT START ===')
-      console.log('Form data:', data)
-      console.log('API Base URL:', process.env.NODE_ENV === 'production' ? window.location.origin : 'http://localhost:3001')
+      console.log('Form data:', loginData)
+      console.log('API Base URL:', process.env.NODE_ENV === 'production' ? window.location.origin : 'http://localhost:3000')
       
-      const response = await authAPI.login(data)
+      const response = await authAPI.login(loginData)
       console.log('=== LOGIN SUCCESS ===')
       console.log('Response:', response.data)
       
@@ -52,7 +66,7 @@ export default function LoginPage() {
       console.error('Error data:', error.response?.data)
       
       if (error.response?.status === 401) {
-        setError(error.response?.data?.message || 'メールアドレスまたはパスワードが間違っています')
+        setError(error.response?.data?.message || 'ユーザーIDまたはメールアドレス、パスワードが間違っています')
       } else if (error.response?.status === 404) {
         setError('APIエンドポイントが見つかりません')
       } else if (error.response?.status === 405) {
@@ -114,10 +128,10 @@ export default function LoginPage() {
             <h3 className="text-sm font-medium text-blue-800">テストアカウント</h3>
             <div className="mt-2 text-xs text-blue-700 space-y-1">
               <div>
-                <strong>管理者:</strong> admin@test.com / password
+                <strong>管理者:</strong> ユーザーID: admin / パスワード: admin123
               </div>
               <div>
-                <strong>一般ユーザー:</strong> test@test.com / test
+                <strong>一般ユーザー:</strong> ユーザーID: user1 / パスワード: user123
               </div>
             </div>
             <div className="mt-2 flex space-x-2">
@@ -148,27 +162,72 @@ export default function LoginPage() {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          {/* ログインモード選択 */}
+          <div className="flex justify-center space-x-4 mb-4">
+            <button
+              type="button"
+              onClick={() => setLoginMode('userId')}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
+                loginMode === 'userId'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              ユーザーIDでログイン
+            </button>
+            <button
+              type="button"
+              onClick={() => setLoginMode('email')}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
+                loginMode === 'email'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              メールアドレスでログイン
+            </button>
+          </div>
+          
           <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="email" className="form-label">
-                メールアドレス
-              </label>
-              <input
-                {...register('email', {
-                  required: 'メールアドレスは必須です',
-                  pattern: {
-                    value: /^\S+@\S+$/i,
-                    message: '有効なメールアドレスを入力してください',
-                  },
-                })}
-                type="email"
-                className="form-input"
-                placeholder="メールアドレスを入力"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-              )}
-            </div>
+            {loginMode === 'userId' ? (
+              <div>
+                <label htmlFor="userId" className="form-label">
+                  ユーザーID
+                </label>
+                <input
+                  {...register('userId', {
+                    required: loginMode === 'userId' ? 'ユーザーIDは必須です' : false,
+                  })}
+                  type="text"
+                  className="form-input"
+                  placeholder="ユーザーIDを入力"
+                />
+                {errors.userId && (
+                  <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <label htmlFor="email" className="form-label">
+                  メールアドレス
+                </label>
+                <input
+                  {...register('email', {
+                    required: loginMode === 'email' ? 'メールアドレスは必須です' : false,
+                    pattern: {
+                      value: /^\S+@\S+$/i,
+                      message: '有効なメールアドレスを入力してください',
+                    },
+                  })}
+                  type="email"
+                  className="form-input"
+                  placeholder="メールアドレスを入力"
+                />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                )}
+              </div>
+            )}
 
             <div>
               <label htmlFor="password" className="form-label">

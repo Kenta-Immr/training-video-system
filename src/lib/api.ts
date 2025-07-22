@@ -65,7 +65,8 @@ api.interceptors.response.use(
 )
 
 export interface LoginRequest {
-  email: string
+  email?: string
+  userId?: string
   password: string
 }
 

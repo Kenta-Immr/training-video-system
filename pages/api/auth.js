@@ -20,12 +20,22 @@ export default function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
-  const { email, password } = req.body
+  const { email, userId, password } = req.body
+  const loginIdentifier = userId || email // ユーザーIDまたはメールアドレス
   
-  console.log('Login attempt:', { email, password })
+  console.log('Login attempt:', { email, userId, loginIdentifier, password })
   
-  // persistent dataStoreから実際のユーザーデータを取得
-  const user = dataStore.getUserByEmailAndPassword(email, password)
+  // ユーザーIDまたはメールアドレスでログイン
+  let user = null
+  if (userId) {
+    // ユーザーIDでログイン
+    user = dataStore.getUserByUserIdAndPassword(userId, password)
+    console.log('ユーザーID認証:', { userId, found: !!user })
+  } else if (email) {
+    // メールアドレスでログイン（従来の方式）
+    user = dataStore.getUserByEmailAndPassword(email, password)
+    console.log('メール認証:', { email, found: !!user })
+  }
   
   if (user) {
     // より堅牢なトークン生成
@@ -54,10 +64,10 @@ export default function handler(req, res) {
       message: 'ログインに成功しました'
     })
   } else {
-    console.log('認証失敗:', { email, password })
+    console.log('認証失敗:', { email, userId, password })
     res.status(401).json({
       success: false,
-      message: 'メールアドレスまたはパスワードが間違っています'
+      message: 'ユーザーIDまたはメールアドレス、パスワードが間違っています'
     })
   }
 }
