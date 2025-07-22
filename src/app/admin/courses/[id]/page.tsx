@@ -112,7 +112,8 @@ export default function CourseDetailPage() {
         } else {
           console.log('新規動画のアップロード')
           // カスタムヘッダーを追加してアップロード
-          const token = localStorage.getItem('authToken')
+          const token = localStorage.getItem('token')
+          console.log('使用するトークン:', token)
           const response = await fetch('/api/videos/upload', {
             method: 'POST',
             headers: {
@@ -124,11 +125,17 @@ export default function CourseDetailPage() {
             body: formData
           })
           
+          console.log('レスポンスステータス:', response.status)
+          
           if (!response.ok) {
-            throw new Error(`アップロードエラー: ${response.status}`)
+            const errorText = await response.text()
+            console.error('アップロードエラー詳細:', errorText)
+            throw new Error(`アップロードエラー: ${response.status} - ${errorText}`)
           }
           
           const result = await response.json()
+          console.log('アップロード結果:', result)
+          
           if (!result.success) {
             throw new Error(result.message || 'アップロードに失敗しました')
           }
@@ -428,6 +435,12 @@ export default function CourseDetailPage() {
                         if (!hasFile && !hasUrl && !editingVideo) {
                           return '動画ファイルまたはURLのどちらかを入力してください'
                         }
+                        
+                        // ファイルサイズチェック（1GB = 1,073,741,824 bytes）
+                        if (hasFile && value[0] && value[0].size > 1073741824) {
+                          return 'ファイルサイズが1GBを超えています'
+                        }
+                        
                         return true
                       }
                     })}
@@ -439,7 +452,7 @@ export default function CourseDetailPage() {
                     <p className="mt-1 text-sm text-red-600">{videoForm.formState.errors.videoFile.message}</p>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
-                    MP4, WebM, OGG形式がサポートされています（最大50MB）
+                    MP4, WebM, OGG形式がサポートされています（最大1GB）
                   </p>
                 </div>
 
