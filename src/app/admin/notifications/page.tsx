@@ -185,7 +185,6 @@ export default function NotificationsPage() {
 
   return (
     <AdminPageWrapper title="通知・アラート" description="ユーザーのログイン状況とアラート管理">
-
       {/* タブ切り替え */}
       <div className="mb-8">
         <div className="border-b border-gray-200">
