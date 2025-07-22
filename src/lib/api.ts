@@ -343,11 +343,12 @@ export const userAPI = {
     api.get<UserData[]>(`/api/get-users?t=${Date.now()}`),
   getById: (id: number) =>
     api.get<UserData>(`/api/users/${id}`),
-  // 古い create を完全削除 - 緊急エンドポイントのみ使用
+  create: (data: CreateUserRequest) =>
+    api.post<UserData>('/api/users', data),
   update: (id: number, data: UpdateUserRequest) =>
-    api.put<UserData>(`/api/users/${id}`, data),
+    api.put<UserData>('/api/users', { userId: id, ...data }),
   delete: (id: number) =>
-    api.delete(`/api/users/${id}`),
+    api.delete('/api/users', { data: { userId: id } }),
   resetPassword: (id: number, newPassword: string) =>
     api.post(`/api/users/${id}/reset-password`, { newPassword }),
   bulkCreate: (data: BulkCreateUserRequest) =>

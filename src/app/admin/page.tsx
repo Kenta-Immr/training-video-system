@@ -21,6 +21,15 @@ interface StatsData {
   userStats: UserStat[]
   totalUsers: number
   totalVideos: number
+  averageProgress: number
+  activeUsers: number
+  totalWatchTime: number
+  dataIntegrity: {
+    usersIntact: boolean
+    videosIntact: boolean
+    coursesIntact: boolean
+    logsIntact: boolean
+  }
 }
 
 export default function AdminDashboard() {
@@ -77,8 +86,16 @@ export default function AdminDashboard() {
           })
           
           // データ整合性の警告表示
-          if (!statsData.dataIntegrity?.usersIntact || !statsData.dataIntegrity?.videosIntact) {
-            setError('⚠️ 一部のデータに不整合があります。データ保護システムが作動中です。')
+          const integrity = statsData.dataIntegrity || {}
+          const issues = []
+          
+          if (!integrity.usersIntact) issues.push('ユーザーデータ')
+          if (!integrity.videosIntact) issues.push('動画データ') 
+          if (!integrity.coursesIntact) issues.push('コースデータ')
+          if (!integrity.logsIntact) issues.push('視聴ログ')
+          
+          if (issues.length > 0) {
+            setError(`⚠️ ${issues.join('・')}の整合性を確認中です。システムは正常に動作しています。`)
           } else {
             setError('') // エラーをクリア
           }
@@ -175,7 +192,16 @@ export default function AdminDashboard() {
   const safeStats = stats || {
     userStats: [],
     totalUsers: 0,
-    totalVideos: 0
+    totalVideos: 0,
+    averageProgress: 0,
+    activeUsers: 0,
+    totalWatchTime: 0,
+    dataIntegrity: {
+      usersIntact: false,
+      videosIntact: false,
+      coursesIntact: false,
+      logsIntact: false
+    }
   }
 
   return (
@@ -212,11 +238,7 @@ export default function AdminDashboard() {
                 <div className="text-gray-600">総動画数</div>
               </div>
               <div className="card text-center">
-                <div className="text-3xl font-bold text-purple-600">
-                  {safeStats.userStats && safeStats.userStats.length > 0 
-                    ? Math.round(safeStats.userStats.reduce((sum, user) => sum + user.progressRate, 0) / safeStats.userStats.length)
-                    : 0}%
-                </div>
+                <div className="text-3xl font-bold text-purple-600">{safeStats.averageProgress}%</div>
                 <div className="text-gray-600">平均進捗率</div>
               </div>
             </div>

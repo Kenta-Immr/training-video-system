@@ -58,27 +58,51 @@ export default async function handler(req, res) {
     
     console.log('ユーザー取得処理開始...')
     
-    // KVから直接取得（より確実）
-    const { kv } = require('@vercel/kv')
-    const usersData = await kv.get('users')
+    // 環境に応じたデータ取得
+    const isKVAvailable = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL
     
     let users = []
-    if (usersData && usersData.users) {
-      users = Object.values(usersData.users)
-      console.log(`KVから直接取得: ${users.length}件`)
+    
+    if (isProduction && isKVAvailable) {
+      console.log('本番環境 - KVストレージからユーザー取得')
+      const { kv } = require('@vercel/kv')
+      const usersData = await kv.get('users')
+      
+      if (usersData && usersData.users) {
+        users = Object.values(usersData.users)
+        console.log(`KVから直接取得: ${users.length}件`)
+      } else {
+        console.warn('KVにユーザーデータが存在しません')
+      }
     } else {
-      console.warn('KVにユーザーデータが存在しません')
+      console.log('開発環境 - ローカルファイルからユーザー取得')
+      users = await dataStore.getUsersAsync()
+      console.log(`ローカルファイルから取得: ${users.length}件`)
     }
     
     console.log(`ユーザー取得成功: ${users.length}件`)
     console.log('取得ユーザーID一覧:', users.map(u => ({ id: u.id, name: u.name, email: u.email })))
     
     // グループ情報を付与
+    let groups = []
+    try {
+      groups = await dataStore.getGroupsAsync()
+    } catch (groupsError) {
+      console.warn('グループ一覧取得に失敗:', groupsError.message)
+    }
+    
     const usersWithGroups = users.map(user => {
       let group = null
       if (user.groupId) {
         try {
-          group = dataStore.getGroupById(user.groupId)
+          if (isProduction && isKVAvailable) {
+            // 本番環境では同期的な取得を試行
+            group = dataStore.getGroupById(user.groupId)
+          } else {
+            // 開発環境では取得済みのグループ一覧から検索
+            group = groups.find(g => g.id === user.groupId) || null
+          }
         } catch (groupError) {
           console.warn(`グループ取得失敗 (ID: ${user.groupId}):`, groupError.message)
         }

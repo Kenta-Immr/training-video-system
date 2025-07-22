@@ -157,6 +157,119 @@ export default async function handler(req, res) {
     })
   }
   
+  if (req.method === 'PUT') {
+    // ユーザー更新処理
+    const { userId, email, name, role, groupId, password } = req.body
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'ユーザーIDが必要です'
+      })
+    }
+    
+    console.log('ユーザー更新:', { userId, name, email, role, groupId })
+    
+    // 既存ユーザーの確認
+    const existingUser = await dataStore.getUserByIdAsync(userId)
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'ユーザーが見つかりません'
+      })
+    }
+    
+    // メールアドレスの重複チェック（他のユーザーとの）
+    if (email && email !== existingUser.email) {
+      const emailUser = await dataStore.getUserByEmailAsync(email)
+      if (emailUser && emailUser.id !== userId) {
+        return res.status(400).json({
+          success: false,
+          message: 'このメールアドレスは既に使用されています'
+        })
+      }
+    }
+    
+    // グループの存在確認
+    let group = null
+    if (groupId) {
+      group = dataStore.getGroupById(groupId)
+      if (!group) {
+        return res.status(400).json({
+          success: false,
+          message: '指定されたグループが見つかりません'
+        })
+      }
+    }
+    
+    // ユーザー情報の更新
+    const updateData = {
+      email: email || existingUser.email,
+      name: name || existingUser.name,
+      role: role ? role.toUpperCase() : existingUser.role,
+      groupId: groupId !== undefined ? groupId : existingUser.groupId
+    }
+    
+    if (password) {
+      updateData.password = password
+    }
+    
+    const updatedUser = await dataStore.updateUserAsync(userId, updateData)
+    
+    console.log(`ユーザー更新完了: ${updatedUser.name} (ID: ${updatedUser.id})`)
+    
+    // レスポンス用にグループ情報を付与
+    const responseUser = {
+      ...updatedUser,
+      group
+    }
+    
+    return res.json({
+      success: true,
+      data: responseUser,
+      message: 'ユーザーを更新しました'
+    })
+  }
+  
+  if (req.method === 'DELETE') {
+    // ユーザー削除処理
+    const { userId } = req.body
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'ユーザーIDが必要です'
+      })
+    }
+    
+    console.log('ユーザー削除:', { userId })
+    
+    // 既存ユーザーの確認
+    const existingUser = await dataStore.getUserByIdAsync(userId)
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'ユーザーが見つかりません'
+      })
+    }
+    
+    // ユーザー削除
+    const deleted = await dataStore.deleteUserAsync(userId)
+    
+    if (deleted) {
+      console.log(`ユーザー削除完了: ${existingUser.name} (ID: ${userId})`)
+      return res.json({
+        success: true,
+        message: 'ユーザーを削除しました'
+      })
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: 'ユーザー削除に失敗しました'
+      })
+    }
+  }
+  
   return res.status(405).json({
     success: false,
     message: 'Method not allowed'

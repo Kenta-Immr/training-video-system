@@ -119,37 +119,8 @@ export default function UsersPage() {
         await userAPI.update(editingUser.id, data)
         console.log('ユーザー更新完了')
       } else {
-        // 統合ユーザー作成エンドポイント使用
-        console.log('統合モーダルユーザー作成開始:', data)
-        const token = localStorage.getItem('token')
-        const uniqueTimestamp = Date.now()
-        
-        const response = await fetch(`/api/create-user?_=${uniqueTimestamp}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'X-Unique-Request': uniqueTimestamp.toString(),
-            'X-Modal-Create': 'true'
-          },
-          body: JSON.stringify({
-            ...data,
-            timestamp: uniqueTimestamp
-          })
-        })
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-        }
-        
-        const result = await response.json()
-        console.log('統合モーダルユーザー作成完了:', result)
-        
-        if (!result.success) {
-          throw new Error(result.message || 'ユーザー作成に失敗しました')
-        }
+        const result = await userAPI.create(data)
+        console.log('ユーザー作成完了:', result.data)
         
         // 成功時は作成したユーザーを即座にリストに追加
         if (result.data) {

@@ -1,4 +1,6 @@
 // 実際のログデータに基づくリアル進捗統計
+const dataStore = require('../../lib/dataStore')
+
 export default async function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true)
@@ -41,25 +43,65 @@ export default async function handler(req, res) {
   try {
     console.log('リアル進捗統計取得開始...')
     
-    const { kv } = require('@vercel/kv')
+    // 環境に応じたデータ取得
+    let usersData, groupsData, coursesData, logsData
     
-    // 全データを並列取得
-    const [usersData, groupsData, coursesData, videosData, logsData] = await Promise.all([
-      kv.get('users'),
-      kv.get('groups'),
-      kv.get('courses'),
-      kv.get('videos'),
-      kv.get('viewing_logs')
-    ])
+    const isKVAvailable = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL
+    
+    if (isProduction && isKVAvailable) {
+      console.log('本番環境 - KVストレージからデータ取得')
+      const { kv } = require('@vercel/kv')
+      
+      // KVストレージから取得
+      const [kvUsers, kvGroups, kvCourses, kvLogs] = await Promise.all([
+        kv.get('users'),
+        kv.get('groups'), 
+        kv.get('courses'),
+        kv.get('viewing_logs')
+      ])
+      
+      usersData = kvUsers
+      groupsData = kvGroups
+      coursesData = kvCourses
+      logsData = kvLogs
+    } else {
+      console.log('開発環境 - ローカルファイルからデータ取得')
+      
+      // ローカルファイルから取得
+      const [users, groups, courses, logs] = await Promise.all([
+        dataStore.getUsersAsync(),
+        dataStore.getGroupsAsync(),
+        dataStore.getCoursesAsync(),
+        dataStore.getViewingLogsAsync()
+      ])
+      
+      // dataStore形式からKV形式に変換
+      usersData = { 
+        users: users.reduce((acc, user) => ({ ...acc, [user.id]: user }), {}),
+        nextUserId: Math.max(...users.map(u => u.id), 0) + 1
+      }
+      groupsData = {
+        groups: groups.reduce((acc, group) => ({ ...acc, [group.id]: group }), {}),
+        nextGroupId: Math.max(...groups.map(g => g.id), 0) + 1
+      }
+      coursesData = {
+        courses: courses.reduce((acc, course) => ({ ...acc, [course.id]: course }), {}),
+        nextCourseId: Math.max(...courses.map(c => c.id), 0) + 1
+      }
+      logsData = {
+        logs: logs.reduce((acc, log) => ({ ...acc, [log.id]: log }), {}),
+        nextLogId: Math.max(...logs.map(l => l.id), 0) + 1
+      }
+    }
     
     // 基本統計
     const totalUsers = usersData?.users ? Object.keys(usersData.users).length : 0
     const totalGroups = groupsData?.groups ? Object.keys(groupsData.groups).length : 0
     const totalCourses = coursesData?.courses ? Object.keys(coursesData.courses).length : 0
-    const totalVideos = videosData?.videos ? Object.keys(videosData.videos).length : 0
     const totalLogs = logsData?.logs ? Object.keys(logsData.logs).length : 0
     
-    console.log('基本統計:', { totalUsers, totalGroups, totalCourses, totalVideos, totalLogs })
+    console.log('基本統計:', { totalUsers, totalGroups, totalCourses, totalLogs })
     
     // 動画一覧を作成（コースとカリキュラム情報付き）
     const videoList = []
@@ -84,22 +126,10 @@ export default async function handler(req, res) {
       }
     }
     
-    // 追加で videos テーブルからも取得（冗長性のため）
-    if (videosData?.videos) {
-      const existingVideoIds = new Set(videoList.map(v => v.id))
-      for (const videoId in videosData.videos) {
-        const video = videosData.videos[videoId]
-        if (!existingVideoIds.has(video.id)) {
-          videoList.push({
-            ...video,
-            courseName: 'Unknown Course',
-            curriculumName: 'Unknown Curriculum'
-          })
-        }
-      }
-    }
-    
     console.log(`動画一覧作成完了: ${videoList.length}件`)
+    
+    // 総動画数を正しく計算
+    const totalVideos = videoList.length
     
     // ユーザー別進捗統計を計算
     const userStats = []
@@ -208,11 +238,11 @@ export default async function handler(req, res) {
       groupStats: Object.values(groupStats),
       videoList: videoList.sort((a, b) => a.courseId - b.courseId || a.curriculumId - b.curriculumId),
       dataIntegrity: {
-        usersIntact: !!usersData,
-        groupsIntact: !!groupsData,
-        coursesIntact: !!coursesData,
-        videosIntact: !!videosData,
-        logsIntact: !!logsData
+        usersIntact: !!usersData && !!usersData.users && Object.keys(usersData.users).length > 0,
+        groupsIntact: !!groupsData && !!groupsData.groups,
+        coursesIntact: !!coursesData && !!coursesData.courses && Object.keys(coursesData.courses).length > 0,
+        videosIntact: videoList.length > 0,
+        logsIntact: !!logsData && !!logsData.logs
       }
     }
     
