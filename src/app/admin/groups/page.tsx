@@ -151,21 +151,65 @@ export default function AdminGroupsPage() {
     if (!selectedGroup || selectedUsers.length === 0) return
 
     try {
-      await groupAPI.addUsers(selectedGroup.id, selectedUsers)
+      setError('')
+      console.log('グループにユーザー追加開始:', { groupId: selectedGroup.id, userIds: selectedUsers })
+      
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/groups/${selectedGroup.id}/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
+        body: JSON.stringify({ userIds: selectedUsers })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      console.log('ユーザー追加完了:', result)
+      
       setSelectedUsers([])
       setSelectedGroup(null)
       fetchData()
     } catch (error: any) {
-      setError(error.response?.data?.error || 'ユーザーの追加に失敗しました')
+      console.error('ユーザー追加エラー:', error)
+      setError(error.message || 'ユーザーの追加に失敗しました')
     }
   }
 
   const handleRemoveUser = async (groupId: number, userId: number) => {
     try {
-      await groupAPI.removeUsers(groupId, [userId])
+      setError('')
+      console.log('グループからユーザー削除開始:', { groupId, userId })
+      
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/groups/${groupId}/users`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
+        body: JSON.stringify({ userIds: [userId] })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      console.log('ユーザー削除完了:', result)
+      
       fetchData()
     } catch (error: any) {
-      setError(error.response?.data?.error || 'ユーザーの削除に失敗しました')
+      console.error('ユーザー削除エラー:', error)
+      setError(error.message || 'ユーザーの削除に失敗しました')
     }
   }
 

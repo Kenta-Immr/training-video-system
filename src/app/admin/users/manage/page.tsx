@@ -173,10 +173,10 @@ export default function UserManagePage() {
       setError('')
       console.log('ユーザー削除開始:', user.id)
       
-      // 直接fetch APIを使用してキャッシュ問題を回避
+      // 削除専用エンドポイントを使用
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/users', {
-        method: 'DELETE',
+      const response = await fetch('/api/delete-user', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
