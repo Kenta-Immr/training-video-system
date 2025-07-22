@@ -171,18 +171,21 @@ export default function UserManagePage() {
 
     try {
       setError('')
-      console.log('ユーザー削除開始:', user.id)
+      console.log('統一API経由でユーザー削除開始:', user.id)
       
-      // メインのusersエンドポイントのDELETEメソッドを使用
+      // 統一管理APIエンドポイントを使用
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/users', {
-        method: 'DELETE',
+      const response = await fetch('/api/admin-actions', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
           'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
-        body: JSON.stringify({ userId: user.id })
+        body: JSON.stringify({ 
+          action: 'deleteUser',
+          userId: user.id 
+        })
       })
 
       if (!response.ok) {

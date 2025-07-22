@@ -152,17 +152,21 @@ export default function AdminGroupsPage() {
 
     try {
       setError('')
-      console.log('グループにユーザー追加開始:', { groupId: selectedGroup.id, userIds: selectedUsers })
+      console.log('統一API経由でグループにユーザー追加開始:', { groupId: selectedGroup.id, userIds: selectedUsers })
       
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/groups/${selectedGroup.id}/users`, {
+      const response = await fetch('/api/admin-actions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
           'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
-        body: JSON.stringify({ userIds: selectedUsers })
+        body: JSON.stringify({ 
+          action: 'addUsersToGroup',
+          groupId: selectedGroup.id, 
+          userIds: selectedUsers 
+        })
       })
 
       if (!response.ok) {
@@ -185,17 +189,21 @@ export default function AdminGroupsPage() {
   const handleRemoveUser = async (groupId: number, userId: number) => {
     try {
       setError('')
-      console.log('グループからユーザー削除開始:', { groupId, userId })
+      console.log('統一API経由でグループからユーザー削除開始:', { groupId, userId })
       
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/groups/${groupId}/users`, {
-        method: 'DELETE',
+      const response = await fetch('/api/admin-actions', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
           'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
-        body: JSON.stringify({ userIds: [userId] })
+        body: JSON.stringify({ 
+          action: 'removeUsersFromGroup',
+          groupId: groupId, 
+          userIds: [userId] 
+        })
       })
 
       if (!response.ok) {
