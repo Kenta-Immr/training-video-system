@@ -328,8 +328,11 @@ export default function AdminGroupsPage() {
             <div className="text-blue-600 text-2xl mr-3">💡</div>
             <div>
               <h3 className="text-lg font-medium text-blue-900 mb-2">受講生自己登録について</h3>
-              <p className="text-blue-800 text-sm">
+              <p className="text-blue-800 text-sm mb-2">
                 受講生が自己登録時にグループコードを入力すると、自動的に該当グループに参加します。
+              </p>
+              <p className="text-blue-700 text-xs">
+                👥 既に登録済みでグループ未割り当てのユーザーは、各グループの「ユーザーを追加」ボタンから手動で割り当てできます。
               </p>
             </div>
           </div>
@@ -481,11 +484,14 @@ export default function AdminGroupsPage() {
                 「{selectedGroup.name}」にユーザーを追加
               </h2>
               
-              {/* デバッグ情報 */}
-              <div className="mb-4 p-2 bg-gray-50 text-xs text-gray-600 rounded">
-                <p>全ユーザー数: {users.length}</p>
-                <p>未割り当てユーザー数: {getUnassignedUsers().length}</p>
-                <p>グループ所属ユーザー数: {users.filter(u => u.groupId).length}</p>
+              {/* ユーザー状況 */}
+              <div className="mb-4 p-3 bg-blue-50 text-sm text-blue-800 rounded">
+                <div className="font-medium mb-1">ユーザー状況</div>
+                <div className="space-y-1 text-xs">
+                  <p>• 全登録ユーザー数: {users.length}名</p>
+                  <p>• グループ未割り当て: {getUnassignedUsers().length}名</p>
+                  <p>• グループ所属済み: {users.filter(u => u.groupId).length}名</p>
+                </div>
               </div>
               
               <div className="space-y-3 max-h-60 overflow-y-auto">
@@ -518,7 +524,8 @@ export default function AdminGroupsPage() {
                 ) : (
                   <div className="space-y-2">
                     <div className="text-center py-4">
-                      <p className="text-gray-500 text-sm">未割り当てのユーザーがいません</p>
+                      <p className="text-gray-500 text-sm">グループ未割り当てのユーザーがいません</p>
+                      <p className="text-xs text-gray-400 mt-1">（全ユーザーがいずれかのグループに所属しています）</p>
                     </div>
                     
                     {/* 全ユーザー表示（デバッグ用） */}
@@ -672,7 +679,7 @@ export default function AdminGroupsPage() {
                     )}
                     <div className="mt-3">
                       <p className="text-sm text-gray-500 mb-2">
-                        {group.users?.length || 0} 名のメンバー
+                        👥 {users.filter(u => u.groupId === group.id).length} 名のメンバー
                       </p>
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <div className="flex items-center justify-between">
@@ -727,11 +734,11 @@ export default function AdminGroupsPage() {
                 </div>
 
                 {/* グループメンバー一覧 */}
-                {group.users && group.users.length > 0 && (
+                {users.filter(u => u.groupId === group.id).length > 0 && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">メンバー</h4>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">所属メンバー ({users.filter(u => u.groupId === group.id).length}名)</h4>
                     <div className="space-y-2">
-                      {group.users.map((user) => (
+                      {users.filter(u => u.groupId === group.id).map((user) => (
                         <div key={user.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
                           <div>
                             <span className="font-medium">{user.name}</span>
