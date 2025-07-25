@@ -14,7 +14,6 @@ import { validateAccess } from '@/lib/workingHours'
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [loginMode, setLoginMode] = useState<'email' | 'userId'>('userId') // デフォルトをuserIdに
   const router = useRouter()
 
   const {
@@ -28,23 +27,15 @@ export default function LoginPage() {
     console.log('=== SUBMIT HANDLER CALLED ===')
     console.log('Received data:', data, 'Login mode:', loginMode)
     
-    // ログインモードに応じてデータを準備
-    const loginData: LoginRequest = {
-      password: data.password
+    // ユーザーIDとパスワードのバリデーション
+    if (!data.userId || !data.password) {
+      setError('ユーザーIDとパスワードを入力してください')
+      return
     }
     
-    if (loginMode === 'userId') {
-      loginData.userId = data.userId
-      if (!data.userId || !data.password) {
-        setError('ユーザーIDとパスワードを入力してください')
-        return
-      }
-    } else {
-      loginData.email = data.email
-      if (!data.email || !data.password) {
-        setError('メールアドレスとパスワードを入力してください')
-        return
-      }
+    const loginData: LoginRequest = {
+      userId: data.userId,
+      password: data.password
     }
     
     setLoading(true)
@@ -102,7 +93,7 @@ export default function LoginPage() {
       console.error('Error data:', error.response?.data)
       
       if (error.response?.status === 401) {
-        setError(error.response?.data?.message || 'ユーザーIDまたはメールアドレス、パスワードが間違っています')
+        setError(error.response?.data?.message || 'ユーザーIDまたはパスワードが間違っています')
       } else if (error.response?.status === 404) {
         setError('APIエンドポイントが見つかりません')
       } else if (error.response?.status === 405) {
@@ -120,10 +111,10 @@ export default function LoginPage() {
   const onDebugSubmit = async (data: LoginRequest) => {
     console.log('=== DEBUG SUBMIT DATA ===')
     console.log('Form data received:', data)
-    console.log('Email:', data?.email)
+    console.log('UserId:', data?.userId)
     console.log('Password:', data?.password)
     
-    if (!data?.email || !data?.password) {
+    if (!data?.userId || !data?.password) {
       setError('デバッグ: フォームデータが正しく取得できませんでした')
       return
     }
@@ -198,72 +189,24 @@ export default function LoginPage() {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {/* ログインモード選択 */}
-          <div className="flex justify-center space-x-4 mb-4">
-            <button
-              type="button"
-              onClick={() => setLoginMode('userId')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                loginMode === 'userId'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              ユーザーIDでログイン
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginMode('email')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                loginMode === 'email'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              メールアドレスでログイン
-            </button>
-          </div>
           
           <div className="rounded-md shadow-sm space-y-4">
-            {loginMode === 'userId' ? (
-              <div>
-                <label htmlFor="userId" className="form-label">
-                  ユーザーID
-                </label>
-                <input
-                  {...register('userId', {
-                    required: loginMode === 'userId' ? 'ユーザーIDは必須です' : false,
-                  })}
-                  type="text"
-                  className="form-input"
-                  placeholder="ユーザーIDを入力"
-                />
-                {errors.userId && (
-                  <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
-                )}
-              </div>
-            ) : (
-              <div>
-                <label htmlFor="email" className="form-label">
-                  メールアドレス
-                </label>
-                <input
-                  {...register('email', {
-                    required: loginMode === 'email' ? 'メールアドレスは必須です' : false,
-                    pattern: {
-                      value: /^\S+@\S+$/i,
-                      message: '有効なメールアドレスを入力してください',
-                    },
-                  })}
-                  type="email"
-                  className="form-input"
-                  placeholder="メールアドレスを入力"
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-                )}
-              </div>
-            )}
+            <div>
+              <label htmlFor="userId" className="form-label">
+                ユーザーID
+              </label>
+              <input
+                {...register('userId', {
+                  required: 'ユーザーIDは必須です',
+                })}
+                type="text"
+                className="form-input"
+                placeholder="ユーザーIDを入力"
+              />
+              {errors.userId && (
+                <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
+              )}
+            </div>
 
             <div>
               <label htmlFor="password" className="form-label">

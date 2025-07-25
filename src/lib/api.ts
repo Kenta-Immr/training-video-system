@@ -65,13 +65,12 @@ api.interceptors.response.use(
 )
 
 export interface LoginRequest {
-  email?: string
-  userId?: string
+  userId: string
   password: string
 }
 
 export interface RegisterRequest {
-  email: string
+  userId: string
   name: string
   password: string
   groupCode?: string
@@ -81,7 +80,7 @@ export interface LoginResponse {
   token: string
   user: {
     id: number
-    email: string
+    userId: string
     name: string
     role: string
   }
@@ -289,8 +288,7 @@ export const logAPI = {
 
 export interface UserData {
   id: number
-  userId?: string
-  email: string
+  userId: string
   name: string
   role: 'USER' | 'ADMIN'
   groupId?: number
@@ -322,7 +320,6 @@ export interface Group {
 
 export interface CreateUserRequest {
   userId: string
-  email: string
   name: string
   password: string
   role?: 'USER' | 'ADMIN'
@@ -331,7 +328,6 @@ export interface CreateUserRequest {
 
 export interface UpdateUserRequest {
   userId?: string
-  email: string
   name: string
   role?: 'USER' | 'ADMIN'
   password?: string
@@ -340,7 +336,6 @@ export interface UpdateUserRequest {
 export interface BulkCreateUserRequest {
   users?: {
     userId: string
-    email: string
     name: string
     password: string
     role?: 'USER' | 'ADMIN'
@@ -356,7 +351,7 @@ export interface BulkCreateUserResponse {
   created: UserData[]
   failed: {
     index: number
-    email: string
+    userId: string
     error: string
   }[]
 }
@@ -393,8 +388,8 @@ export interface GroupProgress {
   members: {
     user: {
       id: number
+      userId: string
       name: string
-      email: string
       role: string
       isFirstLogin: boolean
       lastLoginAt?: string

@@ -20,21 +20,15 @@ export default function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
-  const { email, userId, password } = req.body
-  const loginIdentifier = userId || email // ユーザーIDまたはメールアドレス
+  const { userId, password } = req.body
   
-  console.log('Login attempt:', { email, userId, loginIdentifier, password })
+  console.log('Login attempt:', { userId, password })
   
-  // ユーザーIDまたはメールアドレスでログイン
+  // ユーザーIDでログイン
   let user = null
   if (userId) {
-    // ユーザーIDでログイン
     user = dataStore.getUserByUserIdAndPassword(userId, password)
     console.log('ユーザーID認証:', { userId, found: !!user })
-  } else if (email) {
-    // メールアドレスでログイン（従来の方式）
-    user = dataStore.getUserByEmailAndPassword(email, password)
-    console.log('メール認証:', { email, found: !!user })
   }
   
   if (user) {
@@ -46,7 +40,7 @@ export default function handler(req, res) {
       : `user_${Buffer.from(userInfo).toString('base64').substring(0, 20)}`
     
     console.log('認証成功:', { 
-      email, 
+      userId, 
       role: user.role, 
       tokenPrefix: token.substring(0, 10),
       env: process.env.NODE_ENV
@@ -57,17 +51,17 @@ export default function handler(req, res) {
       token: token,
       user: {
         id: user.id,
-        email: user.email,
+        userId: user.userId,
         name: user.name,
         role: user.role
       },
       message: 'ログインに成功しました'
     })
   } else {
-    console.log('認証失敗:', { email, userId, password })
+    console.log('認証失敗:', { userId, password })
     res.status(401).json({
       success: false,
-      message: 'ユーザーIDまたはメールアドレス、パスワードが間違っています'
+      message: 'ユーザーIDまたはパスワードが間違っています'
     })
   }
 }

@@ -16,45 +16,45 @@ export default function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
-  const { name, email, password, role, groupId } = req.body
+  const { name, userId, password, role, groupId } = req.body
   
-  console.log('ユーザー登録リクエスト:', { name, email, role, groupId })
+  console.log('ユーザー登録リクエスト:', { name, userId, role, groupId })
   
   // バリデーション
-  if (!name || !email || !password) {
+  if (!name || !userId || !password) {
     return res.status(400).json({
       success: false,
-      message: '名前、メールアドレス、パスワードは必須です'
+      message: '名前、ユーザーID、パスワードは必須です'
     })
   }
   
-  // メールアドレスの重複チェック
-  const existingUser = dataStore.getUserByEmail(email)
+  // ユーザーIDの重複チェック
+  const existingUser = dataStore.getUserByUserId(userId)
   if (existingUser) {
     return res.status(400).json({
       success: false,
-      message: 'このメールアドレスは既に使用されています'
+      message: 'このユーザーIDは既に使用されています'
     })
   }
   
   // ユーザー作成
   const newUser = dataStore.createUser({
     name,
-    email,
+    userId,
     password,
     role: role || 'USER',
     groupId: groupId || null,
     isFirstLoginPending: false
   })
   
-  console.log(`新規ユーザー作成: ${name} (${email}) - ID: ${newUser.id}`)
+  console.log(`新規ユーザー作成: ${name} (${userId}) - ID: ${newUser.id}`)
   
   return res.json({
     success: true,
     data: {
       id: newUser.id,
       name: newUser.name,
-      email: newUser.email,
+      userId: newUser.userId,
       role: newUser.role,
       groupId: newUser.groupId
     },

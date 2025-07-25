@@ -3,14 +3,14 @@ import jwt_decode from 'jwt-decode'
 
 export interface User {
   id: number
-  email: string
+  userId: string
   name: string
   role: 'USER' | 'ADMIN'
 }
 
 export interface DecodedToken {
   userId: number
-  email: string
+  userIdString: string
   role: 'USER' | 'ADMIN'
   exp: number
 }
@@ -52,13 +52,13 @@ export const getCurrentUser = (): User | null => {
       const demoUsers: { [key: string]: User } = {
         'demo-admin': {
           id: 1,
-          email: 'admin@test.com',
+          userId: 'admin',
           name: '管理者ユーザー',
           role: 'ADMIN'
         },
         'demo-user': {
           id: 2,
-          email: 'test@test.com', 
+          userId: 'user1',
           name: '一般ユーザー',
           role: 'USER'
         }
@@ -68,14 +68,14 @@ export const getCurrentUser = (): User | null => {
       if (token.startsWith('admin_')) {
         return {
           id: 1,
-          email: 'admin@test.com',
+          userId: 'admin',
           name: '管理者ユーザー',
           role: 'ADMIN'
         }
       } else if (token.startsWith('user_')) {
         return {
           id: 2,
-          email: 'test@test.com',
+          userId: 'user1',
           name: '一般ユーザー',
           role: 'USER'
         }
@@ -92,7 +92,7 @@ export const getCurrentUser = (): User | null => {
       if (token.startsWith('admin')) {
         return {
           id: 1,
-          email: 'admin@example.com',
+          userId: 'admin',
           name: '管理者',
           role: 'ADMIN'
         }
@@ -100,12 +100,12 @@ export const getCurrentUser = (): User | null => {
       
       // 一般的なトークンパターン（簡易的な実装）
       // 実際の実装では、トークンからユーザー情報を適切に取得する
-      const userId = parseInt(token.replace(/\D/g, '')) || 2 // 数字を抽出
+      const userNumericId = parseInt(token.replace(/\D/g, '')) || 2 // 数字を抽出
       
       return {
-        id: userId,
-        email: `user${userId}@example.com`,
-        name: `ユーザー${userId}`,
+        id: userNumericId,
+        userId: `user${userNumericId}`,
+        name: `ユーザー${userNumericId}`,
         role: 'USER'
       }
     }
@@ -121,7 +121,7 @@ export const getCurrentUser = (): User | null => {
 
     const user = {
       id: decoded.userId,
-      email: decoded.email,
+      userId: decoded.userIdString,
       name: '',
       role: decoded.role
     }
