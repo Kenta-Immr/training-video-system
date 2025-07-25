@@ -37,7 +37,16 @@ export default function VideoPlayerPage() {
     const fetchVideo = async () => {
       try {
         const response = await videoAPI.getById(videoId)
-        setVideo(response.data)
+        console.log('Video API response:', response)
+        
+        // APIレスポンスの構造をチェック
+        let videoData = response.data
+        if (response.data?.data) {
+          videoData = response.data.data
+        }
+        
+        console.log('Video data after processing:', videoData)
+        setVideo(videoData)
         
         // 勤務時間チェック（管理者以外）
         const user = getCurrentUser()
@@ -67,14 +76,15 @@ export default function VideoPlayerPage() {
         }
         
         // 既存の視聴ログがあれば再生位置を復元
-        if (user && response.data.viewingLogs) {
-          const userLog = response.data.viewingLogs.find(log => log.userId === user.id)
+        if (user && videoData.viewingLogs) {
+          const userLog = videoData.viewingLogs.find(log => log.userId === user.id)
           if (userLog && userLog.watchedSeconds > 0) {
             setPlayed(userLog.watchedSeconds / (duration || 1))
           }
         }
       } catch (error: any) {
-        setError(error.response?.data?.error || '動画の取得に失敗しました')
+        console.error('Video fetch error:', error)
+        setError(error.response?.data?.message || error.response?.data?.error || '動画の取得に失敗しました')
       } finally {
         setLoading(false)
       }

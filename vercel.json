@@ -5,17 +5,18 @@
   "functions": {
     "pages/api/videos/upload.js": {
       "maxDuration": 300,
-      "memory": 1024
+      "memory": 3008
     },
     "pages/api/courses/upload-thumbnail.js": {
-      "maxDuration": 30
+      "maxDuration": 60,
+      "memory": 1024
     },
     "pages/api/create-video.js": {
       "maxDuration": 60
     },
     "pages/api/videos/chunked-upload.js": {
       "maxDuration": 300,
-      "memory": 1024
+      "memory": 3008
     },
     "pages/api/create-user.js": {
       "maxDuration": 60

@@ -5,8 +5,8 @@ const dataStore = require('../../../lib/dataStore')
 export const config = {
   api: {
     bodyParser: false,
-    responseLimit: '50mb',
-    sizeLimit: '50mb',
+    responseLimit: '100mb',
+    sizeLimit: '100mb',
   },
   maxDuration: 300,
 }

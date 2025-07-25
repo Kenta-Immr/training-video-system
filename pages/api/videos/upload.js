@@ -4,8 +4,8 @@
 export const config = {
   api: {
     bodyParser: false,
-    responseLimit: '50mb',
-    sizeLimit: '50mb',
+    responseLimit: '500mb',
+    sizeLimit: '500mb',
   },
   maxDuration: 300,
 }
