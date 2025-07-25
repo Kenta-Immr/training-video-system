@@ -14,10 +14,12 @@
     "kv-status": "node -e \"const kv = require('./lib/kvStore'); kv.isKVAvailable() ? console.log('✅ KV利用可能') : console.log('❌ KV利用不可')\""
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.52.1",
     "@vercel/kv": "^0.2.4",
     "axios": "^1.5.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
     "express": "^4.18.2",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",

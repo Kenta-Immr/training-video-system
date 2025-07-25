@@ -11,7 +11,13 @@
       "workingHours": {
         "startTime": "09:00",
         "endTime": "18:00",
-        "workingDays": [1, 2, 3, 4, 5]
+        "workingDays": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
       },
       "trainingPeriod": {
         "startDate": "2025-07-01",
@@ -29,7 +35,13 @@
       "workingHours": {
         "startTime": "08:30",
         "endTime": "17:30",
-        "workingDays": [1, 2, 3, 4, 5]
+        "workingDays": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
       },
       "trainingPeriod": {
         "startDate": "2025-07-22",
@@ -55,7 +67,16 @@
       "courseIds": [],
       "createdAt": "2025-07-21T05:39:55.883Z",
       "updatedAt": "2025-07-21T05:39:55.883Z"
+    },
+    "5": {
+      "id": 5,
+      "name": "MCPテストグループ_2025-07-25",
+      "code": "MCP_1753483760604",
+      "description": "MCPサーバーの書き込み機能をテストするために作成されたグループです",
+      "courseIds": [],
+      "createdAt": "2025-07-25T22:49:20.605Z",
+      "updatedAt": "2025-07-25T22:49:20.605Z"
     }
   },
-  "nextGroupId": 5
+  "nextGroupId": 6
 }
