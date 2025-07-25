@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control')
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
@@ -68,102 +68,29 @@ export default async function handler(req, res) {
       })
     }
     
-    // KVから直接データを取得・更新（より確実）
-    const { kv } = require('@vercel/kv')
+    // dataStoreを使用して動画を作成
+    const newVideo = dataStore.createVideo({
+      title: title.trim(),
+      description: description ? description.trim() : '',
+      videoUrl: videoUrl.trim(),
+      curriculumId: parseInt(curriculumId),
+      duration: 0, // URLベースの動画では初期値0
+      uploadedFile: false // URL動画フラグ
+    })
     
-    // 現在のコースデータを取得
-    let coursesData = await kv.get('courses')
-    if (!coursesData) {
-      coursesData = {
-        courses: {},
-        nextCourseId: 1,
-        lastUpdated: new Date().toISOString()
-      }
-    }
-    
-    // カリキュラムを検索
-    let targetCourse = null
-    let targetCurriculum = null
-    
-    for (const courseId in coursesData.courses) {
-      const course = coursesData.courses[courseId]
-      if (course.curriculums) {
-        for (const curriculum of course.curriculums) {
-          if (curriculum.id === parseInt(curriculumId)) {
-            targetCourse = course
-            targetCurriculum = curriculum
-            break
-          }
-        }
-      }
-      if (targetCurriculum) break
-    }
-    
-    if (!targetCurriculum) {
+    if (!newVideo) {
       return res.status(404).json({
         success: false,
         message: `カリキュラムID ${curriculumId} が見つかりません`
       })
     }
     
-    // 新しい動画IDを生成
-    let videosData = await kv.get('videos')
-    if (!videosData) {
-      videosData = {
-        videos: {},
-        nextVideoId: 1,
-        lastUpdated: new Date().toISOString()
-      }
-    }
-    
-    const newVideoId = videosData.nextVideoId
-    const newVideo = {
-      id: newVideoId,
-      title,
-      description: description || '',
-      videoUrl,
-      curriculumId: parseInt(curriculumId),
-      duration: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-    
-    // videos データに追加
-    videosData.videos[newVideoId.toString()] = newVideo
-    videosData.nextVideoId = newVideoId + 1
-    videosData.lastUpdated = new Date().toISOString()
-    
-    // カリキュラムの動画配列に追加
-    if (!targetCurriculum.videos) {
-      targetCurriculum.videos = []
-    }
-    targetCurriculum.videos.push(newVideo)
-    targetCurriculum.updatedAt = new Date().toISOString()
-    
-    // コースの更新日時も更新
-    targetCourse.updatedAt = new Date().toISOString()
-    coursesData.lastUpdated = new Date().toISOString()
-    
-    // KVに保存
-    await kv.set('videos', videosData)
-    await kv.set('courses', coursesData)
-    
-    console.log(`確実動画作成成功: ${title} (ID: ${newVideo.id}) → カリキュラム: ${targetCurriculum.title}`)
-    
-    // 保存確認
-    const verifyVideos = await kv.get('videos')
-    const foundVideo = verifyVideos?.videos?.[newVideoId.toString()]
-    if (foundVideo) {
-      console.log('✓ KVに動画保存確認済み:', foundVideo.title)
-    }
+    console.log(`確実動画作成成功: ${title} (ID: ${newVideo.id})`)
     
     return res.json({
       success: true,
       data: newVideo,
-      message: '動画を確実に作成しました',
-      courseTitle: targetCourse.title,
-      curriculumTitle: targetCurriculum.title,
-      endpoint: 'create-video'
+      message: '動画を確実に作成しました'
     })
     
   } catch (error) {
