@@ -92,7 +92,14 @@ export default function HomePage() {
     const user = getCurrentUser()
     if (!user) return 0
 
-    const allVideos = course.curriculums.flatMap(curriculum => curriculum.videos)
+    // curriculumsが存在しない場合は0を返す
+    if (!course.curriculums || !Array.isArray(course.curriculums)) {
+      return 0
+    }
+
+    const allVideos = course.curriculums.flatMap(curriculum => 
+      curriculum.videos || []
+    )
     const completedVideos = allVideos.filter(video => 
       video.viewingLogs?.some(log => log.userId === user.id && log.isCompleted)
     )
@@ -125,8 +132,8 @@ export default function HomePage() {
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {courses.map((course) => {
               const progress = calculateProgress(course)
-              const totalVideos = course.curriculums.reduce(
-                (sum, curriculum) => sum + curriculum.videos.length,
+              const totalVideos = (course.curriculums || []).reduce(
+                (sum, curriculum) => sum + (curriculum.videos?.length || 0),
                 0
               )
 
@@ -159,7 +166,7 @@ export default function HomePage() {
 
                     <div className="space-y-3">
                       <div className="flex justify-between text-xs sm:text-sm text-gray-500">
-                        <span>📚 {course.curriculums.length} カリキュラム</span>
+                        <span>📚 {course.curriculums?.length || 0} カリキュラム</span>
                         <span>🎥 {totalVideos} 動画</span>
                       </div>
 

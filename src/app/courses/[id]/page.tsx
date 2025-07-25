@@ -20,9 +20,24 @@ export default function CourseDetailPage() {
     const fetchCourse = async () => {
       try {
         const response = await courseAPI.getById(courseId)
-        setCourse(response.data)
+        console.log('Course API response:', response)
+        
+        // APIレスポンスの構造をチェック
+        let courseData = response.data
+        if (response.data?.data) {
+          courseData = response.data.data
+        }
+        
+        // curriculumsが存在しない場合は空配列で初期化
+        if (courseData && !courseData.curriculums) {
+          courseData.curriculums = []
+        }
+        
+        console.log('Course data after processing:', courseData)
+        setCourse(courseData)
       } catch (error: any) {
-        setError(error.response?.data?.error || 'コースの取得に失敗しました')
+        console.error('Course fetch error:', error)
+        setError(error.response?.data?.message || error.response?.data?.error || 'コースの取得に失敗しました')
       } finally {
         setLoading(false)
       }
@@ -127,7 +142,7 @@ export default function CourseDetailPage() {
         </div>
 
         <div className="space-y-6 sm:space-y-8">
-          {course.curriculums.map((curriculum) => (
+          {course.curriculums?.map((curriculum) => (
             <div key={curriculum.id} className="card">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">
                 {curriculum.title}
@@ -173,7 +188,7 @@ export default function CourseDetailPage() {
           ))}
         </div>
 
-        {course.curriculums.length === 0 && (
+        {(!course.curriculums || course.curriculums.length === 0) && (
           <div className="text-center py-12">
             <p className="text-gray-500">カリキュラムがまだ登録されていません</p>
           </div>
