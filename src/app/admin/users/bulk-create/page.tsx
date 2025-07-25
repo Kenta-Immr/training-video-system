@@ -43,32 +43,24 @@ export default function BulkCreateUsersPage() {
   }
 
   const handleSubmit = async () => {
-    // 強制的にalertを表示してJavaScript動作確認
-    alert('handleSubmit関数が呼び出されました！')
-    
     if (!csvText.trim()) {
-      alert('CSVテキストが空です')
       setError('CSVデータを入力または選択してください')
       return
     }
 
-    alert('一括ユーザー作成を開始します')
     setIsUploading(true)
     setError('')
     setResult(null)
 
     try {
-      alert('API呼び出し直前')
       const response = await userAPI.bulkCreate({
         csvText: csvText
       })
       
-      alert('API呼び出し成功')
       const resultData = response.data?.data || response.data
       setResult(resultData)
 
     } catch (error: any) {
-      alert('エラーが発生: ' + error.message)
       console.error('一括ユーザー作成エラー:', error)
       
       let errorMessage = '一括ユーザー作成に失敗しました'
@@ -243,11 +235,7 @@ user004,鈴木美咲,passwordabc,USER,営業部`
 {sampleCsv}
                 </pre>
                 <button
-                  onClick={() => {
-                    alert('サンプルデータボタンがクリックされました')
-                    setCsvText(sampleCsv)
-                    alert('CSVデータが設定されました')
-                  }}
+                  onClick={() => setCsvText(sampleCsv)}
                   className="btn-secondary text-sm mt-2"
                 >
                   サンプルデータを使用
