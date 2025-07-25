@@ -136,8 +136,8 @@ export async function POST(request) {
           continue
         }
         
-        // ユーザーIDの重複チェック（非同期版使用）
-        const existingUser = await dataStore.getUserByUserIdAsync(userData.userId)
+        // ユーザーIDの重複チェック（同期版使用）
+        const existingUser = dataStore.getUserByUserId(userData.userId)
         if (existingUser) {
           results.failed.push({
             index: i + 1,
