@@ -72,7 +72,7 @@ export default async function handler(req, res) {
     })
     
     console.log(`ユーザー一覧取得: ${users.length}件`)
-    console.log('取得したユーザー:', usersWithGroups.map(u => ({ id: u.id, name: u.name, email: u.email })))
+    console.log('取得したユーザー:', usersWithGroups.map(u => ({ id: u.id, name: u.name, userId: u.userId })))
     
     return res.json({
       success: true,
@@ -83,24 +83,24 @@ export default async function handler(req, res) {
   }
   
   if (req.method === 'POST') {
-    const { email, name, role = 'USER', password, groupId } = req.body
+    const { userId, name, role = 'USER', password, groupId } = req.body
     
-    console.log('ユーザー作成リクエスト:', { email, name, role, groupId })
+    console.log('ユーザー作成リクエスト:', { userId, name, role, groupId })
     
     // バリデーション
-    if (!email || !name) {
+    if (!userId || !name) {
       return res.status(400).json({
         success: false,
-        message: 'メールアドレスと名前は必須です'
+        message: 'ユーザーIDと名前は必須です'
       })
     }
     
-    // メールアドレスの重複チェック
-    const existingUser = dataStore.getUserByEmail(email)
+    // ユーザーIDの重複チェック
+    const existingUser = dataStore.getUserByUserId ? dataStore.getUserByUserId(userId) : null
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'このメールアドレスは既に使用されています'
+        message: 'このユーザーIDは既に使用されています'
       })
     }
     
@@ -119,7 +119,7 @@ export default async function handler(req, res) {
     const tempPassword = password || generateTempPassword()
     
     const newUser = await dataStore.createUserAsync({
-      email,
+      userId,
       name,
       password: tempPassword,
       role: role.toUpperCase(),
@@ -127,7 +127,7 @@ export default async function handler(req, res) {
       isFirstLogin: true
     })
     
-    console.log(`新規ユーザー作成: ${name} (${email}) - ID: ${newUser.id}`)
+    console.log(`新規ユーザー作成: ${name} (${userId}) - ID: ${newUser.id}`)
     
     // 保存確認: 作成後にデータストアから取得して確認
     try {
@@ -159,7 +159,7 @@ export default async function handler(req, res) {
   
   if (req.method === 'PUT') {
     // ユーザー更新処理
-    const { userId, email, name, role, groupId, password } = req.body
+    const { userId, name, role, groupId, password } = req.body
     
     if (!userId) {
       return res.status(400).json({
@@ -168,7 +168,7 @@ export default async function handler(req, res) {
       })
     }
     
-    console.log('ユーザー更新:', { userId, name, email, role, groupId })
+    console.log('ユーザー更新:', { userId, name, role, groupId })
     
     // 既存ユーザーの確認
     const existingUser = await dataStore.getUserByIdAsync(userId)
@@ -179,16 +179,7 @@ export default async function handler(req, res) {
       })
     }
     
-    // メールアドレスの重複チェック（他のユーザーとの）
-    if (email && email !== existingUser.email) {
-      const emailUser = await dataStore.getUserByEmailAsync(email)
-      if (emailUser && emailUser.id !== userId) {
-        return res.status(400).json({
-          success: false,
-          message: 'このメールアドレスは既に使用されています'
-        })
-      }
-    }
+    // 他の更新フィールドの検証は必要に応じて追加
     
     // グループの存在確認
     let group = null
@@ -204,7 +195,6 @@ export default async function handler(req, res) {
     
     // ユーザー情報の更新
     const updateData = {
-      email: email || existingUser.email,
       name: name || existingUser.name,
       role: role ? role.toUpperCase() : existingUser.role,
       groupId: groupId !== undefined ? groupId : existingUser.groupId
@@ -257,7 +247,7 @@ export default async function handler(req, res) {
     const userToDelete = {
       id: existingUser.id,
       name: existingUser.name,
-      email: existingUser.email
+      userId: existingUser.userId
     }
     
     console.log('削除対象ユーザー:', userToDelete)

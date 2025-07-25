@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     }
     
     console.log(`ユーザー取得成功: ${users.length}件`)
-    console.log('取得ユーザーID一覧:', users.map(u => ({ id: u.id, name: u.name, email: u.email })))
+    console.log('取得ユーザーID一覧:', users.map(u => ({ id: u.id, name: u.name, userId: u.userId })))
     
     // グループ情報を付与
     let groups = []

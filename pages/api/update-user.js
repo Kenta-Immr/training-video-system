@@ -50,7 +50,7 @@ export default async function handler(req, res) {
   }
   
   try {
-    const { userId, email, name, role, groupId, password } = req.body
+    const { userId, name, role, groupId, password } = req.body
     
     if (!userId) {
       return res.status(400).json({
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
       })
     }
     
-    console.log('ユーザー更新開始:', { userId, name, email, role, groupId })
+    console.log('ユーザー更新開始:', { userId, name, role, groupId })
     
     // 既存ユーザーの確認
     const existingUser = await dataStore.getUserByIdAsync(userId)
@@ -71,16 +71,7 @@ export default async function handler(req, res) {
       })
     }
     
-    // メールアドレスの重複チェック（他のユーザーとの）
-    if (email && email !== existingUser.email) {
-      const emailUser = await dataStore.getUserByEmailAsync(email)
-      if (emailUser && emailUser.id !== parseInt(userId)) {
-        return res.status(400).json({
-          success: false,
-          message: 'このメールアドレスは既に使用されています'
-        })
-      }
-    }
+    // 他の更新フィールドの検証は必要に応じて追加
     
     // グループの存在確認
     let group = null
@@ -96,7 +87,6 @@ export default async function handler(req, res) {
     
     // ユーザー情報の更新
     const updateData = {
-      email: email || existingUser.email,
       name: name || existingUser.name,
       role: role ? role.toUpperCase() : existingUser.role,
       groupId: groupId !== undefined ? groupId : existingUser.groupId

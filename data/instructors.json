@@ -3,7 +3,6 @@
     "1": {
       "id": 1,
       "name": "田中太郎",
-      "email": "tanaka@example.com",
       "bio": "ウェブ開発歴10年のエキスパート講師",
       "expertise": ["JavaScript", "React", "Node.js"],
       "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",

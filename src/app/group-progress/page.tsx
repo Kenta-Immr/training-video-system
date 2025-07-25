@@ -57,8 +57,8 @@ export default function GroupProgressPage() {
           userData = { 
             id: currentUser.id, 
             groupId: 1, 
-            name: currentUser.name || currentUser.email,
-            email: currentUser.email 
+            name: currentUser.name || currentUser.userId,
+            userId: currentUser.userId 
           }
           console.log('Using fallback user data:', userData)
         }
@@ -106,8 +106,8 @@ export default function GroupProgressPage() {
               {
                 user: {
                   id: currentUser.id,
-                  name: currentUser.name || currentUser.email,
-                  email: currentUser.email,
+                  userId: currentUser.userId,
+                  name: currentUser.name || currentUser.userId,
                   role: currentUser.role,
                   isFirstLogin: false,
                   lastLoginAt: new Date().toISOString(),

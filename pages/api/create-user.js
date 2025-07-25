@@ -55,37 +55,21 @@ export default async function handler(req, res) {
   }
   
   try {
-    const { userId, email, name, role = 'USER', password, groupId } = req.body
+    const { userId, name, role = 'USER', password, groupId } = req.body
     
-    console.log('緊急ユーザー作成リクエスト:', { userId, email, name, role, groupId })
+    console.log('緊急ユーザー作成リクエスト:', { userId, name, role, groupId })
     
     // バリデーション
-    if (!email || !name) {
+    if (!userId || !name) {
       return res.status(400).json({
         success: false,
-        message: 'メールアドレスと名前は必須です'
-      })
-    }
-    
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'ユーザーIDは必須です'
-      })
-    }
-    
-    // メールアドレスの重複チェック
-    const existingUser = dataStore.getUserByEmail(email)
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'このメールアドレスは既に使用されています'
+        message: 'ユーザーIDと名前は必須です'
       })
     }
     
     // ユーザーIDの重複チェック
-    const existingUserByUserId = dataStore.isUserIdExists ? dataStore.isUserIdExists(userId) : false
-    if (existingUserByUserId) {
+    const existingUser = dataStore.getUserByUserId ? dataStore.getUserByUserId(userId) : null
+    if (existingUser) {
       return res.status(400).json({
         success: false,
         message: 'このユーザーIDは既に使用されています'
@@ -133,7 +117,6 @@ export default async function handler(req, res) {
         newUser = {
           id: newUserId,
           userId,
-          email,
           name,
           password: tempPassword,
           role: role.toUpperCase(),
@@ -163,7 +146,6 @@ export default async function handler(req, res) {
     try {
       const dataStoreUser = await dataStore.createUserAsync({
         userId,
-        email,
         name,
         password: tempPassword,
         role: role.toUpperCase(),
@@ -184,7 +166,7 @@ export default async function handler(req, res) {
       throw new Error('ユーザー作成に失敗しました（すべての保存方式が失敗）')
     }
     
-    console.log(`ユーザー作成成功: ${newUser.name} (${email}) - ID: ${newUser.id}`)
+    console.log(`ユーザー作成成功: ${newUser.name} (${userId}) - ID: ${newUser.id}`)
     console.log('保存方式:', { kvSaved, dataStoreSaved })
     
     // 保存確認

@@ -171,32 +171,22 @@ export default function handler(req, res) {
       
       try {
         // 必須フィールドチェック
-        if (!userData.name || !userData.email || !userData.userId) {
+        if (!userData.name || !userData.userId) {
           results.failed.push({
             index: i + 1,
-            email: userData.email || '未指定',
-            error: 'ユーザーID、名前、メールアドレスは必須です'
-          })
-          results.errors++
-          continue
-        }
-        
-        // メールアドレスの重複チェック
-        if (dataStore.getUserByEmail(userData.email)) {
-          results.failed.push({
-            index: i + 1,
-            email: userData.email,
-            error: 'このメールアドレスは既に使用されています'
+            userId: userData.userId || '未指定',
+            error: 'ユーザーIDと名前は必須です'
           })
           results.errors++
           continue
         }
         
         // ユーザーIDの重複チェック
-        if (dataStore.isUserIdExists && dataStore.isUserIdExists(userData.userId)) {
+        const existingUser = dataStore.getUserByUserId ? dataStore.getUserByUserId(userData.userId) : null
+        if (existingUser) {
           results.failed.push({
             index: i + 1,
-            email: userData.email,
+            userId: userData.userId,
             error: 'このユーザーIDは既に使用されています'
           })
           results.errors++
@@ -228,7 +218,6 @@ export default function handler(req, res) {
         // データストアを使用してユーザー作成
         const newUser = dataStore.createUser({
           userId: userData.userId,
-          email: userData.email,
           name: userData.name,
           password: userData.password || generateTempPassword(),
           role: (userData.role || 'USER').toUpperCase(),
@@ -239,13 +228,13 @@ export default function handler(req, res) {
         results.created.push(newUser)
         results.success++
         
-        console.log(`ユーザー作成成功: ${newUser.name} (${newUser.email})`)
+        console.log(`ユーザー作成成功: ${newUser.name} (${newUser.userId})`)
         
       } catch (error) {
         console.error(`ユーザー作成エラー (${i + 1}行目):`, error)
         results.failed.push({
           index: i + 1,
-          email: userData.email || '未指定',
+          userId: userData.userId || '未指定',
           error: error.message || '不明なエラー'
         })
         results.errors++
