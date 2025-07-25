@@ -512,7 +512,7 @@ export default function AdminGroupsPage() {
                       />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{user.name}</div>
-                        <div className="text-sm text-gray-600">{user.email}</div>
+                        <div className="text-sm text-gray-600">{user.userId}</div>
                         {user.role === 'ADMIN' && (
                           <span className="inline-block mt-1 px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
                             管理者
@@ -534,7 +534,7 @@ export default function AdminGroupsPage() {
                       <div className="mt-2 space-y-1">
                         {users.map((user) => (
                           <div key={user.id} className="text-xs p-1 bg-gray-50 rounded">
-                            <span className="font-medium">{user.name}</span> ({user.email})
+                            <span className="font-medium">{user.name}</span> ({user.userId})
                             <span className="ml-2 text-gray-500">
                               Group: {user.groupId ? `${user.groupId} (${user.group?.name})` : 'なし'}
                             </span>
@@ -742,7 +742,7 @@ export default function AdminGroupsPage() {
                         <div key={user.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
                           <div>
                             <span className="font-medium">{user.name}</span>
-                            <span className="text-sm text-gray-500 ml-2">({user.email})</span>
+                            <span className="text-sm text-gray-500 ml-2">({user.userId})</span>
                             {user.role === 'ADMIN' && (
                               <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
                                 管理者

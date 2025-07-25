@@ -50,7 +50,7 @@ export default function NotificationsPage() {
         { 
           id: 1, 
           name: '田中太郎', 
-          email: 'tanaka@example.com', 
+          userId: 'tanaka_taro', 
           role: 'USER', 
           isFirstLogin: true,
           createdAt: '2024-07-15T10:00:00Z',
@@ -60,7 +60,7 @@ export default function NotificationsPage() {
         { 
           id: 2, 
           name: '佐藤花子', 
-          email: 'sato@example.com', 
+          userId: 'sato_hanako', 
           role: 'USER', 
           isFirstLogin: true,
           createdAt: '2024-07-10T10:00:00Z',
@@ -73,7 +73,7 @@ export default function NotificationsPage() {
         { 
           id: 3, 
           name: '山田次郎', 
-          email: 'yamada@example.com', 
+          userId: 'yamada_jiro', 
           role: 'USER', 
           isFirstLogin: false,
           createdAt: '2024-07-01T10:00:00Z',
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
         { 
           id: 4, 
           name: '鈴木一郎', 
-          email: 'suzuki@example.com', 
+          userId: 'suzuki_ichiro', 
           role: 'USER', 
           isFirstLogin: false,
           createdAt: '2024-07-01T10:00:00Z',
@@ -105,7 +105,7 @@ export default function NotificationsPage() {
         { 
           id: 5, 
           name: '高橋美子', 
-          email: 'takahashi@example.com', 
+          userId: 'takahashi_miko', 
           role: 'USER', 
           isFirstLogin: false,
           createdAt: '2024-07-01T10:00:00Z',
@@ -290,7 +290,7 @@ export default function NotificationsPage() {
                     >
                       <div className="flex-1">
                         <div className={`font-medium ${textColor}`}>{user.name}</div>
-                        <div className={`text-sm ${textColor} opacity-80`}>{user.email}</div>
+                        <div className={`text-sm ${textColor} opacity-80`}>{user.userId}</div>
                         <div className={`text-xs ${textColor} opacity-70`}>作成から{daysSince}日経過</div>
                       </div>
                       <div className="flex items-center space-x-3">
@@ -325,7 +325,7 @@ export default function NotificationsPage() {
                     >
                       <div className="flex-1">
                         <div className={`font-medium ${textColor}`}>{user.name}</div>
-                        <div className={`text-sm ${textColor} opacity-80`}>{user.email}</div>
+                        <div className={`text-sm ${textColor} opacity-80`}>{user.userId}</div>
                         {user.progress && (
                           <div className="mt-1 space-y-1">
                             <div className={`text-xs ${textColor} opacity-70`}>

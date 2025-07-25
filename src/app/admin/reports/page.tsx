@@ -151,11 +151,11 @@ export default function AdminReportsPage() {
     // ユーザー進捗データをCSV形式で出力
     const csvContent = [
       // ヘッダー
-      ['ユーザー名', 'メールアドレス', '完了動画数', '総動画数', '進捗率(%)', '総視聴時間(秒)'].join(','),
+      ['ユーザー名', 'ユーザーID', '完了動画数', '総動画数', '進捗率(%)', '総視聴時間(秒)'].join(','),
       // データ行
       ...reportData.userProgress.map(user => [
         user.name,
-        user.email,
+        user.userId,
         user.completedVideos,
         user.totalVideos,
         user.progressRate,
@@ -262,7 +262,7 @@ export default function AdminReportsPage() {
           <thead>
             <tr>
               <th>ユーザー名</th>
-              <th>メールアドレス</th>
+              <th>ユーザーID</th>
               <th>完了動画数</th>
               <th>進捗率</th>
               <th>総視聴時間</th>
@@ -272,7 +272,7 @@ export default function AdminReportsPage() {
             ${reportData.userProgress.map(user => `
               <tr>
                 <td>${user.name}</td>
-                <td>${user.email}</td>
+                <td>${user.userId}</td>
                 <td>${user.completedVideos} / ${user.totalVideos}</td>
                 <td>${user.progressRate}%</td>
                 <td>${formatTime(user.totalWatchedSeconds)}</td>
@@ -535,7 +535,7 @@ export default function AdminReportsPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                            <div className="text-sm text-gray-500">{user.userId}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

@@ -72,7 +72,7 @@ export default function ProgressManagementPage() {
             user: {
               id: user.id,
               name: user.name,
-              email: user.email,
+              userId: user.userId,
               isFirstLogin: user.isFirstLogin || false,
               lastLoginAt: user.lastLoginAt || null
             },
@@ -326,7 +326,7 @@ export default function ProgressManagementPage() {
                                   {member.user.name}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                  {member.user.email}
+                                  {member.user.userId}
                                 </div>
                               </div>
                             </td>
@@ -393,7 +393,7 @@ export default function ProgressManagementPage() {
                   <option value="">ユーザーを選択すると詳細表示します</option>
                   {getFilteredUsers().map((user) => (
                     <option key={user.id} value={user.id}>
-                      {user.name} ({user.email}) {user.group?.name && `- ${user.group.name}`}
+                      {user.name} ({user.userId}) {user.group?.name && `- ${user.group.name}`}
                     </option>
                   ))}
                 </select>
@@ -445,7 +445,7 @@ export default function ProgressManagementPage() {
                               {user.name}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {user.email}
+                              {user.userId}
                             </div>
                           </div>
                         </td>
@@ -516,8 +516,8 @@ export default function ProgressManagementPage() {
                           <dd className="text-sm text-gray-900">{userProgress.name}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-gray-500">メールアドレス</dt>
-                          <dd className="text-sm text-gray-900">{userProgress.email}</dd>
+                          <dt className="text-sm font-medium text-gray-500">ユーザーID</dt>
+                          <dd className="text-sm text-gray-900">{userProgress.userId}</dd>
                         </div>
                         <div>
                           <dt className="text-sm font-medium text-gray-500">所属グループ</dt>

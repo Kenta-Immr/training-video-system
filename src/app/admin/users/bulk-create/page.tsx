@@ -86,10 +86,10 @@ export default function BulkCreateUsersPage() {
 
   const downloadSampleCSV = () => {
     const sampleCSV = `userId,name,password,role,groupName
-user001,yamada@example.com,山田太郎,password123,USER,営業部
-user002,sato@example.com,佐藤花子,password456,USER,技術部
-user003,tanaka@example.com,田中次郎,password789,ADMIN,管理部
-user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
+user001,山田太郎,password123,USER,営業部
+user002,佐藤花子,password456,USER,技術部
+user003,田中次郎,password789,ADMIN,管理部
+user004,鈴木美咲,passwordabc,USER,営業部`
 
     const blob = new Blob([sampleCSV], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
@@ -106,10 +106,10 @@ user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
   }
 
   const sampleCsv = `userId,name,password,role,groupName
-user001,yamada@example.com,山田太郎,password123,USER,営業部
-user002,sato@example.com,佐藤花子,password456,USER,技術部
-user003,tanaka@example.com,田中次郎,password789,ADMIN,管理部
-user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
+user001,山田太郎,password123,USER,営業部
+user002,佐藤花子,password456,USER,技術部
+user003,田中次郎,password789,ADMIN,管理部
+user004,鈴木美咲,passwordabc,USER,営業部`
 
   return (
     <AuthGuard requireAdmin>

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 interface User {
   id: number
   name: string
-  email: string
+  userId: string
   role: string
   createdAt: string
 }
@@ -100,7 +100,7 @@ export default function RealtimeUserList() {
                   名前
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  メール
+                  ユーザーID
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   権限
@@ -120,7 +120,7 @@ export default function RealtimeUserList() {
                     {user.name}
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                    {user.email}
+                    {user.userId}
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

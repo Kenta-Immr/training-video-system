@@ -73,7 +73,7 @@ export default function UserManagePage() {
         // ユーザー更新
         const updateData: UpdateUserRequest & { userId: number; groupId?: number } = {
           userId: editingUser.id,
-          email: data.email,
+          userId: data.userId,
           name: data.name,
           role: data.role,
           groupId
@@ -102,7 +102,7 @@ export default function UserManagePage() {
       } else {
         // ユーザー作成（既存の動作確認済みエンドポイントを使用）
         const createData: CreateUserRequest & { groupId?: number } = {
-          email: data.email,
+          userId: data.userId,
           name: data.name,
           password: data.password,
           role: data.role,
@@ -158,7 +158,7 @@ export default function UserManagePage() {
 
   const handleEdit = (user: UserData) => {
     setEditingUser(user)
-    setValue('email', user.email)
+    setValue('userId', user.userId)
     setValue('name', user.name)
     setValue('role', user.role)
     setValue('groupId', user.groupId ? user.groupId.toString() : '')
@@ -284,21 +284,17 @@ export default function UserManagePage() {
               
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="form-label">メールアドレス</label>
+                  <label className="form-label">ユーザーID</label>
                   <input
-                    {...register('email', { 
-                      required: 'メールアドレスは必須です',
-                      pattern: {
-                        value: /^\S+@\S+$/i,
-                        message: '有効なメールアドレスを入力してください',
-                      }
+                    {...register('userId', { 
+                      required: 'ユーザーIDは必須です'
                     })}
-                    type="email"
+                    type="text"
                     className="form-input"
-                    placeholder="user@example.com"
+                    placeholder="user_id"
                   />
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                  {errors.userId && (
+                    <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
                   )}
                 </div>
 
@@ -483,7 +479,7 @@ export default function UserManagePage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                          <div className="text-sm text-gray-500">ID: {user.userId}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
