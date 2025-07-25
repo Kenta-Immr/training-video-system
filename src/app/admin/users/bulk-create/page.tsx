@@ -123,7 +123,7 @@ user004,鈴木美咲,passwordabc,USER,営業部`
             </p>
           </div>
           <Link
-            href="/admin/users"
+            href="/admin/users/manage"
             className="btn-secondary"
           >
             ユーザー管理に戻る

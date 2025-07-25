@@ -345,7 +345,7 @@ export default function AdminDashboard() {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">受講者進捗一覧</h2>
                 <Link
-                  href="/admin/users"
+                  href="/admin/users/manage"
                   className="text-blue-600 hover:text-blue-800 text-sm"
                 >
                   詳細を見る →

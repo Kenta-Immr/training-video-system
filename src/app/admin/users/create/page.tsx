@@ -29,7 +29,7 @@ export default function CreateUserPage() {
 
         <div className="mt-8 text-center">
           <a 
-            href="/admin/users" 
+            href="/admin/users/manage" 
             className="text-blue-600 hover:text-blue-800 underline"
           >
             ← ユーザー管理ページに戻る

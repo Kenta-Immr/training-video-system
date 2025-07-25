@@ -234,6 +234,21 @@ export default function UserManagePage() {
     )
   }
 
+  const getStatusBadge = (user: UserData) => {
+    if (user.isFirstLogin) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          初回ログイン待ち
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        アクティブ
+      </span>
+    )
+  }
+
   return (
     <AdminPageWrapper 
       title="ユーザー管理" 
@@ -248,10 +263,10 @@ export default function UserManagePage() {
             </div>
             <div className="flex gap-2">
               <Link
-                href="/admin/users"
+                href="/admin/users/bulk-create"
                 className="btn-secondary"
               >
-                進捗管理
+                一括作成
               </Link>
               <Link
                 href="/admin/groups"
@@ -473,7 +488,10 @@ export default function UserManagePage() {
                       グループ
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      登録日
+                      状態
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      最終ログイン
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       操作
@@ -501,8 +519,20 @@ export default function UserManagePage() {
                           <span className="text-gray-400">未設定</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(user.createdAt).toLocaleDateString('ja-JP')}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(user)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.lastLoginAt 
+                          ? new Date(user.lastLoginAt).toLocaleDateString('ja-JP', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : '未ログイン'
+                        }
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                         <button

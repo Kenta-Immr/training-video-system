@@ -302,7 +302,7 @@ ID: ${newUser.id}
           {/* 戻るリンク */}
           <div className="mt-8 text-center">
             <a 
-              href="/admin/users" 
+              href="/admin/users/manage" 
               className="text-blue-600 hover:text-blue-800 underline text-lg"
             >
               ← ユーザー管理ページに戻る
