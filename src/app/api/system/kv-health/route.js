@@ -1,5 +1,6 @@
 // KVヘルスチェックエンドポイント
-const kvStore = require('../../../../lib/kvStore')
+const path = require('path')
+const kvStore = require(path.join(process.cwd(), 'lib', 'kvStore'))
 
 export async function GET() {
   try {

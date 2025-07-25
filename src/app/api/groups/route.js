@@ -1,5 +1,6 @@
 // App Router用のグループ取得エンドポイント
-const dataStore = require('../../../lib/dataStore')
+const path = require('path')
+const dataStore = require(path.join(process.cwd(), 'lib', 'dataStore'))
 
 export async function GET(request) {
   try {
