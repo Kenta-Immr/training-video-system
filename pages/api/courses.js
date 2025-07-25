@@ -1,5 +1,5 @@
 // Pages Router用のコース取得エンドポイント
-const dataStore = require('../../lib/dataStore')
+const dataStore = require('../../lib/supabaseDataStore')
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -42,13 +42,14 @@ export default async function handler(req, res) {
     console.log('✓ 認証成功 - コース一覧取得開始')
     
     // **強制的に最新データを取得（キャッシュ無効化）**
-    const courses = await dataStore.getCoursesAsync()
+    const coursesData = await dataStore.getCourses()
+    const courses = Object.values(coursesData.courses || {})
     
     console.log(`コース取得完了: ${courses.length}件`)
     console.log('取得したコース一覧:', courses.map(c => ({ 
       id: c.id, 
       title: c.title,
-      createdAt: c.createdAt 
+      created_at: c.created_at 
     })))
     
     // キャッシュを完全に無効化

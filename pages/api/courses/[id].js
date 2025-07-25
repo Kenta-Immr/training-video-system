@@ -1,7 +1,7 @@
 // Single course endpoint
-const dataStore = require('../../../lib/dataStore')
+const dataStore = require('../../../lib/supabaseDataStore')
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   const { id } = req.query
   
   // CORS設定
@@ -18,16 +18,9 @@ export default function handler(req, res) {
     try {
       const courseId = parseInt(id)
       
-      console.log('コース取得リクエスト:', { courseId, hasGetCourseById: typeof dataStore.getCourseById })
+      console.log('コース取得リクエスト:', { courseId })
       
-      if (!dataStore.getCourseById) {
-        return res.status(500).json({
-          success: false,
-          message: 'getCourseById関数が利用できません'
-        })
-      }
-      
-      const course = dataStore.getCourseById(courseId)
+      const course = await dataStore.getCourse(courseId)
       
       if (!course) {
         return res.status(404).json({
@@ -57,7 +50,7 @@ export default function handler(req, res) {
     
     console.log('コース更新リクエスト:', { courseId, title, description, thumbnailUrl })
     
-    const updatedCourse = dataStore.updateCourse(courseId, {
+    const updatedCourse = await dataStore.updateCourse(courseId, {
       title,
       description,
       thumbnailUrl
@@ -82,7 +75,7 @@ export default function handler(req, res) {
   if (req.method === 'DELETE') {
     const courseId = parseInt(id)
     
-    const deleted = dataStore.deleteCourse(courseId)
+    const deleted = await dataStore.deleteCourse(courseId)
     
     if (!deleted) {
       return res.status(404).json({

@@ -1,5 +1,5 @@
 // Production data initialization endpoint
-const dataStore = require('../../../lib/dataStore')
+const dataStore = require('../../../lib/supabaseDataStore')
 
 export default async function handler(req, res) {
   // CORS設定
@@ -211,7 +211,7 @@ export default async function handler(req, res) {
     console.log('📝 個別コース作成開始')
     
     // コース1: ウェブ開発入門
-    const course1 = dataStore.createCourse({
+    const course1 = await dataStore.createCourse({
       title: "ウェブ開発入門",
       description: "HTML、CSS、JavaScriptの基礎から学ぶウェブ開発コース",
       thumbnailUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop"
@@ -219,7 +219,7 @@ export default async function handler(req, res) {
     console.log('✅ コース1作成:', course1?.title)
     
     // コース2: テストコース
-    const course2 = dataStore.createCourse({
+    const course2 = await dataStore.createCourse({
       title: "テストコース", 
       description: "テスト用のコースです",
       thumbnailUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop"
@@ -227,71 +227,98 @@ export default async function handler(req, res) {
     console.log('✅ コース2作成:', course2?.title)
     
     // コース3: プログラミング基礎
-    const course3 = dataStore.createCourse({
+    const course3 = await dataStore.createCourse({
       title: "プログラミング基礎",
       description: "プログラミングの基本概念を学ぶコース", 
       thumbnailUrl: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=300&fit=crop"
     })
     console.log('✅ コース3作成:', course3?.title)
     
-    // 動画の作成
-    console.log('🎥 動画作成開始')
+    // カリキュラムと動画の作成
+    console.log('📚 カリキュラム・動画作成開始')
     try {
-      // コース1の動画
+      // コース1のカリキュラムと動画
       if (course1) {
-        const video1 = dataStore.createVideo({
-          title: "HTML入門",
-          description: "HTMLとは何か",
-          videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-          curriculumId: 1 // 仮のカリキュラムID
+        const curriculum1 = await dataStore.createCurriculum({
+          title: "HTML基礎",
+          description: "HTMLの基本構文と要素",
+          courseId: course1.id
         })
-        console.log('✅ 動画1作成:', video1?.title)
+        console.log('✅ カリキュラム1作成:', curriculum1?.title)
         
-        const video2 = dataStore.createVideo({
-          title: "基本タグ", 
-          description: "よく使うHTMLタグ",
-          videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-          curriculumId: 1
-        })
-        console.log('✅ 動画2作成:', video2?.title)
+        if (curriculum1) {
+          const video1 = await dataStore.createVideo({
+            title: "HTML入門",
+            description: "HTMLとは何か",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            curriculumId: curriculum1.id
+          })
+          console.log('✅ 動画1作成:', video1?.title)
+          
+          const video2 = await dataStore.createVideo({
+            title: "基本タグ", 
+            description: "よく使うHTMLタグ",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            curriculumId: curriculum1.id
+          })
+          console.log('✅ 動画2作成:', video2?.title)
+        }
       }
       
-      // コース2の動画
+      // コース2のカリキュラムと動画
       if (course2) {
-        const video3 = dataStore.createVideo({
-          title: "概要説明",
-          description: "コースの概要について", 
-          videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-          curriculumId: 2
+        const curriculum2 = await dataStore.createCurriculum({
+          title: "基礎編",
+          description: "基本的な概念を学びます",
+          courseId: course2.id
         })
-        console.log('✅ 動画3作成:', video3?.title)
+        console.log('✅ カリキュラム2作成:', curriculum2?.title)
+        
+        if (curriculum2) {
+          const video3 = await dataStore.createVideo({
+            title: "概要説明",
+            description: "コースの概要について", 
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            curriculumId: curriculum2.id
+          })
+          console.log('✅ 動画3作成:', video3?.title)
+        }
       }
       
-      // コース3の動画
+      // コース3のカリキュラムと動画
       if (course3) {
-        const video4 = dataStore.createVideo({
-          title: "プログラミングとは",
-          description: "プログラミングの基本概念",
-          videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", 
-          curriculumId: 3
+        const curriculum3 = await dataStore.createCurriculum({
+          title: "プログラミング入門",
+          description: "プログラミングの基本的な考え方",
+          courseId: course3.id
         })
-        console.log('✅ 動画4作成:', video4?.title)
+        console.log('✅ カリキュラム3作成:', curriculum3?.title)
         
-        const video5 = dataStore.createVideo({
-          title: "変数と演算",
-          description: "変数の使い方と計算",
-          videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-          curriculumId: 3
-        })
-        console.log('✅ 動画5作成:', video5?.title)
+        if (curriculum3) {
+          const video4 = await dataStore.createVideo({
+            title: "プログラミングとは",
+            description: "プログラミングの基本概念",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", 
+            curriculumId: curriculum3.id
+          })
+          console.log('✅ 動画4作成:', video4?.title)
+          
+          const video5 = await dataStore.createVideo({
+            title: "変数と演算",
+            description: "変数の使い方と計算",
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            curriculumId: curriculum3.id
+          })
+          console.log('✅ 動画5作成:', video5?.title)
+        }
       }
     } catch (error) {
-      console.log('⚠️ 動画作成エラー:', error.message)
+      console.log('⚠️ カリキュラム・動画作成エラー:', error.message)
     }
     
     // 基本ユーザーの作成
     try {
-      const admin = dataStore.createUser({
+      const admin = await dataStore.createUser({
         email: "admin@example.com",
         name: "管理者", 
         role: "ADMIN",
@@ -299,7 +326,7 @@ export default async function handler(req, res) {
       })
       console.log('✅ 管理者ユーザー作成:', admin?.name)
       
-      const user = dataStore.createUser({
+      const user = await dataStore.createUser({
         email: "user@example.com",
         name: "テストユーザー",
         role: "USER", 
@@ -312,14 +339,14 @@ export default async function handler(req, res) {
     
     // 基本グループの作成
     try {
-      const group1 = dataStore.createGroup({
+      const group1 = await dataStore.createGroup({
         name: "管理者グループ",
         code: "ADMIN_GROUP", 
         description: "システム管理者用のグループ"
       })
       console.log('✅ 管理者グループ作成:', group1?.name)
       
-      const group2 = dataStore.createGroup({
+      const group2 = await dataStore.createGroup({
         name: "新入社員研修グループA",
         code: "NEWBIE2024",
         description: "2024年度新入社員向けの基礎研修グループ"
@@ -331,9 +358,9 @@ export default async function handler(req, res) {
     
     // 初期化確認
     console.log('🔍 初期化データ確認中...')
-    const courses = dataStore.getCourses()
-    const users = dataStore.getUsers() 
-    const groups = dataStore.getGroups()
+    const courses = await dataStore.getCourses()
+    const users = await dataStore.getUsers() 
+    const groups = await dataStore.getGroups()
     
     const verifyData = {
       courses: courses,

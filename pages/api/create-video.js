@@ -1,5 +1,5 @@
 // 確実動画作成専用エンドポイント
-const dataStore = require('../../lib/dataStore')
+const dataStore = require('../../lib/supabaseDataStore')
 
 export default async function handler(req, res) {
   // CORS設定
@@ -74,13 +74,12 @@ export default async function handler(req, res) {
     }
     
     // dataStoreを使用して動画を作成
-    const newVideo = dataStore.createVideo({
+    const newVideo = await dataStore.createVideo({
       title: title.trim(),
       description: description ? description.trim() : '',
       videoUrl: videoUrl.trim(),
       curriculumId: parseInt(curriculumId),
-      duration: 0, // URLベースの動画では初期値0
-      uploadedFile: false // URL動画フラグ
+      duration: 0 // URLベースの動画では初期値0
     })
     
     if (!newVideo) {
