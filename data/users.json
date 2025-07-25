@@ -167,7 +167,19 @@
       "lastLoginAt": null,
       "createdAt": "2025-07-25T04:17:40.173Z",
       "updatedAt": "2025-07-25T04:17:40.173Z"
+    },
+    "16": {
+      "id": 16,
+      "userId": "user001",
+      "name": "山田太郎",
+      "password": "password123",
+      "role": "USER",
+      "groupId": null,
+      "isFirstLogin": true,
+      "lastLoginAt": null,
+      "createdAt": "2025-07-25T05:23:05.877Z",
+      "updatedAt": "2025-07-25T05:23:05.877Z"
     }
   },
-  "nextUserId": 16
+  "nextUserId": 17
 }
