@@ -15,23 +15,40 @@ export default function handler(req, res) {
   }
   
   if (req.method === 'GET') {
-    const courseId = parseInt(id)
-    
-    const course = dataStore.getCourseById(courseId)
-    
-    if (!course) {
-      return res.status(404).json({
+    try {
+      const courseId = parseInt(id)
+      
+      console.log('コース取得リクエスト:', { courseId, hasGetCourseById: typeof dataStore.getCourseById })
+      
+      if (!dataStore.getCourseById) {
+        return res.status(500).json({
+          success: false,
+          message: 'getCourseById関数が利用できません'
+        })
+      }
+      
+      const course = dataStore.getCourseById(courseId)
+      
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: 'コースが見つかりません'
+        })
+      }
+      
+      console.log(`コース取得成功: ${course.title} (カリキュラム数: ${course.curriculums?.length || 0})`)
+      
+      return res.json({
+        success: true,
+        data: course
+      })
+    } catch (error) {
+      console.error('コース取得エラー:', error)
+      return res.status(500).json({
         success: false,
-        message: 'コースが見つかりません'
+        message: 'コース取得中にエラーが発生しました'
       })
     }
-    
-    console.log(`コース取得: ${course.title} (カリキュラム数: ${course.curriculums?.length || 0})`)
-    
-    return res.json({
-      success: true,
-      data: course
-    })
   }
   
   if (req.method === 'PUT') {

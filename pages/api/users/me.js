@@ -3,8 +3,8 @@ const dataStore = require('../../../lib/dataStore')
 
 // デモユーザー用トークンマッピング（本番ではJWTを使用）
 const demoTokenToUser = {
-  'demo-admin': { email: 'admin@example.com' },
-  'demo-user': { email: 'user@example.com' }
+  'demo-admin': { userId: 'admin' },
+  'demo-user': { userId: 'user1' }
 }
 
 export default function handler(req, res) {
@@ -34,14 +34,18 @@ export default function handler(req, res) {
       // デモトークンチェック（後方互換性）
       if (token.startsWith('demo-')) {
         const tokenUser = demoTokenToUser[token]
-        if (tokenUser) {
+        if (tokenUser && dataStore.getUserByUserId) {
           // データストアから実際のユーザー情報を取得
-          const user = dataStore.getUserByEmail(tokenUser.email)
+          const user = dataStore.getUserByUserId(tokenUser.userId)
           if (user) {
             // グループ情報を付与
             let group = null
-            if (user.groupId) {
-              group = dataStore.getGroupById(user.groupId)
+            if (user.groupId && dataStore.getGroupById) {
+              try {
+                group = dataStore.getGroupById(user.groupId)
+              } catch (groupError) {
+                console.warn(`グループ取得エラー: ${groupError.message}`)
+              }
             }
             
             const userWithGroup = {
@@ -49,7 +53,7 @@ export default function handler(req, res) {
               group
             }
             
-            console.log(`デモユーザー情報取得: ${user.name} (${user.email})`)
+            console.log(`デモユーザー情報取得: ${user.name} (${user.userId})`)
             return res.json({
               success: true,
               data: userWithGroup
@@ -62,7 +66,18 @@ export default function handler(req, res) {
       console.log('実際のユーザートークンを処理中:', token.substring(0, 10) + '...')
       
       // 全ユーザーを取得してトークンマッチング
-      const users = dataStore.getUsers()
+      let users = []
+      if (dataStore.getUsers) {
+        try {
+          users = dataStore.getUsers()
+        } catch (getUsersError) {
+          console.error('ユーザー一覧取得エラー:', getUsersError.message)
+          return res.status(500).json({
+            success: false,
+            message: 'ユーザー情報の取得に失敗しました'
+          })
+        }
+      }
       
       // トークンからユーザーを特定（簡易的な実装）
       let currentUser = null
@@ -70,27 +85,27 @@ export default function handler(req, res) {
       // adminトークンパターン
       if (token.startsWith('admin')) {
         currentUser = users.find(u => u.role === 'ADMIN')
-        console.log('管理者トークンでユーザー検索:', currentUser ? currentUser.email : 'なし')
+        console.log('管理者トークンでユーザー検索:', currentUser ? currentUser.userId : 'なし')
       }
       
       // ユーザーIDベースのトークンパターン（user-{id}）
       if (!currentUser && token.startsWith('user-')) {
         const userId = parseInt(token.replace('user-', ''))
         currentUser = users.find(u => u.id === userId)
-        console.log(`ユーザーID ${userId} でユーザー検索:`, currentUser ? currentUser.email : 'なし')
+        console.log(`ユーザーID ${userId} でユーザー検索:`, currentUser ? currentUser.userId : 'なし')
       }
       
       // ユーザーIDベースのトークンパターン（token-{id}）
       if (!currentUser && token.startsWith('token-')) {
         const userId = parseInt(token.replace('token-', ''))
         currentUser = users.find(u => u.id === userId)
-        console.log(`トークンID ${userId} でユーザー検索:`, currentUser ? currentUser.email : 'なし')
+        console.log(`トークンID ${userId} でユーザー検索:`, currentUser ? currentUser.userId : 'なし')
       }
       
       // 全ユーザーのトークンと照合（フォールバック）
       if (!currentUser) {
         currentUser = users.find(u => u.password && token.includes(u.userId))
-        console.log('ユーザーIDマッチング:', currentUser ? currentUser.email : 'なし')
+        console.log('ユーザーIDマッチング:', currentUser ? currentUser.userId : 'なし')
       }
       
       if (currentUser) {
@@ -109,7 +124,7 @@ export default function handler(req, res) {
           group
         }
         
-        console.log(`ユーザー情報取得成功: ${currentUser.name} (${currentUser.email})`)
+        console.log(`ユーザー情報取得成功: ${currentUser.name} (${currentUser.userId})`)
         return res.json({
           success: true,
           data: userWithGroup
