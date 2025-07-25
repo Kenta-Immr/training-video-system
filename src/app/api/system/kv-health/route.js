@@ -1,5 +1,5 @@
 // KVヘルスチェックエンドポイント
-const kvStore = require('../../../../../lib/kvStore')
+const kvStore = require('../../../../lib/kvStore')
 
 export async function GET() {
   try {

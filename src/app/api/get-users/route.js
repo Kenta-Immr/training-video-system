@@ -1,5 +1,5 @@
 // App Router用のユーザー取得エンドポイント
-const dataStore = require('../../../../lib/dataStore')
+const dataStore = require('../../../lib/dataStore')
 
 export async function GET(request) {
   try {

@@ -1,5 +1,5 @@
 // App Router用のbulk-create API
-const dataStore = require('../../../../../lib/dataStore')
+const dataStore = require('../../../../lib/dataStore')
 
 // パスワード生成（デモ用）
 function generateTempPassword() {
