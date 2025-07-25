@@ -9,7 +9,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate-to-kv": "node scripts/migrate-to-kv.js",
+    "kv-status": "node -e \"const kv = require('./lib/kvStore'); kv.isKVAvailable() ? console.log('✅ KV利用可能') : console.log('❌ KV利用不可')\""
   },
   "dependencies": {
     "@vercel/kv": "^0.2.4",
