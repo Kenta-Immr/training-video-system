@@ -43,33 +43,55 @@ export default function BulkCreateUsersPage() {
   }
 
   const handleSubmit = async () => {
+    console.log('handleSubmit関数が呼び出されました')
+    
     if (!csvText.trim()) {
+      console.log('CSVテキストが空です')
       setError('CSVデータを入力または選択してください')
       return
     }
+
+    console.log('一括ユーザー作成処理開始')
+    console.log('CSVテキスト長:', csvText.length)
+    console.log('CSVテキスト内容:', csvText.substring(0, 200))
 
     setIsUploading(true)
     setError('')
     setResult(null)
 
     try {
-      console.log('一括ユーザー作成開始: userAPI.bulkCreate使用')
-      console.log('CSVテキスト:', csvText.substring(0, 100) + '...')
+      console.log('=== userAPI.bulkCreate呼び出し直前 ===')
+      console.log('userAPI:', userAPI)
+      console.log('userAPI.bulkCreate:', userAPI.bulkCreate)
       
-      const response = await userAPI.bulkCreate({
-        csvText: csvText
-      })
+      const requestData = { csvText: csvText }
+      console.log('リクエストデータ:', requestData)
       
-      console.log('一括ユーザー作成APIレスポンス:', response)
+      const response = await userAPI.bulkCreate(requestData)
+      
+      console.log('=== APIレスポンス受信 ===')
+      console.log('レスポンス全体:', response)
+      console.log('レスポンスデータ:', response.data)
       
       const resultData = response.data?.data || response.data
       setResult(resultData)
-      console.log('一括ユーザー作成完了:', resultData)
+      console.log('結果設定完了:', resultData)
 
     } catch (error: any) {
-      console.error('一括ユーザー作成エラー:', error)
+      console.error('=== エラー発生 ===')
+      console.error('エラーオブジェクト:', error)
+      console.error('エラーメッセージ:', error.message)
+      console.error('エラースタック:', error.stack)
+      
+      if (error.response) {
+        console.error('HTTPレスポンスエラー:', error.response)
+        console.error('ステータス:', error.response.status)
+        console.error('レスポンスデータ:', error.response.data)
+      }
+      
       setError(error.message || '一括ユーザー作成に失敗しました')
     } finally {
+      console.log('処理完了: setIsUploading(false)')
       setIsUploading(false)
     }
   }
@@ -182,7 +204,12 @@ user004,鈴木美咲,passwordabc,USER,営業部`
 
               <div className="flex space-x-3">
                 <button
-                  onClick={handleSubmit}
+                  onClick={() => {
+                    console.log('一括作成ボタンがクリックされました')
+                    console.log('isUploading:', isUploading)
+                    console.log('csvText.trim():', csvText.trim())
+                    handleSubmit()
+                  }}
                   disabled={isUploading || !csvText.trim()}
                   className="btn-primary flex-1 disabled:opacity-50"
                 >
@@ -233,7 +260,12 @@ user004,鈴木美咲,passwordabc,USER,営業部`
 {sampleCsv}
                 </pre>
                 <button
-                  onClick={() => setCsvText(sampleCsv)}
+                  onClick={() => {
+                    console.log('サンプルデータボタンがクリックされました')
+                    console.log('設定するCSVデータ:', sampleCsv)
+                    setCsvText(sampleCsv)
+                    console.log('CSVデータ設定完了')
+                  }}
                   className="btn-secondary text-sm mt-2"
                 >
                   サンプルデータを使用
