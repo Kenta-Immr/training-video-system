@@ -100,12 +100,10 @@ export default function CourseDetailPage() {
       // ファイルアップロードがある場合
       if (data.videoFile && data.videoFile.length > 0) {
         console.log('ファイルアップロードモード')
-        const formData = new FormData()
-        formData.append('video', data.videoFile[0])
-        formData.append('title', data.title)
-        formData.append('description', data.description || '')
-        formData.append('curriculumId', selectedCurriculumId.toString())
-
+        const file = data.videoFile[0]
+        const fileSize = file.size
+        const maxChunkSize = 10 * 1024 * 1024 // 10MB chunks
+        
         if (editingVideo) {
           console.log('既存動画の更新')
           await videoAPI.update(editingVideo.id, {
@@ -114,34 +112,85 @@ export default function CourseDetailPage() {
             videoUrl: data.videoUrl || editingVideo.videoUrl
           })
         } else {
-          console.log('新規動画のアップロード')
-          // カスタムヘッダーを追加してアップロード
+          console.log(`新規動画のアップロード (ファイルサイズ: ${(fileSize / 1024 / 1024).toFixed(2)}MB)`)
           const token = localStorage.getItem('token')
           console.log('使用するトークン:', token)
-          const response = await fetch('/api/videos/upload', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'X-Video-Title': data.title,
-              'X-Video-Description': data.description || '',
-              'X-Curriculum-Id': selectedCurriculumId.toString()
-            },
-            body: formData
-          })
           
-          console.log('レスポンスステータス:', response.status)
-          
-          if (!response.ok) {
-            const errorText = await response.text()
-            console.error('アップロードエラー詳細:', errorText)
-            throw new Error(`アップロードエラー: ${response.status} - ${errorText}`)
-          }
-          
-          const result = await response.json()
-          console.log('アップロード結果:', result)
-          
-          if (!result.success) {
-            throw new Error(result.message || 'アップロードに失敗しました')
+          // ファイルサイズに応じてアップロード方法を選択
+          if (fileSize <= 50 * 1024 * 1024) { // 50MB以下は通常アップロード
+            console.log('通常アップロード使用')
+            const formData = new FormData()
+            formData.append('video', file)
+            
+            const response = await fetch('/api/videos/upload', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'X-Video-Title': data.title,
+                'X-Video-Description': data.description || '',
+                'X-Curriculum-Id': selectedCurriculumId.toString()
+              },
+              body: formData
+            })
+            
+            console.log('レスポンスステータス:', response.status)
+            
+            if (!response.ok) {
+              const errorText = await response.text()
+              console.error('アップロードエラー詳細:', errorText)
+              throw new Error(`アップロードエラー: ${response.status} - ${errorText}`)
+            }
+            
+            const result = await response.json()
+            console.log('アップロード結果:', result)
+            
+            if (!result.success) {
+              throw new Error(result.message || 'アップロードに失敗しました')
+            }
+          } else {
+            // 50MB超の場合はチャンクアップロード
+            console.log('チャンクアップロード使用')
+            const totalChunks = Math.ceil(fileSize / maxChunkSize)
+            console.log(`${totalChunks}個のチャンクに分割してアップロード`)
+            
+            for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+              const start = chunkIndex * maxChunkSize
+              const end = Math.min(start + maxChunkSize, fileSize)
+              const chunk = file.slice(start, end)
+              
+              console.log(`チャンク ${chunkIndex + 1}/${totalChunks} をアップロード中...`)
+              
+              const formData = new FormData()
+              formData.append('chunk', chunk)
+              
+              const response = await fetch('/api/videos/chunked-upload', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'X-Chunk-Index': chunkIndex.toString(),
+                  'X-Total-Chunks': totalChunks.toString(),
+                  'X-Video-Title': data.title,
+                  'X-Video-Description': data.description || '',
+                  'X-Curriculum-Id': selectedCurriculumId.toString()
+                },
+                body: formData
+              })
+              
+              if (!response.ok) {
+                const errorText = await response.text()
+                console.error(`チャンク ${chunkIndex + 1} アップロードエラー:`, errorText)
+                throw new Error(`チャンクアップロードエラー: ${response.status} - ${errorText}`)
+              }
+              
+              const result = await response.json()
+              console.log(`チャンク ${chunkIndex + 1} 結果:`, result)
+              
+              if (!result.success) {
+                throw new Error(result.message || `チャンク ${chunkIndex + 1} のアップロードに失敗しました`)
+              }
+            }
+            
+            console.log('全チャンクのアップロード完了')
           }
         }
       } else {
@@ -440,9 +489,9 @@ export default function CourseDetailPage() {
                           return '動画ファイルまたはURLのどちらかを入力してください'
                         }
                         
-                        // ファイルサイズチェック（1GB = 1,073,741,824 bytes）
-                        if (hasFile && value[0] && value[0].size > 1073741824) {
-                          return 'ファイルサイズが1GBを超えています'
+                        // ファイルサイズチェック（50MB = 52,428,800 bytes）
+                        if (hasFile && value[0] && value[0].size > 52428800) {
+                          return 'ファイルサイズが50MBを超えています'
                         }
                         
                         return true
@@ -456,7 +505,7 @@ export default function CourseDetailPage() {
                     <p className="mt-1 text-sm text-red-600">{videoForm.formState.errors.videoFile.message}</p>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
-                    MP4, WebM, OGG形式がサポートされています（最大1GB）
+                    MP4, WebM, OGG形式がサポートされています（最大50MB）
                   </p>
                 </div>
 

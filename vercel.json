@@ -8,6 +8,12 @@
     },
     "pages/api/courses/upload-thumbnail.js": {
       "maxDuration": 30
+    },
+    "pages/api/create-video.js": {
+      "maxDuration": 60
+    },
+    "pages/api/videos/chunked-upload.js": {
+      "maxDuration": 300
     }
   },
   "regions": ["hnd1"],

@@ -4,8 +4,8 @@
 export const config = {
   api: {
     bodyParser: false,
-    responseLimit: '1gb',
-    sizeLimit: '1gb',
+    responseLimit: '50mb',
+    sizeLimit: '50mb',
   },
   maxDuration: 300,
 }
@@ -53,10 +53,10 @@ export default function handler(req, res) {
     
     // リクエストサイズをチェック
     const contentLength = req.headers['content-length']
-    if (contentLength && parseInt(contentLength) > 1024 * 1024 * 1024) { // 1GB制限
+    if (contentLength && parseInt(contentLength) > 50 * 1024 * 1024) { // 50MB制限
       return res.status(413).json({
         success: false,
-        message: 'ファイルサイズが大きすぎます（1GB以下にしてください）'
+        message: 'ファイルサイズが大きすぎます（50MB以下にしてください）'
       })
     }
     
