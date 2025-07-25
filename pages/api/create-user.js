@@ -121,25 +121,43 @@ export default async function handler(req, res) {
         
         if (isNaN(numericGroupId)) {
           console.log('無効なグループID - 数値に変換できません:', groupId)
-        } else if (dataStore.getGroupById) {
-          group = dataStore.getGroupById(numericGroupId)
-          console.log('グループ確認完了:', { groupId: numericGroupId, foundGroup: !!group })
-          
-          if (!group) {
-            return res.status(400).json({
-              success: false,
-              message: `指定されたグループ(ID: ${numericGroupId})が見つかりません`
-            })
-          }
         } else {
-          console.log('警告: getGroupById 関数が利用できません')
+          // dataStore.getGroupById の存在と安全性を確認
+          console.log('getGroupById関数チェック:', { 
+            exists: typeof dataStore.getGroupById,
+            isFunction: typeof dataStore.getGroupById === 'function'
+          })
+          
+          if (dataStore.getGroupById && typeof dataStore.getGroupById === 'function') {
+            try {
+              group = dataStore.getGroupById(numericGroupId)
+              console.log('グループ確認完了:', { groupId: numericGroupId, foundGroup: !!group })
+              
+              if (!group) {
+                console.log('指定されたグループが見つかりません - 続行します')
+                // グループが見つからなくてもエラーにしない（nullグループとして扱う）
+              }
+            } catch (getGroupError) {
+              console.error('getGroupById実行エラー:', {
+                message: getGroupError.message,
+                stack: getGroupError.stack,
+                groupId: numericGroupId
+              })
+              // グループ取得に失敗してもエラーにしない
+              console.log('グループ取得に失敗しましたが、nullグループとして続行します')
+            }
+          } else {
+            console.log('警告: getGroupById 関数が利用できません - nullグループとして続行')
+          }
         }
       } catch (groupError) {
-        console.error('グループ確認エラー:', groupError)
-        return res.status(400).json({
-          success: false,
-          message: `グループの確認中にエラーが発生しました: ${groupError.message}`
+        console.error('グループ確認エラー:', {
+          message: groupError.message,
+          stack: groupError.stack,
+          groupId: groupId
         })
+        // グループ確認エラーでもユーザー作成は続行
+        console.log('グループ確認でエラーが発生しましたが、nullグループとして続行します')
       }
     } else {
       console.log('グループなしでユーザー作成')
