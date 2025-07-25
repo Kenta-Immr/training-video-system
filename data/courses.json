@@ -31,12 +31,23 @@
               "duration": 653,
               "createdAt": "2024-01-01T00:00:00.000Z",
               "updatedAt": "2024-01-01T00:00:00.000Z"
+            },
+            {
+              "id": 3,
+              "title": "Test Video",
+              "description": "",
+              "videoUrl": "https://www.youtube.com/watch?v=test",
+              "curriculumId": 1,
+              "duration": 0,
+              "uploadedFile": false,
+              "createdAt": "2025-07-25T08:05:13.563Z",
+              "updatedAt": "2025-07-25T08:05:13.564Z"
             }
           ]
         }
       ],
       "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-01T00:00:00.000Z"
+      "updatedAt": "2025-07-25T08:05:13.564Z"
     },
     "2": {
       "id": 2,
@@ -104,5 +115,5 @@
   },
   "nextCourseId": 9,
   "nextCurriculumId": 2,
-  "nextVideoId": 3
+  "nextVideoId": 4
 }
