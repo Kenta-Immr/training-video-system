@@ -202,7 +202,12 @@ export default async function handler(req, res) {
     })
     
   } catch (error) {
-    console.error('緊急ユーザー作成エラー:', error)
+    console.error('緊急ユーザー作成エラー:', {
+      message: error.message,
+      stack: error.stack,
+      requestBody: req.body,
+      env: process.env.NODE_ENV
+    })
     return res.status(500).json({
       success: false,
       message: 'サーバーエラーが発生しました',
