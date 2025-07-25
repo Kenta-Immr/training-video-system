@@ -122,6 +122,13 @@ export default function UserManagePage() {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
+          console.error('ユーザー作成APIエラー詳細:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorData: errorData,
+            url: response.url,
+            requestData: createData
+          })
           throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
         }
 
