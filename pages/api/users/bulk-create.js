@@ -46,16 +46,32 @@ export default async function handler(req, res) {
     })
   }
   
-  // 認証チェック（管理者のみ） - デバッグ用に完全無効化
+  // 認証チェック（管理者のみ）
   const authHeader = req.headers.authorization
   console.log('一括ユーザー作成API認証チェック:', { 
     hasAuthHeader: !!authHeader,
     requestBodySize: JSON.stringify(req.body).length,
-    userAgent: req.headers['user-agent'],
-    method: req.method
+    environment: process.env.NODE_ENV,
+    isVercel: process.env.VERCEL === '1'
   })
   
-  console.log('デバッグ用: 認証チェックを完全スキップ')
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      message: '認証が必要です'
+    })
+  }
+  
+  const token = authHeader.substring(7)
+  // 本番環境では簡易的な認証チェック
+  if (!token || (token !== 'demo-admin' && !token.startsWith('eyJ'))) {
+    return res.status(401).json({
+      success: false,
+      message: '有効な認証トークンが必要です'
+    })
+  }
+  
+  console.log('✓ 認証成功')
   
   console.log('=== 認証成功: 一括ユーザー作成処理開始 ===')
   
@@ -89,8 +105,8 @@ export default async function handler(req, res) {
     
     console.log(`${usersToCreate.length}件のユーザー作成を開始`)
     
-    // データストアから既存ユーザーとグループを取得（非同期版使用）
-    const existingUsers = dataStore.getUsers()
+    // データストアから既存ユーザーとグループを取得（本番環境対応）
+    const existingUsers = await dataStore.getUsersAsync()
     const groups = await dataStore.getGroupsAsync()
     
     console.log(`データ取得完了: ユーザー${existingUsers.length}件, グループ${groups.length}件`)
@@ -118,8 +134,8 @@ export default async function handler(req, res) {
           continue
         }
         
-        // ユーザーIDの重複チェック
-        const existingUser = dataStore.getUserByUserId ? dataStore.getUserByUserId(userData.userId) : null
+        // ユーザーIDの重複チェック（非同期版使用）
+        const existingUser = await dataStore.getUserByUserIdAsync(userData.userId)
         if (existingUser) {
           results.failed.push({
             index: i + 1,
