@@ -489,9 +489,9 @@ export default function CourseDetailPage() {
                           return '動画ファイルまたはURLのどちらかを入力してください'
                         }
                         
-                        // ファイルサイズチェック（Vercelの制限：4MB）
-                        if (hasFile && value[0] && value[0].size > 4 * 1024 * 1024) {
-                          return `ファイルサイズが大きすぎます（${(value[0].size / 1024 / 1024).toFixed(2)}MB）。Vercelの制限により4MB以下にしてください。`
+                        // ファイルサイズチェック（Vercelの制限：500MB）
+                        if (hasFile && value[0] && value[0].size > 500 * 1024 * 1024) {
+                          return `ファイルサイズが大きすぎます（${(value[0].size / 1024 / 1024).toFixed(2)}MB）。Vercelの制限により500MB以下にしてください。大きなファイルは分割アップロードをご利用ください。`
                         }
                         
                         return true
@@ -508,8 +508,11 @@ export default function CourseDetailPage() {
                     <p className="text-gray-500">
                       MP4, WebM, OGG形式がサポートされています
                     </p>
-                    <p className="text-orange-600 font-medium">
-                      ⚠️ Vercelの制限により最大4MBまで。大きなファイルはYouTubeリンクをご利用ください。
+                    <p className="text-green-600 font-medium">
+                      ✅ 最大500MBまでのファイルをアップロード可能。さらに大きなファイルはSupabaseストレージの分割アップロードを使用。
+                    </p>
+                    <p className="text-blue-600 text-xs">
+                      💡 YouTube URLでの動画埋め込みも利用できます
                     </p>
                   </div>
                 </div>
