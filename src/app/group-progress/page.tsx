@@ -1,5 +1,9 @@
 'use client'
 
+// グループ進捗ページは動的コンテンツ（ユーザー認証・グループ情報）
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
 import AuthGuard from '@/components/AuthGuard'
@@ -36,11 +40,9 @@ export default function GroupProgressPage() {
         
         if (!userResponse.ok) {
           if (userResponse.status === 401 || userResponse.status === 403) {
-            // トークンが無効な場合、ログアウトしてログインページにリダイレクト
-            localStorage.removeItem('token')
-            if (typeof window !== 'undefined') {
-              window.location.href = '/login'
-            }
+            console.log('認証エラー:', userResponse.status, userResponse.statusText)
+            setError(`認証エラーが発生しました (Status: ${userResponse.status})。再ログインが必要です。`)
+            setLoading(false)
             return
           }
           throw new Error(`ユーザー情報の取得に失敗しました (Status: ${userResponse.status})`)
