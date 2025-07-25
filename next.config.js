@@ -17,8 +17,6 @@ const nextConfig = {
   },
   // 動的アプリケーションとして設定
   experimental: {
-    // App Router使用時の動的レンダリング最適化
-    appDir: true,
     // ISRの無効化（動的コンテンツのため）
     isrMemoryCacheSize: 0,
   },
