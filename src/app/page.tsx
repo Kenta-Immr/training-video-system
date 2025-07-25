@@ -1,5 +1,9 @@
 'use client'
 
+// 動的レンダリングを強制（ユーザー認証・進捗情報のため）
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AuthGuard from '@/components/AuthGuard'

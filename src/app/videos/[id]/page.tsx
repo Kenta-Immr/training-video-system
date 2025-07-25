@@ -1,5 +1,9 @@
 'use client'
 
+// 動画視聴ページは進捗ログとユーザー情報が動的
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import ReactPlayer from 'react-player'

@@ -1,5 +1,9 @@
 'use client'
 
+// コース管理は動的コンテンツ（動画アップロード等）
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'

@@ -1,5 +1,9 @@
 'use client'
 
+// 通知ページはリアルタイムユーザー情報が必要
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'

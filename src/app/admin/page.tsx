@@ -1,5 +1,9 @@
 'use client'
 
+// 管理者ダッシュボードは常に最新データが必要
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AuthGuard from '@/components/AuthGuard'

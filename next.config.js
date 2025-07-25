@@ -15,6 +15,13 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
   },
+  // 動的アプリケーションとして設定
+  experimental: {
+    // App Router使用時の動的レンダリング最適化
+    appDir: true,
+    // ISRの無効化（動的コンテンツのため）
+    isrMemoryCacheSize: 0,
+  },
   // 安定したビルドID（デプロイ安定性のため）
   generateBuildId: async () => {
     // 日次ベースの安定したビルドID

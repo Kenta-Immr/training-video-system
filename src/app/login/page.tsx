@@ -1,5 +1,9 @@
 'use client'
 
+// ログインページは認証状態によって動的に変化
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
