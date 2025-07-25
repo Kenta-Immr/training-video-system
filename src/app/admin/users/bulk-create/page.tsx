@@ -85,7 +85,7 @@ export default function BulkCreateUsersPage() {
   }
 
   const downloadSampleCSV = () => {
-    const sampleCSV = `userId,email,name,password,role,groupName
+    const sampleCSV = `userId,name,password,role,groupName
 user001,yamada@example.com,山田太郎,password123,USER,営業部
 user002,sato@example.com,佐藤花子,password456,USER,技術部
 user003,tanaka@example.com,田中次郎,password789,ADMIN,管理部
@@ -105,7 +105,7 @@ user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
     }
   }
 
-  const sampleCsv = `userId,email,name,password,role,groupName
+  const sampleCsv = `userId,name,password,role,groupName
 user001,yamada@example.com,山田太郎,password123,USER,営業部
 user002,sato@example.com,佐藤花子,password456,USER,技術部
 user003,tanaka@example.com,田中次郎,password789,ADMIN,管理部
@@ -173,7 +173,7 @@ user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
                   onChange={(e) => setCsvText(e.target.value)}
                   className="form-input"
                   rows={10}
-                  placeholder="name,email,role,groupId&#10;山田太郎,yamada@example.com,USER,2&#10;佐藤花子,sato@example.com,ADMIN,1"
+                  placeholder="userId,name,role,groupId&#10;yamada,山田太郎,USER,2&#10;sato,佐藤花子,ADMIN,1"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   1行目にヘッダー、2行目以降にデータを入力してください
@@ -213,8 +213,8 @@ user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
               <div>
                 <h3 className="font-medium text-gray-900 mb-2">必須フィールド</h3>
                 <ul className="text-sm text-gray-600 space-y-1">
+                  <li><code className="bg-gray-100 px-1 rounded">userId</code> - ユーザーID（必須）</li>
                   <li><code className="bg-gray-100 px-1 rounded">name</code> - ユーザー名（必須）</li>
-                  <li><code className="bg-gray-100 px-1 rounded">email</code> - メールアドレス（必須）</li>
                 </ul>
               </div>
 
@@ -270,7 +270,7 @@ user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">名前</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">メール</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ユーザーID</th>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">権限</th>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">グループ</th>
                         </tr>
@@ -279,7 +279,7 @@ user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
                         {result.created.map((user, index) => (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="px-4 py-2 text-sm text-gray-900">{user.name}</td>
-                            <td className="px-4 py-2 text-sm text-gray-600">{user.email}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{user.userId}</td>
                             <td className="px-4 py-2 text-sm">
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                                 user.role === 'ADMIN' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
@@ -307,7 +307,7 @@ user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">行</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">メール</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ユーザーID</th>
                           <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">エラー</th>
                         </tr>
                       </thead>
@@ -315,7 +315,7 @@ user004,suzuki@example.com,鈴木美咲,passwordabc,USER,営業部`
                         {result.failed.map((error, index) => (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="px-4 py-2 text-sm text-gray-900">{error.index}</td>
-                            <td className="px-4 py-2 text-sm text-gray-600">{error.email}</td>
+                            <td className="px-4 py-2 text-sm text-gray-600">{error.userId}</td>
                             <td className="px-4 py-2 text-sm text-red-600">{error.error}</td>
                           </tr>
                         ))}

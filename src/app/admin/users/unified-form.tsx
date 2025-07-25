@@ -11,7 +11,6 @@ interface UnifiedUserFormProps {
 export default function UnifiedUserForm({ onUserCreated, onClose, standalone = false }: UnifiedUserFormProps) {
   const [formData, setFormData] = useState({
     userId: '',
-    email: '',
     name: '',
     role: 'USER'
   })
@@ -55,12 +54,12 @@ export default function UnifiedUserForm({ onUserCreated, onClose, standalone = f
         const newUser = data.data
         setResult(`✅ ユーザー作成成功！
 名前: ${newUser.name}
-メール: ${newUser.email}
+ユーザーID: ${newUser.userId}
 ID: ${newUser.id}
 一時パスワード: ${newUser.tempPassword}`)
         
         // フォームリセット
-        setFormData({ email: '', name: '', role: 'USER' })
+        setFormData({ userId: '', name: '', role: 'USER' })
         
         // コールバック実行
         if (onUserCreated) {
@@ -118,7 +117,6 @@ ID: ${newUser.id}
     
     setFormData({
       userId: randomUserId,
-      email: `test${timestamp}@example.com`,
       name: randomName,
       role: Math.random() > 0.8 ? 'ADMIN' : 'USER'
     })
@@ -149,20 +147,6 @@ ID: ${newUser.id}
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                メールアドレス *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="user@example.com"
-              />
-            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -254,20 +238,6 @@ ID: ${newUser.id}
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            メールアドレス *
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder="user@example.com"
-          />
-        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

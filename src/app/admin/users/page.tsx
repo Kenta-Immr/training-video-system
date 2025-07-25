@@ -11,7 +11,6 @@ import UnifiedUserForm from './unified-form'
 
 interface UserForm {
   userId: string
-  email: string
   name: string
   role: 'USER' | 'ADMIN'
   groupId?: number
@@ -181,7 +180,7 @@ export default function UsersPage() {
 
   const handleEdit = (user: UserData) => {
     setEditingUser(user)
-    userForm.setValue('email', user.email)
+    userForm.setValue('userId', user.userId)
     userForm.setValue('name', user.name)
     userForm.setValue('role', user.role as 'USER' | 'ADMIN')
     userForm.setValue('groupId', user.groupId)
@@ -384,7 +383,7 @@ export default function UsersPage() {
                             {user.name}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {user.email}
+                            ID: {user.id}
                           </div>
                         </div>
                       </div>
