@@ -97,13 +97,27 @@ export default async function handler(req, res) {
     }
     
     // グループの存在確認
-    console.log('グループ確認開始...')
+    console.log('グループ確認開始...', { groupId, groupIdType: typeof groupId })
     let group = null
-    if (groupId) {
+    
+    // グループIDが有効な値の場合のみチェック
+    if (groupId && groupId !== null && groupId !== '' && groupId !== 'null' && groupId !== 'undefined') {
       try {
-        if (dataStore.getGroupById) {
-          group = dataStore.getGroupById(groupId)
-          console.log('グループ確認完了:', { groupId, foundGroup: !!group })
+        const numericGroupId = parseInt(groupId)
+        console.log('グループID変換:', { original: groupId, numeric: numericGroupId })
+        
+        if (isNaN(numericGroupId)) {
+          console.log('無効なグループID - 数値に変換できません:', groupId)
+        } else if (dataStore.getGroupById) {
+          group = dataStore.getGroupById(numericGroupId)
+          console.log('グループ確認完了:', { groupId: numericGroupId, foundGroup: !!group })
+          
+          if (!group) {
+            return res.status(400).json({
+              success: false,
+              message: `指定されたグループ(ID: ${numericGroupId})が見つかりません`
+            })
+          }
         } else {
           console.log('警告: getGroupById 関数が利用できません')
         }
@@ -111,16 +125,11 @@ export default async function handler(req, res) {
         console.error('グループ確認エラー:', groupError)
         return res.status(400).json({
           success: false,
-          message: 'グループの確認中にエラーが発生しました'
+          message: `グループの確認中にエラーが発生しました: ${groupError.message}`
         })
       }
-      
-      if (!group) {
-        return res.status(400).json({
-          success: false,
-          message: '指定されたグループが見つかりません'
-        })
-      }
+    } else {
+      console.log('グループなしでユーザー作成')
     }
     
     const tempPassword = password || generateTempPassword()
@@ -148,6 +157,13 @@ export default async function handler(req, res) {
           }
         }
         
+        // グループIDを適切に処理
+        let finalGroupId = null
+        if (groupId && groupId !== '' && groupId !== 'null' && groupId !== 'undefined') {
+          const numericGroupId = parseInt(groupId)
+          finalGroupId = isNaN(numericGroupId) ? null : numericGroupId
+        }
+        
         const newUserId = usersData.nextUserId
         newUser = {
           id: newUserId,
@@ -155,7 +171,7 @@ export default async function handler(req, res) {
           name,
           password: tempPassword,
           role: role.toUpperCase(),
-          groupId: groupId || null,
+          groupId: finalGroupId,
           isFirstLogin: true,
           lastLoginAt: null,
           createdAt: new Date().toISOString(),
@@ -184,12 +200,19 @@ export default async function handler(req, res) {
         throw new Error('createUserAsync 関数が利用できません')
       }
       
+      // グループIDを適切に処理
+      let finalGroupId = null
+      if (groupId && groupId !== '' && groupId !== 'null' && groupId !== 'undefined') {
+        const numericGroupId = parseInt(groupId)
+        finalGroupId = isNaN(numericGroupId) ? null : numericGroupId
+      }
+      
       const createData = {
         userId,
         name,
         password: tempPassword,
         role: role.toUpperCase(),
-        groupId: groupId || null,
+        groupId: finalGroupId,
         isFirstLogin: true
       }
       
