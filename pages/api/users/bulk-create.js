@@ -1,6 +1,5 @@
-// App Router用のbulk-create API
-const path = require('path')
-const dataStore = require(path.join(process.cwd(), 'lib', 'dataStore'))
+// Pages Router用のbulk-create API
+const dataStore = require('../../../lib/dataStore')
 
 // パスワード生成（デモ用）
 function generateTempPassword() {
@@ -29,18 +28,20 @@ function parseCSV(csvText) {
   return users
 }
 
-export async function POST(request) {
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, message: 'Method not allowed' })
+  }
+
   try {
     // CORS設定
-    const headers = {
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST,OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    }
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
     // 認証チェック（管理者のみ）
-    const authHeader = request.headers.get('authorization')
+    const authHeader = req.headers.authorization
     console.log('一括ユーザー作成API認証チェック:', { 
       hasAuthHeader: !!authHeader,
       environment: process.env.NODE_ENV,
@@ -48,32 +49,25 @@ export async function POST(request) {
     })
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({
+      return res.status(401).json({
         success: false,
         message: '認証が必要です'
-      }), {
-        status: 401,
-        headers: { ...headers, 'Content-Type': 'application/json' }
       })
     }
     
     const token = authHeader.substring(7)
     // 本番環境では簡易的な認証チェック
     if (!token || (token !== 'demo-admin' && !token.startsWith('eyJ'))) {
-      return new Response(JSON.stringify({
+      return res.status(401).json({
         success: false,
         message: '有効な認証トークンが必要です'
-      }), {
-        status: 401,
-        headers: { ...headers, 'Content-Type': 'application/json' }
       })
     }
     
     console.log('✓ 認証成功')
     console.log('=== 認証成功: 一括ユーザー作成処理開始 ===')
     
-    const body = await request.json()
-    const { users: usersArray, csvText } = body
+    const { users: usersArray, csvText } = req.body
     let usersToCreate = []
     
     // CSVテキストが提供された場合
@@ -87,22 +81,16 @@ export async function POST(request) {
       usersToCreate = usersArray
     } 
     else {
-      return new Response(JSON.stringify({
+      return res.status(400).json({
         success: false,
         message: 'CSVテキストまたはユーザー配列が必要です'
-      }), {
-        status: 400,
-        headers: { ...headers, 'Content-Type': 'application/json' }
       })
     }
     
     if (usersToCreate.length === 0) {
-      return new Response(JSON.stringify({
+      return res.status(400).json({
         success: false,
         message: '作成するユーザーが見つかりません'
-      }), {
-        status: 400,
-        headers: { ...headers, 'Content-Type': 'application/json' }
       })
     }
     
@@ -203,36 +191,18 @@ export async function POST(request) {
     
     console.log(`一括ユーザー作成完了: 成功=${results.success}, エラー=${results.errors}`)
     
-    return new Response(JSON.stringify({
+    return res.status(200).json({
       success: true,
       data: results,
       message: `${results.success}件のユーザーを作成しました（エラー: ${results.errors}件）`
-    }), {
-      status: 200,
-      headers: { ...headers, 'Content-Type': 'application/json' }
     })
     
   } catch (error) {
     console.error('一括ユーザー作成エラー:', error)
-    return new Response(JSON.stringify({
+    return res.status(500).json({
       success: false,
       message: 'サーバー内部エラーが発生しました',
       error: error.message
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
     })
   }
-}
-
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST,OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    }
-  })
 }
