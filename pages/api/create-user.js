@@ -55,6 +55,13 @@ export default async function handler(req, res) {
   }
   
   try {
+    console.log('=== create-user API 開始 ===')
+    console.log('dataStore 関数確認:', {
+      hasGetUserByUserId: typeof dataStore.getUserByUserId,
+      hasCreateUserAsync: typeof dataStore.createUserAsync,
+      hasGetGroupById: typeof dataStore.getGroupById
+    })
+    
     const { userId, name, role = 'USER', password, groupId } = req.body
     
     console.log('緊急ユーザー作成リクエスト:', { userId, name, role, groupId })
@@ -68,7 +75,20 @@ export default async function handler(req, res) {
     }
     
     // ユーザーIDの重複チェック
-    const existingUser = dataStore.getUserByUserId ? dataStore.getUserByUserId(userId) : null
+    console.log('重複チェック開始...')
+    let existingUser = null
+    try {
+      if (dataStore.getUserByUserId) {
+        existingUser = dataStore.getUserByUserId(userId)
+        console.log('重複チェック完了:', { userId, existingUser: !!existingUser })
+      } else {
+        console.log('警告: getUserByUserId 関数が利用できません')
+      }
+    } catch (duplicateError) {
+      console.error('重複チェックエラー:', duplicateError)
+      // 重複チェックに失敗しても続行
+    }
+    
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -77,9 +97,24 @@ export default async function handler(req, res) {
     }
     
     // グループの存在確認
+    console.log('グループ確認開始...')
     let group = null
     if (groupId) {
-      group = dataStore.getGroupById(groupId)
+      try {
+        if (dataStore.getGroupById) {
+          group = dataStore.getGroupById(groupId)
+          console.log('グループ確認完了:', { groupId, foundGroup: !!group })
+        } else {
+          console.log('警告: getGroupById 関数が利用できません')
+        }
+      } catch (groupError) {
+        console.error('グループ確認エラー:', groupError)
+        return res.status(400).json({
+          success: false,
+          message: 'グループの確認中にエラーが発生しました'
+        })
+      }
+      
       if (!group) {
         return res.status(400).json({
           success: false,
@@ -143,23 +178,37 @@ export default async function handler(req, res) {
     }
     
     // DataStore経由での保存も試行（フォールバック）
+    console.log('DataStore保存開始...')
     try {
-      const dataStoreUser = await dataStore.createUserAsync({
+      if (!dataStore.createUserAsync) {
+        throw new Error('createUserAsync 関数が利用できません')
+      }
+      
+      const createData = {
         userId,
         name,
         password: tempPassword,
         role: role.toUpperCase(),
         groupId: groupId || null,
         isFirstLogin: true
-      })
+      }
+      
+      console.log('createUserAsync 呼び出し:', createData)
+      const dataStoreUser = await dataStore.createUserAsync(createData)
       
       if (dataStoreUser) {
         newUser = dataStoreUser
         dataStoreSaved = true
-        console.log('DataStore保存成功:', dataStoreUser.name)
+        console.log('DataStore保存成功:', dataStoreUser.name, dataStoreUser.id)
+      } else {
+        console.log('DataStore保存失敗: ユーザーが作成されませんでした')
       }
     } catch (dsError) {
-      console.error('DataStore保存失敗:', dsError)
+      console.error('DataStore保存失敗詳細:', {
+        message: dsError.message,
+        stack: dsError.stack,
+        name: dsError.name
+      })
     }
     
     if (!newUser) {
