@@ -88,10 +88,10 @@ export default function BulkCreateUsersPage() {
 
   const downloadSampleCSV = () => {
     const sampleCSV = `userId,name,password,role,groupName
-user001,山田太郎,password123,USER,営業部
-user002,佐藤花子,password456,USER,技術部
-user003,田中次郎,password789,ADMIN,管理部
-user004,鈴木美咲,passwordabc,USER,営業部`
+newuser001,山田太郎,password123,USER,開発チーム
+newuser002,佐藤花子,password456,USER,テストグループ
+newuser003,田中次郎,password789,ADMIN,新しいグループ
+newuser004,鈴木美咲,passwordabc,USER,開発チーム`
 
     const blob = new Blob([sampleCSV], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
@@ -108,10 +108,10 @@ user004,鈴木美咲,passwordabc,USER,営業部`
   }
 
   const sampleCsv = `userId,name,password,role,groupName
-user001,山田太郎,password123,USER,営業部
-user002,佐藤花子,password456,USER,技術部
-user003,田中次郎,password789,ADMIN,管理部
-user004,鈴木美咲,passwordabc,USER,営業部`
+newuser001,山田太郎,password123,USER,開発チーム
+newuser002,佐藤花子,password456,USER,テストグループ
+newuser003,田中次郎,password789,ADMIN,新しいグループ
+newuser004,鈴木美咲,passwordabc,USER,開発チーム`
 
   return (
     <AuthGuard requireAdmin>
@@ -234,12 +234,28 @@ user004,鈴木美咲,passwordabc,USER,営業部`
                 <pre className="text-xs bg-gray-100 p-3 rounded overflow-x-auto">
 {sampleCsv}
                 </pre>
-                <button
-                  onClick={() => setCsvText(sampleCsv)}
-                  className="btn-secondary text-sm mt-2"
-                >
-                  サンプルデータを使用
-                </button>
+                <div className="flex space-x-2 mt-2">
+                  <button
+                    onClick={() => setCsvText(sampleCsv)}
+                    className="btn-secondary text-sm"
+                  >
+                    サンプルデータを使用
+                  </button>
+                  <button
+                    onClick={() => {
+                      const timestamp = Date.now().toString().slice(-6)
+                      const uniqueSample = `userId,name,password,role,groupName
+test${timestamp}01,山田太郎,password123,USER,開発チーム
+test${timestamp}02,佐藤花子,password456,USER,テストグループ  
+test${timestamp}03,田中次郎,password789,ADMIN,新しいグループ
+test${timestamp}04,鈴木美咲,passwordabc,USER,開発チーム`
+                      setCsvText(uniqueSample)
+                    }}
+                    className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700"
+                  >
+                    一意なデータ生成
+                  </button>
+                </div>
               </div>
             </div>
           </div>
