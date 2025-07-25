@@ -489,9 +489,9 @@ export default function CourseDetailPage() {
                           return '動画ファイルまたはURLのどちらかを入力してください'
                         }
                         
-                        // ファイルサイズチェック（50MB = 52,428,800 bytes）
-                        if (hasFile && value[0] && value[0].size > 52428800) {
-                          return 'ファイルサイズが50MBを超えています'
+                        // ファイルサイズチェック（Vercelの制限：4MB）
+                        if (hasFile && value[0] && value[0].size > 4 * 1024 * 1024) {
+                          return `ファイルサイズが大きすぎます（${(value[0].size / 1024 / 1024).toFixed(2)}MB）。Vercelの制限により4MB以下にしてください。`
                         }
                         
                         return true
@@ -504,9 +504,14 @@ export default function CourseDetailPage() {
                   {videoForm.formState.errors.videoFile && (
                     <p className="mt-1 text-sm text-red-600">{videoForm.formState.errors.videoFile.message}</p>
                   )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    MP4, WebM, OGG形式がサポートされています（最大50MB）
-                  </p>
+                  <div className="text-xs mt-1 space-y-1">
+                    <p className="text-gray-500">
+                      MP4, WebM, OGG形式がサポートされています
+                    </p>
+                    <p className="text-orange-600 font-medium">
+                      ⚠️ Vercelの制限により最大4MBまで。大きなファイルはYouTubeリンクをご利用ください。
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex gap-2 pt-4">
